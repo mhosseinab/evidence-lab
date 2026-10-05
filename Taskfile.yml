@@ -19,6 +19,11 @@ tasks:
     - uv sync --all-packages --locked --group dev
     - pnpm install --frozen-lockfile
     - task: dashboard:build
+  dev:
+    desc: Run the API, worker and Vue hot reload together (Ctrl+C stops all)
+    cmds:
+    - task: dashboard:build
+    - exec .venv/bin/python tooling/scripts/dev.py --config '{{.CONFIG}}' {{.CLI_ARGS}}
   lock:
     desc: Update both language workspace lockfiles
     cmds:

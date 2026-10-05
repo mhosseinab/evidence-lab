@@ -32,21 +32,21 @@ Stop processes with `task compose:stop`. This preserves the database volume. The
 
 ## Local development
 
-Install Python 3.12 or newer, [uv](https://docs.astral.sh/uv/), [Task](https://taskfile.dev/), Node.js 24 or newer and [pnpm](https://pnpm.io/), and use a PostgreSQL server with pgvector installed. The local configuration defaults to `postgresql://rag:rag@localhost:5432/rag`. You can run just the database from Compose:
+Install Python 3.12 or newer, [uv](https://docs.astral.sh/uv/), [Task](https://taskfile.dev/), Node.js 24 or newer and [pnpm](https://pnpm.io/). The default mock development command uses Docker Compose to provide PostgreSQL with pgvector at `postgresql://rag:rag@localhost:5432/rag`.
 
 ```bash
 task setup
-task compose:db
-task app:migrate
-task app:seed
 ```
 
-Start the API and worker in separate terminals:
+Start the API, worker and Vue hot reload in one terminal:
 
 ```bash
-task dashboard:serve
-task app:worker
+task dev
 ```
+
+Open Vite’s printed URL (normally `http://127.0.0.1:5173/static/`). Ctrl+C stops all three services; if one exits, the others stop too. Use `task dev CONFIG=configs/private.yaml` to select configuration. The API uses its configured host/port, and Vite proxies to that address. Pass `-- --dashboard-port 5174` to select a different frontend port. With the unchanged default mock configuration, this command starts the Compose database when unavailable, waits for it to become healthy, and applies migrations before launching services. The database stays running after Ctrl+C, preserving development data. For a custom configuration, start its PostgreSQL service and run `task app:migrate CONFIG=...` first; task dev checks availability/schema and never starts or migrates a custom database automatically. The API and worker require restarting after Python changes.
+
+Optionally run `task app:seed` in another terminal after startup to load demo documents. For the compiled dashboard, run `task dashboard:serve` and `task app:worker` in separate terminals after preparing the database.
 
 The worker processes up to four jobs concurrently by default. A persistent reservation ledger enforces the configured outbound concurrency across worker processes. PostgreSQL leases fence every worker publication, and a restart cannot reset remote attempt or cost accounting. The `--once` worker option processes at most one job for debugging.
 
@@ -242,4 +242,4 @@ task clean         # remove generated development/build caches
 
 This is a bounded PoC, not a production rollout or a validated domain model. Stored documents may themselves be inaccurate or incomplete. Its empirical purpose is to determine whether a selected hosted verifier improves useful, supported answers under the measured policy, latency and cost constraints.
 
-For dashboard hot reload, run `task app:serve` and `task dashboard:dev` in separate terminals. Open the Vite URL printed by the latter; its `/api` and `/health` requests proxy to the API on localhost port 8000. Use `task dashboard:serve` for the built dashboard served by FastAPI. See [dashboard development](apps/dashboard/README.md) for the component structure and test commands.
+For dashboard hot reload with its API and worker, run `task dev`. Individual services remain available through `task app:serve`, `task app:worker` and `task dashboard:dev`. Open the Vite URL printed by the latter; its `/api` and `/health` requests proxy to the API on localhost port 8000. Use `task dashboard:serve` for the built dashboard served by FastAPI. See [dashboard development](apps/dashboard/README.md) for the component structure and test commands.

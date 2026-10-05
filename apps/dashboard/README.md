@@ -33,6 +33,6 @@ task dashboard:build
 task dashboard:serve
 ```
 
-For hot reload, start `task app:serve` then `task dashboard:dev` in another terminal. Vite proxies `/api` and `/health` to localhost port 8000; production remains served by FastAPI. Generated `dist/` assets have content hashes and are ignored by Git. `task clean` removes them; startup and packaging tasks rebuild them.
+For hot reload, run `task dev` to start the API, worker and Vite together. Ctrl+C stops the API, worker and Vite; the development database remains running. The default mock configuration starts/waits for PostgreSQL and migrates it automatically. Custom configurations require an available, explicitly migrated database. The root command sets Vite’s `/api` and `/health` proxy from the selected configuration; standalone `task dashboard:dev` defaults to localhost port 8000; production remains served by FastAPI. Generated `dist/` assets have content hashes and are ignored by Git. `task clean` removes them; startup and packaging tasks rebuild them.
 
 `vue-tsc` checks templates and TypeScript, Biome checks both SFC markup and embedded scripts, and Vitest with Vue Test Utils exercises components and state. TypeScript 6 is pinned because this version of `vue-tsc` requires the JavaScript compiler API that TypeScript 7 no longer exports.

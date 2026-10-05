@@ -1,0 +1,11 @@
+task: [dashboard:test] pnpm --filter @evidence-lab/dashboard run test
+$ vitest run
+
+ RUN  v5.0.3 /home/geek/workspace/rag-poc/apps/dashboard
+
+
+ Test Files  3 passed (3)
+      Tests  24 passed (24)
+   Start at  00:09:02
+   Duration  731ms (environment 70%, transform 16%, import 7%, tests 6%, worker 1%)
+

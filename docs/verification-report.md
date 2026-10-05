@@ -72,3 +72,20 @@ No model downloads, hosted inference or paid calls were performed. Mock workflow
 Added explicit non-None assertions before indexing worker results and Wilson intervals or comparing the zero-event bound. The API test double's mutable run mapping and evaluation artifact/sample fixtures now have explicit types, resolving the remaining inferred-container errors in these two files.
 
 Basedpyright analyzed both files with the root Python environment: **zero errors**. Its default strict diagnostics still report 803 warnings, mostly unannotated fixture/unknown-type warnings; this change does not claim a warning-free repository. Ruff lint and formatting checks passed, and all **58 tests** in the two files passed against a fresh native PostgreSQL fixture. Temporary tools, database and generated caches were removed after checking.
+
+
+## Unified development command — 6 October 2026
+
+`task dev` builds the dashboard, then starts the configured API, durable worker and Vite hot reload together. A small local supervisor terminates all owned process groups on Ctrl+C or service exit. Vite's proxy follows the configured API host/port through `EVIDENCE_LAB_API_URL`; standalone Vite retains its port-8000 default. `-- --dashboard-port PORT` selects the frontend port, with strict port binding. Database preparation is described in the follow-up below; Python changes require restarting development.
+
+`task lint` and all 24 dashboard tests passed. An isolated mock/native PostgreSQL smoke check verified Vite HMR HTML, a non-default API port through the proxy, multipart upload and actual worker ingestion. Ctrl+C closed both server ports. Deliberately occupying the API port returned failure and stopped the remaining services. Existing deployment services/data were preserved; temporary services, database, configuration and generated outputs were removed.
+
+Development transcripts: [startup/Ctrl+C](build-evidence/dev-command/start-and-stop.log.txt), [expected port-conflict shutdown](build-evidence/dev-command/port-conflict.log.txt), [dashboard tests](build-evidence/dev-command/dashboard-tests.log.txt). Interrupt/failure exit messages in the first two transcripts are expected verification outcomes.
+
+## Development database prerequisites — 6 October 2026
+
+The reported startup failure occurred because the development database was unavailable. With the unchanged default mock configuration, `task dev` now starts the Compose database when needed, waits for its health check, and applies migrations before launching services. Custom configurations require an explicitly prepared database; preflight reports an actionable migration command before any services start. Ctrl+C leaves the database running to preserve development data.
+
+Six regression tests cover setup ordering, an existing default database, custom database boundaries, setup failures, missing schema and cancellation before server launch. `task check` passed **356 Python tests and 24 dashboard tests**, with no skips. Lint and the production dashboard build passed. A fresh native PostgreSQL fixture verified the custom missing-schema error, explicit migration, successful API access through Vite and process cleanup on Ctrl+C. Temporary test resources and generated outputs were removed; existing deployment services/data were preserved.
+
+Evidence: [full checks](build-evidence/dev-command/prerequisites-check.log.txt), [JUnit](build-evidence/dev-command/prerequisites.junit.xml), [missing-schema preflight](build-evidence/dev-command/unmigrated-database.log.txt), [prepared database startup](build-evidence/dev-command/prepared-database.log.txt). The missing-schema failure and interrupt exits are expected verification outcomes. Default Compose setup ordering is covered by regression tests; the native smoke check uses an isolated custom configuration.
