@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "backend": "PGlite PostgreSQL/pgvector",
+  "mode": "deterministic fixtures",
+  "fault_injection": "One-time ingestion embedding error, test wrapper only",
+  "checks": [
+    "default corpus upload/query remain functional",
+    "new corpus dialog validates IDs and selects the created corpus without stale answer/evidence",
+    "empty selected corpus does not retrieve the default corpus document",
+    "recoverable ingestion failure exposes Retry, requeues the same job and completes indexing",
+    "query and evidence use the selected corpus after retry",
+    "corpus switching updates documents, counts and server-filtered question history",
+    "embedding-space mismatch shows the restore-or-new-corpus guidance",
+    "corpus selector is available on mobile without page overflow"
+  ],
+  "errors": [],
+  "started_at": "2026-10-05T20:17:37.473Z",
+  "retry_job_id": "57c7b616-5cf4-4faa-80fe-d0407fe39861",
+  "retry_attempts": 2,
+  "selected_corpus": "recovery_demo",
+  "finished_at": "2026-10-05T20:17:50.068Z",
+  "static_sha256": {
+    "app.js": "88fd6e7615b23a2ca141fb5fa998a5d272a4088ff8cd454c75de02071f1eaa33",
+    "favicon.svg": "0a35b736a41f25ec3060efd7489f46b3b7db581fb265205062e1d0d4a21e5178",
+    "index.html": "96a0098135210a9d4a70c29f9af423e97637c87dfe834466abf42089ca4b2e0e",
+    "styles.css": "69eb3e051706151ac6c5bc62d66aa602548f318d6452003037242e882c5847f6"
+  },
+  "scope": "Actual browser against FastAPI, durable Worker and PGlite PostgreSQL/pgvector in an isolated process namespace. Deterministic mock providers; no hosted models or paid endpoint calls. Workflow verification does not measure model quality or native PostgreSQL deployment behavior."
+}

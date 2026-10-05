@@ -1,0 +1,637 @@
+{
+  "schema_version": 1,
+  "dataset_hash": "ccd32b8428881d30ec30f07c6fced73a99e35907941ef90f1770a4f3ae2e2cc6",
+  "answers": [
+    {
+      "question_id": "q-conflict",
+      "answer_hash": "9ccbdf4ff2b2ed615cb9e5976032f947d737a20442b1a19fb5e0214b57cbdb5d",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-conflict",
+      "answer_hash": "e5b890c8df4b4ffeba47b38f55b52ca274f080902eb7ad7eb0f30d0dcd582f6e",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-conflict",
+      "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-empty",
+      "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-missing",
+      "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-multi",
+      "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-postage",
+      "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-repair",
+      "answer_hash": "9cec92ddf53fa4458ca510161a4c0a14180c25bce023514eecba0cd91de0218e",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-repair",
+      "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-repair",
+      "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    },
+    {
+      "question_id": "q-return-window",
+      "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+      "all_material_facts_reviewed": false,
+      "substantive": null,
+      "fully_supported": null,
+      "correct_and_complete": null,
+      "appropriate_response": null,
+      "material_claims": [],
+      "review": {
+        "status": "unreviewed",
+        "reviewer_ids": [],
+        "adjudicator_id": null,
+        "reviewed_at": null,
+        "notes": "Fill only after independent review and adjudication."
+      }
+    }
+  ],
+  "review_packets": [
+    {
+      "question_id": "q-conflict",
+      "question": "[fixture:conflict] How long does the Basic plan retain logs according to both guides?",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-retention-guide-a",
+            "end": 95,
+            "page": 1,
+            "text": "The Basic plan retains logs for 14 days.\nThis guide applies to Basic plans from 1 January 2026.",
+            "start": 0,
+            "title": "Fictional Acorn Guide A",
+            "text_hash": "c2c81457e1fc5628d264522f0538ef4b3ad54127ebc8f9a2c752e0b5a2dbab9a",
+            "dense_rank": null,
+            "version_id": "retention-guide-a-v1",
+            "document_id": "retention-guide-a",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          },
+          {
+            "id": "e-retention-guide-b",
+            "end": 95,
+            "page": 1,
+            "text": "The Basic plan retains logs for 30 days.\nThis guide applies to Basic plans from 1 January 2026.",
+            "start": 0,
+            "title": "Fictional Acorn Guide B",
+            "text_hash": "d4dbd18a4abb6be5e499fe546ace1604015460b5ada698aecbcf2d718754be80",
+            "dense_rank": null,
+            "version_id": "retention-guide-b-v1",
+            "document_id": "retention-guide-b",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "9ccbdf4ff2b2ed615cb9e5976032f947d737a20442b1a19fb5e0214b57cbdb5d",
+      "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"\n\nFictional Acorn Guide B: \"The Basic plan retains logs for 30 days.\"",
+      "blocks": [
+        {
+          "block_id": "b1",
+          "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
+          "citation_ids": [
+            "e-retention-guide-a"
+          ]
+        },
+        {
+          "block_id": "b2",
+          "text": "Fictional Acorn Guide B: \"The Basic plan retains logs for 30 days.\"",
+          "citation_ids": [
+            "e-retention-guide-b"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "q-conflict",
+      "question": "[fixture:conflict] How long does the Basic plan retain logs according to both guides?",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-retention-guide-a",
+            "end": 95,
+            "page": 1,
+            "text": "The Basic plan retains logs for 14 days.\nThis guide applies to Basic plans from 1 January 2026.",
+            "start": 0,
+            "title": "Fictional Acorn Guide A",
+            "text_hash": "c2c81457e1fc5628d264522f0538ef4b3ad54127ebc8f9a2c752e0b5a2dbab9a",
+            "dense_rank": null,
+            "version_id": "retention-guide-a-v1",
+            "document_id": "retention-guide-a",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          },
+          {
+            "id": "e-retention-guide-b",
+            "end": 95,
+            "page": 1,
+            "text": "The Basic plan retains logs for 30 days.\nThis guide applies to Basic plans from 1 January 2026.",
+            "start": 0,
+            "title": "Fictional Acorn Guide B",
+            "text_hash": "d4dbd18a4abb6be5e499fe546ace1604015460b5ada698aecbcf2d718754be80",
+            "dense_rank": null,
+            "version_id": "retention-guide-b-v1",
+            "document_id": "retention-guide-b",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "e5b890c8df4b4ffeba47b38f55b52ca274f080902eb7ad7eb0f30d0dcd582f6e",
+      "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
+      "blocks": [
+        {
+          "block_id": "b1",
+          "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
+          "citation_ids": [
+            "e-retention-guide-a"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "q-conflict",
+      "question": "[fixture:conflict] How long does the Basic plan retain logs according to both guides?",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-retention-guide-a",
+            "end": 95,
+            "page": 1,
+            "text": "The Basic plan retains logs for 14 days.\nThis guide applies to Basic plans from 1 January 2026.",
+            "start": 0,
+            "title": "Fictional Acorn Guide A",
+            "text_hash": "c2c81457e1fc5628d264522f0538ef4b3ad54127ebc8f9a2c752e0b5a2dbab9a",
+            "dense_rank": null,
+            "version_id": "retention-guide-a-v1",
+            "document_id": "retention-guide-a",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          },
+          {
+            "id": "e-retention-guide-b",
+            "end": 95,
+            "page": 1,
+            "text": "The Basic plan retains logs for 30 days.\nThis guide applies to Basic plans from 1 January 2026.",
+            "start": 0,
+            "title": "Fictional Acorn Guide B",
+            "text_hash": "d4dbd18a4abb6be5e499fe546ace1604015460b5ada698aecbcf2d718754be80",
+            "dense_rank": null,
+            "version_id": "retention-guide-b-v1",
+            "document_id": "retention-guide-b",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0",
+      "text": "The supplied evidence is insufficient to provide a verified answer.",
+      "blocks": []
+    },
+    {
+      "question_id": "q-empty",
+      "question": "What does the evidence say about international warranties?",
+      "evidence": {
+        "items": [],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0",
+      "text": "The supplied evidence is insufficient to provide a verified answer.",
+      "blocks": []
+    },
+    {
+      "question_id": "q-missing",
+      "question": "How many days does refund processing take?",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+      "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+      "blocks": [
+        {
+          "block_id": "b1",
+          "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "citation_ids": [
+            "e-return-policy"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "q-multi",
+      "question": "State the premium return window and standard order dispatch time.",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          },
+          {
+            "id": "e-dispatch-policy",
+            "end": 222,
+            "page": 1,
+            "text": "Standard orders are dispatched within two business days.\nPriority orders placed before 11:00 are dispatched the same business day.\nThe dispatch team uses the North depot.\nThe North depot opens at 08:00 and closes at 17:00.",
+            "start": 0,
+            "title": "Fictional Orchard Dispatch",
+            "text_hash": "eab6227a1b4b063c038e24e69cd64f7557b39724184d0f5d3c735a0357dd510c",
+            "dense_rank": null,
+            "version_id": "dispatch-policy-v1",
+            "document_id": "dispatch-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+      "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+      "blocks": [
+        {
+          "block_id": "b1",
+          "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "citation_ids": [
+            "e-return-policy"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "q-postage",
+      "question": "How much does return postage cost?",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+      "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+      "blocks": [
+        {
+          "block_id": "b1",
+          "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+          "citation_ids": [
+            "e-return-policy"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "q-repair",
+      "question": "[fixture:unsupported] How much does return postage cost?",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "9cec92ddf53fa4458ca510161a4c0a14180c25bce023514eecba0cd91de0218e",
+      "text": "Fictional Orchard Returns: \"Return postage costs €5.\" The source additionally guarantees 987654321 free upgrades for every account.",
+      "blocks": [
+        {
+          "block_id": "b1",
+          "text": "Fictional Orchard Returns: \"Return postage costs €5.\" The source additionally guarantees 987654321 free upgrades for every account.",
+          "citation_ids": [
+            "e-return-policy"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "q-repair",
+      "question": "[fixture:unsupported] How much does return postage cost?",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+      "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+      "blocks": [
+        {
+          "block_id": "b1",
+          "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+          "citation_ids": [
+            "e-return-policy"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "q-repair",
+      "question": "[fixture:unsupported] How much does return postage cost?",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0",
+      "text": "The supplied evidence is insufficient to provide a verified answer.",
+      "blocks": []
+    },
+    {
+      "question_id": "q-return-window",
+      "question": "When can premium members return an unopened item?",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+      "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+      "blocks": [
+        {
+          "block_id": "b1",
+          "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "citation_ids": [
+            "e-return-policy"
+          ]
+        }
+      ]
+    }
+  ]
+}

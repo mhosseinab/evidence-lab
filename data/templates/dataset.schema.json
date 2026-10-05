@@ -1,0 +1,634 @@
+{
+  "$defs": {
+    "ControlledCase": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "family_id": {
+          "title": "Family Id",
+          "type": "string"
+        },
+        "split": {
+          "enum": [
+            "development",
+            "test",
+            "demo"
+          ],
+          "title": "Split",
+          "type": "string"
+        },
+        "claim": {
+          "maxLength": 3000,
+          "minLength": 1,
+          "title": "Claim",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "supported": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supported"
+        },
+        "original_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Id"
+        },
+        "mutation_category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mutation Category"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        }
+      },
+      "required": [
+        "id",
+        "family_id",
+        "split",
+        "claim",
+        "evidence_ids"
+      ],
+      "title": "ControlledCase",
+      "type": "object"
+    },
+    "DevelopmentSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "report_id": {
+          "minLength": 1,
+          "title": "Report Id",
+          "type": "string"
+        },
+        "dataset_hash": {
+          "minLength": 1,
+          "title": "Dataset Hash",
+          "type": "string"
+        },
+        "selected_at": {
+          "minLength": 1,
+          "title": "Selected At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "report_id",
+        "dataset_hash",
+        "selected_at"
+      ],
+      "title": "DevelopmentSelection",
+      "type": "object"
+    },
+    "EvidenceAlternative": {
+      "additionalProperties": false,
+      "properties": {
+        "quote": {
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        },
+        "document_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Document Id"
+        },
+        "version_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version Id"
+        }
+      },
+      "required": [
+        "quote"
+      ],
+      "title": "EvidenceAlternative",
+      "type": "object"
+    },
+    "FixtureEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "document_id": {
+          "title": "Document Id",
+          "type": "string"
+        },
+        "version_id": {
+          "title": "Version Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "page": {
+          "default": 1,
+          "title": "Page",
+          "type": "integer"
+        },
+        "start": {
+          "default": 0,
+          "title": "Start",
+          "type": "integer"
+        },
+        "end": {
+          "default": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "text_hash": {
+          "default": "",
+          "title": "Text Hash",
+          "type": "string"
+        },
+        "dense_rank": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dense Rank"
+        },
+        "lexical_rank": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lexical Rank"
+        },
+        "fused_score": {
+          "default": 0.0,
+          "title": "Fused Score",
+          "type": "number"
+        },
+        "family_id": {
+          "title": "Family Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "document_id",
+        "version_id",
+        "title",
+        "text",
+        "family_id"
+      ],
+      "title": "FixtureEvidence",
+      "type": "object"
+    },
+    "QuestionCase": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "family_id": {
+          "title": "Family Id",
+          "type": "string"
+        },
+        "split": {
+          "enum": [
+            "development",
+            "test",
+            "demo"
+          ],
+          "title": "Split",
+          "type": "string"
+        },
+        "question": {
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "expected_response": {
+          "enum": [
+            "answerable",
+            "missing_evidence",
+            "conflict"
+          ],
+          "title": "Expected Response",
+          "type": "string"
+        },
+        "corpus_id": {
+          "default": "default",
+          "title": "Corpus Id",
+          "type": "string"
+        },
+        "retrieval_mode": {
+          "default": "corpus",
+          "enum": [
+            "corpus",
+            "inline_fixture"
+          ],
+          "title": "Retrieval Mode",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "gold": {
+          "$ref": "#/$defs/QuestionGold"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "family_id",
+        "split",
+        "question",
+        "expected_response"
+      ],
+      "title": "QuestionCase",
+      "type": "object"
+    },
+    "QuestionGold": {
+      "additionalProperties": false,
+      "properties": {
+        "required_facts": {
+          "items": {
+            "$ref": "#/$defs/RequiredFact"
+          },
+          "title": "Required Facts",
+          "type": "array"
+        },
+        "necessary_qualifiers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Necessary Qualifiers",
+          "type": "array"
+        },
+        "prohibited_conclusions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Prohibited Conclusions",
+          "type": "array"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        }
+      },
+      "title": "QuestionGold",
+      "type": "object"
+    },
+    "RequiredFact": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence_alternatives": {
+          "items": {
+            "$ref": "#/$defs/EvidenceAlternative"
+          },
+          "title": "Evidence Alternatives",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "description"
+      ],
+      "title": "RequiredFact",
+      "type": "object"
+    },
+    "Review": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "default": "unreviewed",
+          "enum": [
+            "unreviewed",
+            "synthetic_fixture",
+            "single_reviewed",
+            "adjudicated"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reviewer_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reviewer Ids",
+          "type": "array"
+        },
+        "adjudicator_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Adjudicator Id"
+        },
+        "reviewed_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewed At"
+        },
+        "notes": {
+          "default": "",
+          "title": "Notes",
+          "type": "string"
+        }
+      },
+      "title": "Review",
+      "type": "object"
+    },
+    "SourceDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "family_id": {
+          "title": "Family Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "media_type": {
+          "default": "text/markdown",
+          "title": "Media Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "family_id",
+        "title",
+        "path"
+      ],
+      "title": "SourceDocument",
+      "type": "object"
+    },
+    "SourceFamily": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "split": {
+          "enum": [
+            "development",
+            "test",
+            "demo"
+          ],
+          "title": "Split",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "split"
+      ],
+      "title": "SourceFamily",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "version": {
+      "minLength": 1,
+      "title": "Version",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "purpose": {
+      "enum": [
+        "synthetic_fixture",
+        "operator_evaluation"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "language": {
+      "default": "en",
+      "title": "Language",
+      "type": "string"
+    },
+    "notes": {
+      "default": "",
+      "title": "Notes",
+      "type": "string"
+    },
+    "frozen_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Frozen At"
+    },
+    "preselected_profile": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Preselected Profile"
+    },
+    "preselected_score_threshold": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Preselected Score Threshold"
+    },
+    "development_selection": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DevelopmentSelection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "primary_variant": {
+      "const": "D",
+      "default": "D",
+      "title": "Primary Variant",
+      "type": "string"
+    },
+    "families": {
+      "items": {
+        "$ref": "#/$defs/SourceFamily"
+      },
+      "minItems": 1,
+      "title": "Families",
+      "type": "array"
+    },
+    "documents": {
+      "items": {
+        "$ref": "#/$defs/SourceDocument"
+      },
+      "title": "Documents",
+      "type": "array"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/FixtureEvidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "questions": {
+      "items": {
+        "$ref": "#/$defs/QuestionCase"
+      },
+      "title": "Questions",
+      "type": "array"
+    },
+    "controlled": {
+      "items": {
+        "$ref": "#/$defs/ControlledCase"
+      },
+      "title": "Controlled",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "title",
+    "purpose",
+    "families"
+  ],
+  "title": "EvaluationDataset",
+  "type": "object"
+}

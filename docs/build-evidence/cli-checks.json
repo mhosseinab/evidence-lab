@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "backend": "PGlite PostgreSQL/pgvector",
+  "model_mode": "mock",
+  "installed_wheel": true,
+  "checks": [
+    {
+      "command": "config-check",
+      "status": "passed"
+    },
+    {
+      "command": "migrate",
+      "status": "passed"
+    },
+    {
+      "command": "seed",
+      "status": "passed"
+    },
+    {
+      "command": "query",
+      "status": "passed"
+    },
+    {
+      "command": "retrieve",
+      "status": "passed"
+    },
+    {
+      "command": "smoke",
+      "status": "passed"
+    },
+    {
+      "command": "evaluate",
+      "status": "passed"
+    },
+    {
+      "command": "eval-export",
+      "status": "passed"
+    },
+    {
+      "command": "installed-wheel-api-static-assets",
+      "status": "passed"
+    },
+    {
+      "command": "migrate-existing-corpus-after-space-change",
+      "status": "passed"
+    },
+    {
+      "command": "new-corpus-after-space-change",
+      "status": "passed"
+    }
+  ],
+  "query_id": "fcb80b8a-0ccb-434a-8f36-61bf2c69e3c1",
+  "evaluation_id": "0bd573a7-8582-4fa4-ac0c-5f4ebc029697",
+  "started_at": "2026-10-05T20:22:27.920638+00:00",
+  "finished_at": "2026-10-05T20:22:34.013647+00:00",
+  "implementation_fingerprint": "9033cf3e02367ba0edb0acbc77065499b092321285e89dd14ac3a717df9ca4df"
+}

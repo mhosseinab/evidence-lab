@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta
+      name="description"
+      content="A local workspace for document-grounded answers and verification experiments."
+    />
+    <title>Evidence Lab · RAG PoC</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Workspace navigation">
+        <a class="brand" href="#ask" aria-label="Evidence Lab home">
+          <span class="brand-mark" aria-hidden="true"
+            ><span></span><span></span><span></span
+          ></span>
+          <span
+            >evidence<span class="brand-light">lab</span
+            ><small>DOCUMENT WORKSPACE</small></span
+          >
+        </a>
+        <div class="workspace-label">
+          <span class="workspace-dot" aria-hidden="true"></span>
+          <label class="visually-hidden" for="corpus-select"
+            >Selected corpus</label
+          >
+          <select id="corpus-select">
+            <option value="default">default</option>
+          </select>
+          <button
+            type="button"
+            id="new-corpus-open"
+            class="new-corpus-button"
+            aria-label="New corpus"
+            title="New corpus"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
+        <p class="nav-caption">WORKSPACE</p>
+        <nav class="nav-list">
+          <a class="nav-link active" href="#ask" data-view="ask"
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M20 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-3.8-.9L3 21l1.8-4.7A8.5 8.5 0 1 1 20 11.5Z"
+              />
+              <path d="M8 10h7M8 14h4" /></svg
+            ><span>Ask your documents</span></a
+          >
+          <a class="nav-link" href="#documents" data-view="documents"
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10Z"
+              />
+              <path d="M13 3v7h7M8 14h8M8 17h5" /></svg
+            ><span>Documents</span
+            ><span id="nav-document-count" class="nav-count">0</span></a
+          >
+          <a class="nav-link" href="#evaluations" data-view="evaluations"
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 3v17h17M8 15v-4M13 15V7M18 15v-7" /></svg
+            ><span>Evaluations</span></a
+          >
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="sidebar-note">
+            <span class="small-spark" aria-hidden="true">✧</span>
+            <p>
+              From source to answer.<br /><strong
+                >With the evidence attached.</strong
+              >
+            </p>
+          </div>
+          <button class="connection-button" id="connection-open">
+            <span class="status-dot" id="connection-dot"></span
+            ><span id="connection-label">Connecting</span
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 8v4m0 4h.01" />
+              <circle cx="12" cy="12" r="9" />
+            </svg>
+          </button>
+          <span class="sidebar-version">RAG proof of concept</span>
+        </div>
+      </aside>
+
+      <div class="main-shell">
+        <header class="topbar">
+          <div class="breadcrumb">
+            <span id="breadcrumb-corpus">default</span
+            ><span aria-hidden="true">/</span
+            ><strong id="breadcrumb-title">Ask your documents</strong>
+          </div>
+          <div class="topbar-status">
+            <span class="runtime-badge" id="runtime-badge">Connecting</span
+            ><span class="avatar" aria-label="Local operator">L</span>
+          </div>
+        </header>
+        <main id="main" tabindex="-1">
+          <div id="global-notice" class="notice hidden" role="alert"></div>
+          <div id="space-mismatch-banner" class="notice hidden" role="status">
+            This corpus uses a different embedding profile. Create a new corpus
+            and re-upload sources, or restore its configuration.
+          </div>
+          <div id="mode-banner" class="mode-banner hidden">
+            <span class="banner-icon" aria-hidden="true">◈</span>
+            <div>
+              <strong id="mode-banner-title">Fixture mode</strong
+              ><span id="mode-banner-text"
+                >Deterministic demo responses. No model calls. Model quality has
+                not been evaluated.</span
+              >
+            </div>
+          </div>
+
+          <section id="view-ask" class="view" aria-labelledby="ask-heading">
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">YOUR KNOWLEDGE, WITH CONTEXT</p>
+                <h1 id="ask-heading">Ask your documents.</h1>
+                <p class="page-description">
+                  Get an answer you can trace back to its source.
+                </p>
+              </div>
+              <a class="button secondary" href="#documents"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" /></svg
+                >Add documents</a
+              >
+            </div>
+            <div class="ask-layout">
+              <div class="ask-main">
+                <form id="question-form" class="composer panel">
+                  <label for="question">What would you like to know?</label>
+                  <textarea
+                    id="question"
+                    name="question"
+                    rows="4"
+                    maxlength="4000"
+                    placeholder="Ask a question about the documents in your workspace…"
+                    required
+                  ></textarea>
+                  <div class="composer-footer">
+                    <span class="composer-hint"
+                      ><span class="tiny-doc" aria-hidden="true">▤</span
+                      ><span id="question-scope"
+                        >Searches your indexed documents</span
+                      ></span
+                    ><button
+                      type="submit"
+                      class="button primary"
+                      id="ask-submit"
+                    >
+                      Ask question<span aria-hidden="true">↗</span>
+                    </button>
+                  </div>
+                </form>
+                <div class="suggestions" id="question-suggestions">
+                  <span>Try a question</span
+                  ><button
+                    class="suggestion"
+                    type="button"
+                    data-question="Within how many days of purchase may customers request a refund?"
+                  >
+                    Refund window <span aria-hidden="true">↗</span></button
+                  ><button
+                    class="suggestion"
+                    type="button"
+                    data-question="What are the support hours?"
+                  >
+                    Support hours <span aria-hidden="true">↗</span>
+                  </button>
+                </div>
+
+                <section
+                  id="run-panel"
+                  class="panel result-panel hidden"
+                  aria-labelledby="run-title"
+                  aria-live="polite"
+                >
+                  <div class="panel-header">
+                    <div class="section-title">
+                      <span class="section-icon" aria-hidden="true">✧</span>
+                      <h2 id="run-title">Answer</h2>
+                    </div>
+                    <span id="run-status" class="pill"></span>
+                  </div>
+                  <div id="run-progress" class="run-progress hidden">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <div>
+                      <strong id="run-progress-title"
+                        >Working on your question</strong
+                      >
+                      <p id="run-progress-text">Your run is in the queue.</p>
+                    </div>
+                    <button id="run-cancel" class="text-button" type="button">
+                      Cancel
+                    </button>
+                  </div>
+                  <div id="run-answer" class="answer-body"></div>
+                  <div id="run-meta" class="run-meta"></div>
+                  <div class="run-actions">
+                    <button
+                      id="copy-answer"
+                      class="text-button hidden"
+                      type="button"
+                    >
+                      Copy answer</button
+                    ><button id="open-trace" class="text-button" type="button">
+                      View operator trace<span aria-hidden="true">↗</span>
+                    </button>
+                  </div>
+                </section>
+
+                <div class="panel welcome-panel" id="ask-welcome">
+                  <span class="welcome-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <path
+                        d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"
+                      /></svg
+                  ></span>
+                  <h2>A little more certainty.</h2>
+                  <p>
+                    Ask a question, inspect the evidence, and see whether the
+                    answer passed its checks.
+                  </p>
+                  <div class="workflow">
+                    <span><b>01</b>Find evidence</span
+                    ><span aria-hidden="true">→</span
+                    ><span><b>02</b>Check the answer</span
+                    ><span aria-hidden="true">→</span
+                    ><span><b>03</b>Show sources</span>
+                  </div>
+                </div>
+
+                <section
+                  class="recent-section"
+                  aria-labelledby="recent-heading"
+                >
+                  <div class="section-heading">
+                    <h2 id="recent-heading">Recent questions</h2>
+                    <button id="runs-refresh" class="text-button" type="button">
+                      Refresh <span aria-hidden="true">↻</span>
+                    </button>
+                  </div>
+                  <div id="recent-runs" class="panel list-panel">
+                    <p class="empty-inline">Your questions will appear here.</p>
+                  </div>
+                </section>
+              </div>
+              <aside class="evidence-column" aria-labelledby="evidence-heading">
+                <div class="section-heading">
+                  <h2 id="evidence-heading">Evidence</h2>
+                  <span id="evidence-count" class="count-label">0 sources</span>
+                </div>
+                <div id="evidence-list">
+                  <div class="evidence-empty">
+                    <span class="outline-doc" aria-hidden="true"
+                      ><svg viewBox="0 0 24 24">
+                        <path
+                          d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10Z"
+                        />
+                        <path d="M13 3v7h7M8 14h8M8 17h5" /></svg
+                    ></span>
+                    <h3>The source, right here.</h3>
+                    <p>
+                      Supporting passages appear alongside each answer, with a
+                      link to the exact document version.
+                    </p>
+                  </div>
+                </div>
+                <div class="evidence-footnote">
+                  An answer is checked against the retrieved documents. Source
+                  accuracy is a separate question.
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section
+            id="view-documents"
+            class="view hidden"
+            aria-labelledby="documents-heading"
+          >
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">A HOME FOR YOUR SOURCES</p>
+                <h1 id="documents-heading">Documents</h1>
+                <p class="page-description">
+                  Add your documents and follow their journey into the search
+                  index.
+                </p>
+              </div>
+              <button
+                id="documents-refresh"
+                class="button secondary"
+                type="button"
+              >
+                <span aria-hidden="true">↻</span>Refresh
+              </button>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-card">
+                <span>Documents</span><strong id="stat-documents">—</strong
+                ><small>In this workspace</small>
+              </div>
+              <div class="stat-card">
+                <span>Ready to search</span><strong id="stat-ready">—</strong
+                ><small>Completed ingestion</small>
+              </div>
+              <div class="stat-card">
+                <span>Processing</span><strong id="stat-processing">—</strong
+                ><small>Queued or in progress</small>
+              </div>
+              <div class="stat-card">
+                <span>Needs attention</span
+                ><strong id="stat-attention">—</strong
+                ><small>Review or retry required</small>
+              </div>
+            </div>
+            <div class="upload-zone" id="upload-zone">
+              <input
+                id="file-input"
+                type="file"
+                multiple
+                accept=".txt,.md,.markdown,.pdf,text/plain,text/markdown,application/pdf"
+                class="visually-hidden"
+              /><span class="upload-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path d="M12 16V4m-4 4 4-4 4 4M4 16v4h16v-4" /></svg
+              ></span>
+              <h2>Drop your documents here</h2>
+              <p>Text, Markdown, or text-readable PDF</p>
+              <button type="button" id="choose-files" class="button secondary">
+                Choose files</button
+              ><small id="upload-limit"
+                >Up to 20 MiB per file · scanned PDFs need OCR before
+                upload</small
+              >
+            </div>
+            <input
+              id="version-input"
+              type="file"
+              accept=".txt,.md,.markdown,.pdf,text/plain,text/markdown,application/pdf"
+              class="visually-hidden"
+            />
+            <div
+              id="upload-status"
+              class="upload-status"
+              aria-live="polite"
+            ></div>
+            <section
+              class="documents-section"
+              aria-labelledby="source-list-heading"
+            >
+              <div class="section-heading">
+                <h2 id="source-list-heading">Your sources</h2>
+                <span id="document-list-count" class="count-label"
+                  >0 documents</span
+                >
+              </div>
+              <div class="panel table-wrap">
+                <table class="documents-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Document</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Added</th>
+                      <th scope="col">
+                        <span class="visually-hidden">Actions</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="documents-table-body"></tbody>
+                </table>
+                <div id="documents-empty" class="table-empty hidden">
+                  <span aria-hidden="true">▤</span>
+                  <h3>Your workspace starts here.</h3>
+                  <p>Upload a document to make it available for questions.</p>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <section
+            id="view-evaluations"
+            class="view hidden"
+            aria-labelledby="evaluations-heading"
+          >
+            <div class="page-heading">
+              <div>
+                <p class="eyebrow">MAKE THE DIFFERENCE MEASURABLE</p>
+                <h1 id="evaluations-heading">Evaluations</h1>
+                <p class="page-description">
+                  Compare the same questions across four answer policies.
+                </p>
+              </div>
+              <button
+                class="button primary"
+                type="button"
+                id="start-evaluation"
+              >
+                <span aria-hidden="true">▷</span>Run demo evaluation
+              </button>
+            </div>
+            <div class="evaluation-explainer panel">
+              <div>
+                <span class="pill neutral">PAIRED COMPARISON</span>
+                <h2>One draft. Four ways to handle it.</h2>
+                <p>
+                  Each variant begins with the same draft and evidence. Compare
+                  how checking and repair affect the final response.
+                </p>
+              </div>
+              <div class="variant-grid">
+                <div>
+                  <span class="variant-letter">A</span><strong>Ungated</strong>
+                  <p>The initial draft</p>
+                </div>
+                <div>
+                  <span class="variant-letter">B</span
+                  ><strong>Structure</strong>
+                  <p>Format and citations</p>
+                </div>
+                <div>
+                  <span class="variant-letter">C</span
+                  ><strong>Semantic gate</strong>
+                  <p>Support and consistency</p>
+                </div>
+                <div>
+                  <span class="variant-letter">D</span
+                  ><strong>Gate + repair</strong>
+                  <p>One repair, fully rechecked</p>
+                </div>
+              </div>
+            </div>
+            <div class="evaluation-note">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 11v6m0-10h.01" />
+              </svg>
+              <p>
+                The bundled demo uses synthetic fixtures. It checks the
+                workflow; it does not establish model accuracy. A quality claim
+                requires a frozen, human-reviewed held-out evaluation.
+              </p>
+            </div>
+            <div
+              id="evaluation-current"
+              class="panel evaluation-current hidden"
+              aria-live="polite"
+            >
+              <div class="panel-header">
+                <h2 id="evaluation-title">Evaluation results</h2>
+                <span class="pill" id="evaluation-status"></span>
+              </div>
+              <div id="evaluation-body"></div>
+              <div class="run-actions">
+                <button
+                  id="evaluation-export"
+                  class="text-button hidden"
+                  type="button"
+                >
+                  Export results as JSON
+                  <span aria-hidden="true">↓</span></button
+                ><button
+                  id="evaluation-cancel"
+                  class="text-button hidden"
+                  type="button"
+                >
+                  Cancel evaluation
+                </button>
+              </div>
+            </div>
+            <section
+              class="recent-section"
+              aria-labelledby="evaluation-history-heading"
+            >
+              <div class="section-heading">
+                <h2 id="evaluation-history-heading">Evaluation history</h2>
+                <button
+                  id="evaluations-refresh"
+                  class="text-button"
+                  type="button"
+                >
+                  Refresh <span aria-hidden="true">↻</span>
+                </button>
+              </div>
+              <div id="evaluation-history" class="panel list-panel">
+                <p class="empty-inline">No evaluation runs yet.</p>
+              </div>
+            </section>
+          </section>
+          <footer class="main-footer">
+            <span>Evidence Lab</span
+            ><span>Local storage · Configured inference · Visible checks</span>
+          </footer>
+        </main>
+      </div>
+    </div>
+
+    <dialog id="source-dialog" class="dialog source-dialog">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">IMMUTABLE SOURCE VERSION</p>
+          <h2 id="source-dialog-title">Document preview</h2>
+        </div>
+        <button
+          type="button"
+          class="icon-button"
+          data-close-dialog="source-dialog"
+          aria-label="Close document preview"
+        >
+          ×
+        </button>
+      </div>
+      <div id="source-dialog-meta" class="dialog-meta"></div>
+      <div id="source-dialog-body" class="source-body"></div>
+      <div class="dialog-footer">
+        <a id="source-download" class="button secondary" href="#"
+          >Download original <span aria-hidden="true">↓</span></a
+        ><button
+          type="button"
+          class="button secondary"
+          data-close-dialog="source-dialog"
+        >
+          Close
+        </button>
+      </div>
+    </dialog>
+    <dialog id="trace-dialog" class="dialog trace-dialog">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">OPERATOR VIEW</p>
+          <h2 id="trace-dialog-title">Run trace</h2>
+        </div>
+        <button
+          type="button"
+          class="icon-button"
+          data-close-dialog="trace-dialog"
+          aria-label="Close operator trace"
+        >
+          ×
+        </button>
+      </div>
+      <div class="trace-warning">
+        <strong>Unverified drafts may appear below.</strong>
+        <p>
+          Trace content is for inspection. It is not a released answer or a
+          claim of model quality.
+        </p>
+      </div>
+      <pre id="trace-content" class="trace-content" tabindex="0"></pre>
+      <div class="dialog-footer">
+        <button
+          type="button"
+          class="button secondary"
+          data-close-dialog="trace-dialog"
+        >
+          Close
+        </button>
+      </div>
+    </dialog>
+    <dialog id="connection-dialog" class="dialog connection-dialog">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">LOCAL OPERATOR</p>
+          <h2>Workspace connection</h2>
+        </div>
+        <button
+          type="button"
+          class="icon-button"
+          data-close-dialog="connection-dialog"
+          aria-label="Close connection settings"
+        >
+          ×
+        </button>
+      </div>
+      <div id="connection-details" class="connection-details"></div>
+      <form id="token-form">
+        <label for="operator-token"
+          >Operator token <span class="optional">optional</span></label
+        >
+        <p class="field-help">
+          If access protection is enabled, enter the token from your private
+          configuration.
+        </p>
+        <input
+          id="operator-token"
+          type="password"
+          autocomplete="off"
+          placeholder="Enter operator token"
+        />
+        <div class="dialog-footer">
+          <span class="field-help">Used for this page session.</span
+          ><button type="submit" class="button primary">Connect</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="new-corpus-dialog" class="dialog connection-dialog">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">DOCUMENT COLLECTION</p>
+          <h2>New corpus</h2>
+        </div>
+        <button
+          type="button"
+          class="icon-button"
+          data-close-dialog="new-corpus-dialog"
+          aria-label="Close new corpus"
+        >
+          ×
+        </button>
+      </div>
+      <form id="new-corpus-form" class="corpus-form">
+        <label for="new-corpus-id">Corpus ID</label>
+        <p class="field-help">
+          Use 1–64 letters, numbers, underscores, or hyphens. Documents in this
+          collection are searched separately.
+        </p>
+        <input
+          id="new-corpus-id"
+          name="corpus_id"
+          type="text"
+          required
+          minlength="1"
+          maxlength="64"
+          pattern="[A-Za-z0-9_\-]{1,64}"
+          autocomplete="off"
+          placeholder="project-notes"
+        />
+        <p id="new-corpus-error" class="field-error hidden" role="alert"></p>
+        <div class="dialog-footer">
+          <button
+            type="button"
+            class="button secondary"
+            data-close-dialog="new-corpus-dialog"
+          >
+            Cancel
+          </button>
+          <button type="submit" id="new-corpus-submit" class="button primary">
+            Create corpus
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <div id="toast" class="toast hidden" role="status"></div>
+  </body>
+</html>

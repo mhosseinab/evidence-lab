@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "replace-with-study-id",
+  "version": "draft-1",
+  "title": "UNFILLED operator dataset authoring scaffold",
+  "purpose": "operator_evaluation",
+  "language": "en",
+  "notes": "UNFILLED TEMPLATE. Replace all placeholders and complete source-family assignment and independent adjudication before execution. This one-question scaffold is not a benchmark or reviewed gold.",
+  "frozen_at": null,
+  "preselected_profile": null,
+  "preselected_score_threshold": null,
+  "development_selection": null,
+  "primary_variant": "D",
+  "families": [
+    {
+      "id": "replace-with-source-family-id",
+      "split": "development"
+    }
+  ],
+  "documents": [],
+  "evidence": [],
+  "questions": [
+    {
+      "id": "replace-with-question-id",
+      "family_id": "replace-with-source-family-id",
+      "split": "development",
+      "question": "REPLACE with an actual domain question.",
+      "expected_response": "answerable",
+      "corpus_id": "default",
+      "retrieval_mode": "corpus",
+      "evidence_ids": [],
+      "gold": {
+        "required_facts": [],
+        "necessary_qualifiers": [],
+        "prohibited_conclusions": [],
+        "review": {
+          "status": "unreviewed",
+          "reviewer_ids": [],
+          "notes": "No labels have been reviewed."
+        }
+      },
+      "tags": []
+    }
+  ],
+  "controlled": []
+}

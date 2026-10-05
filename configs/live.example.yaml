@@ -1,0 +1,128 @@
+# Copy to a private file and supply every active provider's actual contract.
+# This example intentionally FAILS live validation until placeholders are filled.
+# Each endpoint is the complete operation URL; the application appends no path.
+# Zero global or phase caps disable all live calls in that scope, including smoke.
+config_version: 1
+runtime:
+  mode: live
+  require_openai_compatible: true
+  remote_concurrency: 4
+  query_deadline_seconds: 60
+  max_remote_attempts_per_query: 10
+  ingestion_deadline_seconds: 1800
+  max_remote_attempts_per_ingestion: 2000
+  host: 127.0.0.1
+  port: 8000
+  operator_token: null
+database:
+  dsn: postgresql://rag:rag@localhost:5432/rag
+budgets:
+  total_max_estimated_cost_usd: 0
+  phase_max_estimated_cost_usd:
+    ingestion: 0
+    queries: 0
+    smoke: 0
+    evaluation: 0
+profiles:
+  embedding_primary:
+    protocol: embeddings
+    endpoint: https://REPLACE.example/v1/embeddings
+    api_key: REPLACE_IN_PRIVATE_CONFIG
+    # Instead of api_key, use ONE explicitly selected reference:
+    # api_key_env: RAG_EMBEDDING_API_KEY
+    # api_key_file: secrets/embedding.key  # relative to this config's directory
+    auth_header: Authorization
+    auth_prefix: Bearer
+    model: REPLACE_EMBEDDING_MODEL
+    semantic_revision: null
+    embedding_space: corpus-space-v1
+    dimensions: null
+    request_dimensions: false
+    batch_size: 16
+    max_input_tokens: null
+    max_batch_input_tokens: null
+    token_counting: conservative_utf8_bytes
+    context_headroom_fraction: 0.15
+    timeout_seconds: 30
+    max_attempts: 2
+    concurrency: 4
+    pricing: null
+  chat_primary:
+    protocol: chat_completions
+    endpoint: https://REPLACE.example/v1/chat/completions
+    api_key: REPLACE_IN_PRIVATE_CONFIG
+    model: REPLACE_GENERATOR_MODEL
+    capabilities:
+      structured_output: json_schema  # or json_object / text_json, as supported
+      output_limit_parameter: max_completion_tokens  # or max_tokens
+      temperature: false
+    max_input_tokens: null
+    max_output_tokens: 1200
+    token_counting: conservative_utf8_bytes
+    context_headroom_fraction: 0.15
+    timeout_seconds: 30
+    max_attempts: 2
+    concurrency: 4
+    pricing: null
+  chat_verifier:
+    protocol: chat_completions
+    endpoint: https://REPLACE.example/v1/chat/completions
+    api_key: REPLACE_IN_PRIVATE_CONFIG
+    model: REPLACE_VERIFIER_MODEL
+    capabilities:
+      structured_output: json_schema
+      output_limit_parameter: max_completion_tokens
+      temperature: false
+    max_input_tokens: null
+    max_output_tokens: 1600
+    token_counting: conservative_utf8_bytes
+    context_headroom_fraction: 0.15
+    timeout_seconds: 30
+    max_attempts: 2
+    concurrency: 4
+    pricing: null
+  # Inactive placeholders do not block startup of the three completed roles.
+  # Select verifier: clef_full AND require_openai_compatible: false to use this.
+  # Its native body model is distinct from the model path in the full endpoint.
+  clef_full:
+    protocol: cloudflare_clef
+    endpoint: https://api.cloudflare.com/client/v4/accounts/REPLACE_ID/ai/run/@cf/cloudflare/clef
+    api_key: REPLACE_IN_PRIVATE_CONFIG
+    model: clef
+    max_input_tokens: 65536
+    max_questions: 64
+    token_counting: conservative_utf8_bytes
+    context_headroom_fraction: 0.25
+    timeout_seconds: 30
+    max_attempts: 2
+    concurrency: 4
+    # Recheck current prices before paid use. Each active profile needs pricing.
+    pricing:
+      input_usd_per_million: 0.24
+      output_usd_per_million: 0
+      checked_on: '2026-10-05'
+roles:
+  embeddings: embedding_primary
+  generator: chat_primary
+  verifier: chat_verifier
+verification:
+  mode: shadow
+  policy_id: null
+  policy_path: null
+  score_threshold: null
+  max_answer_blocks: 8
+  max_answer_bytes: 8000
+  max_repair_bytes: 16384
+  max_content_repairs: 1
+  evidence_policy: frozen
+retrieval:
+  dense_candidates: 40
+  lexical_candidates: 40
+  rrf_constant: 60
+  evidence_chunks: 8
+  search_mode: exact
+evaluation:
+  max_remote_attempts: 3000
+  dataset_dir: data
+  allowlisted_datasets:
+    demo: data/demo/dataset.json

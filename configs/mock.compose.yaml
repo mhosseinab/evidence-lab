@@ -1,0 +1,106 @@
+# Same deterministic fixture as mock.yaml; PostgreSQL runs in Compose.
+config_version: 1
+runtime:
+  mode: mock
+  require_openai_compatible: true
+  remote_concurrency: 4
+  query_deadline_seconds: 60
+  max_remote_attempts_per_query: 10
+  ingestion_deadline_seconds: 1800
+  max_remote_attempts_per_ingestion: 2000
+  host: 127.0.0.1
+  port: 8000
+  worker_lease_seconds: 120
+  poll_seconds: 0.5
+database:
+  dsn: postgresql://rag:rag@db:5432/rag
+budgets:
+  total_max_estimated_cost_usd: 0
+  phase_max_estimated_cost_usd:
+    ingestion: 0
+    queries: 0
+    smoke: 0
+    evaluation: 0
+profiles:
+  fixture-embeddings:
+    protocol: embeddings
+    endpoint: fixture://embeddings
+    model: fixture-hash-embeddings-v1
+    semantic_revision: deterministic-fixture-v1
+    embedding_space: fixture-space-64-v1
+    dimensions: 64
+    request_dimensions: false
+    batch_size: 16
+    max_input_tokens: 131072
+    max_batch_input_tokens: 131072
+    token_counting: conservative_utf8_bytes
+    timeout_seconds: 30
+    max_attempts: 2
+    concurrency: 4
+  fixture-generator:
+    protocol: chat_completions
+    endpoint: fixture://generation
+    model: fixture-excerpt-generator-v1
+    semantic_revision: deterministic-fixture-v1
+    capabilities:
+      structured_output: json_schema
+      output_limit_parameter: max_completion_tokens
+      temperature: false
+    max_input_tokens: 131072
+    max_output_tokens: 1200
+    token_counting: conservative_utf8_bytes
+    context_headroom_fraction: 0.15
+    timeout_seconds: 30
+    max_attempts: 2
+  fixture-verifier:
+    protocol: chat_completions
+    endpoint: fixture://verification
+    model: fixture-substring-verifier-v1
+    semantic_revision: deterministic-fixture-v1
+    capabilities:
+      structured_output: json_schema
+      output_limit_parameter: max_completion_tokens
+      temperature: false
+    max_input_tokens: 131072
+    max_output_tokens: 1600
+    token_counting: conservative_utf8_bytes
+    context_headroom_fraction: 0.15
+    timeout_seconds: 30
+    max_attempts: 2
+roles:
+  embeddings: fixture-embeddings
+  generator: fixture-generator
+  verifier: fixture-verifier
+verification:
+  mode: gated
+  policy_id: mock-fixture-only
+  policy_path: null
+  score_threshold: null
+  max_answer_blocks: 8
+  max_answer_bytes: 8000
+  max_repair_bytes: 16384
+  max_content_repairs: 1
+  evidence_policy: frozen
+ingestion:
+  max_upload_bytes: 20971520
+  max_pdf_pages: 200
+  max_documents: 100
+  max_active_chunks: 10000
+  max_retained_payload_bytes: 5368709120
+  inactive_retention_days: 30
+  failed_staging_retention_days: 7
+  chunk_target_chars: 1600
+  chunk_max_chars: 2400
+  chunk_overlap_chars: 200
+  embedding_batch_size: 16
+retrieval:
+  dense_candidates: 40
+  lexical_candidates: 40
+  rrf_constant: 60
+  evidence_chunks: 8
+  search_mode: exact
+evaluation:
+  max_remote_attempts: 3000
+  dataset_dir: data
+  allowlisted_datasets:
+    demo: data/demo/dataset.json

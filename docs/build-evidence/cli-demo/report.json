@@ -1,0 +1,4954 @@
+{
+  "id": "0bd573a7-8582-4fa4-ac0c-5f4ebc029697",
+  "status": "completed",
+  "metrics": {
+    "costs": {
+      "status": "fixture_only",
+      "denominators": {
+        "declared_questions": 7,
+        "attempted_questions": 7,
+        "D_correct_complete_answers": null
+      },
+      "interpretation": "Conservatively accounted query cost includes failed calls, retries and repairs. Controlled-study cost is separate. Provider token field aliases are reported separately, never added together as independent usage. Unknown usage remains unknown.",
+      "question_calls": {
+        "attempts": 16,
+        "known_actual_usd": 0.0,
+        "conservative_accounted_usd": 0.0,
+        "unknown_usage_or_cost_attempts": 0
+      },
+      "controlled_calls": {
+        "attempts": 16,
+        "known_actual_usd": 0.0,
+        "conservative_accounted_usd": 0.0,
+        "unknown_usage_or_cost_attempts": 0
+      },
+      "question_token_fields": {
+        "input_tokens": {
+          "reported_sum": null,
+          "calls_reporting_field": 0
+        },
+        "total_tokens": {
+          "reported_sum": null,
+          "calls_reporting_field": 0
+        },
+        "output_tokens": {
+          "reported_sum": null,
+          "calls_reporting_field": 0
+        },
+        "prompt_tokens": {
+          "reported_sum": null,
+          "calls_reporting_field": 0
+        },
+        "completion_tokens": {
+          "reported_sum": null,
+          "calls_reporting_field": 0
+        }
+      },
+      "unknown_question_usage_calls": 16,
+      "query_usd_per_declared_question": 0.0,
+      "query_usd_per_attempted_question": 0.0,
+      "query_usd_per_D_correct_complete_answer": null
+    },
+    "timing": {
+      "repair_attempted": {
+        "cases": 2,
+        "status": "fixture_only",
+        "timed_cases": 2,
+        "p50_execution_ms": 27.404699499129492,
+        "p95_execution_ms": 27.906917949712806
+      },
+      "no_repair_attempted": {
+        "cases": 5,
+        "status": "fixture_only",
+        "timed_cases": 5,
+        "p50_execution_ms": 13.36432700009027,
+        "p95_execution_ms": 14.33509079979558
+      }
+    },
+    "variants": {
+      "A": {
+        "statuses": {
+          "released": 6,
+          "abstained": 1
+        },
+        "released_count": 6,
+        "live_completion": {
+          "value": 1.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 7,
+          "ci95_wilson": [
+            0.6456695649333126,
+            1.0
+          ],
+          "denominator": 7,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 1.0
+        },
+        "conflict_handling": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 1,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "correct_and_complete": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 4,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 4,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "final_response_audit": {
+          "pending": 7,
+          "reviewed": 0,
+          "responses": 7,
+          "materially_unsupported": 0
+        },
+        "unsupported_release_rate": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 6,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 6,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "missing_evidence_handling": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 2,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 2,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "reviewed_substantive_releases": 0,
+        "zero_error_upper95_if_independent": null
+      },
+      "B": {
+        "statuses": {
+          "released": 6,
+          "abstained": 1
+        },
+        "released_count": 6,
+        "live_completion": {
+          "value": 1.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 7,
+          "ci95_wilson": [
+            0.6456695649333126,
+            1.0
+          ],
+          "denominator": 7,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 1.0
+        },
+        "conflict_handling": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 1,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "correct_and_complete": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 4,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 4,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "final_response_audit": {
+          "pending": 7,
+          "reviewed": 0,
+          "responses": 7,
+          "materially_unsupported": 0
+        },
+        "unsupported_release_rate": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 6,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 6,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "missing_evidence_handling": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 2,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 2,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "reviewed_substantive_releases": 0,
+        "zero_error_upper95_if_independent": null
+      },
+      "C": {
+        "statuses": {
+          "released": 4,
+          "abstained": 3
+        },
+        "released_count": 4,
+        "live_completion": {
+          "value": 1.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 7,
+          "ci95_wilson": [
+            0.6456695649333126,
+            1.0
+          ],
+          "denominator": 7,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 1.0
+        },
+        "conflict_handling": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 1,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "correct_and_complete": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 3,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 4,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "final_response_audit": {
+          "pending": 7,
+          "reviewed": 0,
+          "responses": 7,
+          "materially_unsupported": 0
+        },
+        "unsupported_release_rate": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 4,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 4,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "missing_evidence_handling": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 2,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 2,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "reviewed_substantive_releases": 0,
+        "zero_error_upper95_if_independent": null
+      },
+      "D": {
+        "statuses": {
+          "released": 6,
+          "abstained": 1
+        },
+        "released_count": 6,
+        "live_completion": {
+          "value": 1.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 7,
+          "ci95_wilson": [
+            0.6456695649333126,
+            1.0
+          ],
+          "denominator": 7,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 1.0
+        },
+        "conflict_handling": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 1,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "correct_and_complete": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 4,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 4,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "final_response_audit": {
+          "pending": 7,
+          "reviewed": 0,
+          "responses": 7,
+          "materially_unsupported": 0
+        },
+        "unsupported_release_rate": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 6,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 6,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "missing_evidence_handling": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 2,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 2,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "reviewed_substantive_releases": 0,
+        "zero_error_upper95_if_independent": null
+      }
+    },
+    "questions": 7,
+    "controlled": {
+      "families": {
+        "demo-orders": 16
+      },
+      "interpretation": "balanced challenge of supplied claims; never a natural error prevalence estimate",
+      "repair_disabled": true,
+      "false_acceptance": {
+        "value": 0.0,
+        "status": "measured",
+        "pending": 0,
+        "numerator": 0,
+        "ci95_wilson": [
+          0.0,
+          0.3244075648838801
+        ],
+        "denominator": 8,
+        "interval_assumption": "item independence; source-family correlations are reported separately",
+        "observed_lower_bound": 0.0
+      },
+      "execution_statuses": {
+        "ok": 16
+      },
+      "supported_retention": {
+        "value": 1.0,
+        "status": "measured",
+        "pending": 0,
+        "numerator": 8,
+        "ci95_wilson": [
+          0.6755924351161198,
+          1.0
+        ],
+        "denominator": 8,
+        "interval_assumption": "item independence; source-family correlations are reported separately",
+        "observed_lower_bound": 1.0
+      },
+      "unknown_gold_labels": 0,
+      "operational_completion": {
+        "value": 1.0,
+        "status": "measured",
+        "pending": 0,
+        "numerator": 16,
+        "ci95_wilson": [
+          0.8063923194655636,
+          1.0
+        ],
+        "denominator": 16,
+        "interval_assumption": "item independence; source-family correlations are reported separately",
+        "observed_lower_bound": 1.0
+      },
+      "false_acceptance_by_mutation": {
+        "date": {
+          "value": 0.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": [
+            0.0,
+            0.7934506856227626
+          ],
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "entity": {
+          "value": 0.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": [
+            0.0,
+            0.7934506856227626
+          ],
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "negation": {
+          "value": 0.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": [
+            0.0,
+            0.7934506856227626
+          ],
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "condition": {
+          "value": 0.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": [
+            0.0,
+            0.7934506856227626
+          ],
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "number_unit": {
+          "value": 0.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": [
+            0.0,
+            0.7934506856227626
+          ],
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "scope_quantifier": {
+          "value": 0.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": [
+            0.0,
+            0.7934506856227626
+          ],
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "unsupported_addition": {
+          "value": 0.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": [
+            0.0,
+            0.7934506856227626
+          ],
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        },
+        "misleading_combination": {
+          "value": 0.0,
+          "status": "measured",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": [
+            0.0,
+            0.7934506856227626
+          ],
+          "denominator": 1,
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": 0.0
+        }
+      },
+      "matched_acceptance_difference": {
+        "seed": 17,
+        "cases": 8,
+        "delta": -1.0,
+        "method": "percentile bootstrap of whole source families; paired case-weighted rate difference",
+        "status": "insufficient_families",
+        "families": 1,
+        "iterations": 2000,
+        "limitation": "few families and observed zero events do not establish zero future risk",
+        "ci95_family_bootstrap": null
+      }
+    },
+    "natural_claims": {
+      "repair": {
+        "definition": "material claims accepted by their block check; whole-answer release is reported separately",
+        "complete_review": false,
+        "unmapped_claims": 0,
+        "false_acceptance": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 0,
+          "denominator_note": "Reviewed material claims only; remaining draft/claim counts are unknown until annotation is complete.",
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": null
+        },
+        "unreviewed_drafts": 2,
+        "supported_retention": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 0,
+          "denominator_note": "Reviewed material claims only; remaining draft/claim counts are unknown until annotation is complete.",
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": null
+        }
+      },
+      "initial": {
+        "definition": "material claims accepted by their block check; whole-answer release is reported separately",
+        "complete_review": false,
+        "unmapped_claims": 0,
+        "false_acceptance": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 0,
+          "denominator_note": "Reviewed material claims only; remaining draft/claim counts are unknown until annotation is complete.",
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": null
+        },
+        "unreviewed_drafts": 6,
+        "supported_retention": {
+          "value": null,
+          "status": "incomplete_review",
+          "pending": 0,
+          "numerator": 0,
+          "ci95_wilson": null,
+          "denominator": 0,
+          "denominator_note": "Reviewed material claims only; remaining draft/claim counts are unknown until annotation is complete.",
+          "interval_assumption": "item independence; source-family correlations are reported separately",
+          "observed_lower_bound": null
+        }
+      }
+    },
+    "question_types": {
+      "conflict": 1,
+      "answerable": 4,
+      "missing_evidence": 2
+    },
+    "source_families": {
+      "demo-orders": 6,
+      "demo-retention-conflict": 1
+    },
+    "retrieval_baselines": {
+      "dense": {
+        "value": null,
+        "status": "incomplete_review",
+        "pending": 4,
+        "numerator": 0,
+        "ci95_wilson": null,
+        "denominator": 4,
+        "interval_assumption": "item independence; source-family correlations are reported separately",
+        "observed_lower_bound": 0.0
+      },
+      "fused": {
+        "value": null,
+        "status": "incomplete_review",
+        "pending": 4,
+        "numerator": 0,
+        "ci95_wilson": null,
+        "denominator": 4,
+        "interval_assumption": "item independence; source-family correlations are reported separately",
+        "observed_lower_bound": 0.0
+      },
+      "lexical": {
+        "value": null,
+        "status": "incomplete_review",
+        "pending": 4,
+        "numerator": 0,
+        "ci95_wilson": null,
+        "denominator": 4,
+        "interval_assumption": "item independence; source-family correlations are reported separately",
+        "observed_lower_bound": 0.0
+      }
+    },
+    "annotation_provenance": "operator-supplied adjudications, hash-bound to exact outputs; reviewer identities are not authenticated by this application",
+    "answer_review_coverage": {
+      "distinct_answers": 11,
+      "reviewed_answers": 0,
+      "independently_reviewed_answers": 0
+    },
+    "required_evidence_coverage_at_8": {
+      "value": null,
+      "status": "not_measured_inline_fixture",
+      "pending": 4,
+      "numerator": 0,
+      "ci95_wilson": null,
+      "denominator": 4,
+      "interval_assumption": "item independence; source-family correlations are reported separately",
+      "observed_lower_bound": 0.0
+    },
+    "paired_correct_complete_differences": {
+      "A_to_B": {
+        "cases": 4,
+        "delta": null,
+        "status": "incomplete_review",
+        "pending": 4,
+        "ci95_family_bootstrap": null
+      },
+      "B_to_C": {
+        "cases": 4,
+        "delta": null,
+        "status": "incomplete_review",
+        "pending": 4,
+        "ci95_family_bootstrap": null
+      },
+      "C_to_D": {
+        "cases": 4,
+        "delta": null,
+        "status": "incomplete_review",
+        "pending": 4,
+        "ci95_family_bootstrap": null
+      }
+    }
+  },
+  "warning": "A/B outputs and unreleased drafts are evaluation diagnostics, not verified user answers.",
+  "identity": {
+    "profiles": {
+      "verifier": {
+        "model": "fixture-substring-verifier-v1",
+        "profile": "fixture-verifier",
+        "protocol": "chat_completions",
+        "semantic_revision": "deterministic-fixture-v1"
+      },
+      "generator": {
+        "model": "fixture-excerpt-generator-v1",
+        "profile": "fixture-generator",
+        "protocol": "chat_completions",
+        "semantic_revision": "deterministic-fixture-v1"
+      },
+      "embeddings": {
+        "model": "fixture-hash-embeddings-v1",
+        "profile": "fixture-embeddings",
+        "protocol": "embeddings",
+        "semantic_revision": "deterministic-fixture-v1"
+      },
+      "repair_generator": {
+        "model": "fixture-excerpt-generator-v1",
+        "profile": "fixture-generator",
+        "protocol": "chat_completions",
+        "semantic_revision": "deterministic-fixture-v1"
+      }
+    },
+    "config_hash": "fafa2b575373541d296174c2dd1627b6765e1246793994ceb4d4bb3afb07eb8f",
+    "policy_hash": "5b9d042f731f8c749423e19e52d6827a9fff7e3527121a80f9b43ab9b27df05d",
+    "unpinned_model_aliases": [],
+    "implementation_fingerprint": "9033cf3e02367ba0edb0acbc77065499b092321285e89dd14ac3a717df9ca4df"
+  },
+  "questions": [
+    {
+      "id": "q-return-window",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "54d620b7-d310-4c43-9569-cd3367fe4a23",
+          "profile": "fixture-generator",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00022221499966690317,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 2,
+          "call_id": "336026b0-c7f0-4fea-bfe0-e12c8b142f46",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00011492299927340355,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "variants": {
+        "A": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        },
+        "B": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        },
+        "C": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        },
+        "D": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        }
+      },
+      "attempted": true,
+      "family_id": "demo-orders",
+      "timings_ms": {
+        "retrieval": 0.056836001022020355,
+        "generation": 7.857921998947859,
+        "total_execution": 14.548979999744915,
+        "initial_verification": 6.184984000356053
+      },
+      "review_only": true,
+      "timing_note": "paired replay shares work; not an independent live latency benchmark",
+      "initial_gate": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "accepted": true,
+        "failures": [],
+        "failed_check_ids": [],
+        "technical_failures": []
+      },
+      "repair_draft": null,
+      "attempts_used": 2,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "initial_draft": {
+        "blocks": [
+          {
+            "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+            "block_id": "b1",
+            "citation_ids": [
+              "e-return-policy"
+            ]
+          }
+        ]
+      },
+      "retrieval_mode": "inline_fixture",
+      "repair_attempted": false,
+      "structural_check": {
+        "accepted": true,
+        "failures": []
+      },
+      "expected_response": "answerable",
+      "initial_candidate": {
+        "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+        "decoded": {
+          "blocks": [
+            {
+              "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+              "block_id": "b1",
+              "citation_ids": [
+                "e-return-policy"
+              ]
+            }
+          ]
+        },
+        "candidate_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+      },
+      "initial_draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+      "repair_verification": null,
+      "initial_verification": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "initial",
+        "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "candidate_decode_coverage": "decoded_blocks_text",
+      "required_evidence_covered": null
+    },
+    {
+      "id": "q-postage",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "f87f63d7-8e40-45d1-9db3-0438e9e3c54e",
+          "profile": "fixture-generator",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00011845900007756427,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 2,
+          "call_id": "732359d0-ab3d-4315-9c59-90562c03b182",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00012265500117791817,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "variants": {
+        "A": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+          "final_text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+          "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc"
+        },
+        "B": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+          "final_text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+          "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc"
+        },
+        "C": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+          "final_text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+          "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc"
+        },
+        "D": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+          "final_text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+          "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc"
+        }
+      },
+      "attempted": true,
+      "family_id": "demo-orders",
+      "timings_ms": {
+        "retrieval": 0.045589000364998356,
+        "generation": 6.456154000261449,
+        "total_execution": 12.252421000084723,
+        "initial_verification": 5.45281800077646
+      },
+      "review_only": true,
+      "timing_note": "paired replay shares work; not an independent live latency benchmark",
+      "initial_gate": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "accepted": true,
+        "failures": [],
+        "failed_check_ids": [],
+        "technical_failures": []
+      },
+      "repair_draft": null,
+      "attempts_used": 2,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "initial_draft": {
+        "blocks": [
+          {
+            "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+            "block_id": "b1",
+            "citation_ids": [
+              "e-return-policy"
+            ]
+          }
+        ]
+      },
+      "retrieval_mode": "inline_fixture",
+      "repair_attempted": false,
+      "structural_check": {
+        "accepted": true,
+        "failures": []
+      },
+      "expected_response": "answerable",
+      "initial_candidate": {
+        "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+        "decoded": {
+          "blocks": [
+            {
+              "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+              "block_id": "b1",
+              "citation_ids": [
+                "e-return-policy"
+              ]
+            }
+          ]
+        },
+        "candidate_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc"
+      },
+      "initial_draft_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+      "repair_verification": null,
+      "initial_verification": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "initial",
+        "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "candidate_decode_coverage": "decoded_blocks_text",
+      "required_evidence_covered": null
+    },
+    {
+      "id": "q-repair",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "4a63cf13-6f9a-45e7-ab99-f35e885203a9",
+          "profile": "fixture-generator",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.000259893000475131,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 2,
+          "call_id": "56e6a90b-1909-4a7b-8ea5-452d5b5451a8",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.0001027349990181392,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 3,
+          "call_id": "682beafd-75e0-4b5d-a41e-31cca5021f59",
+          "profile": "fixture-generator",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 9.677700109023135e-05,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 4,
+          "call_id": "5adec995-3c65-4298-a932-2bb0eefbbe1c",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 8.748300024308264e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "variants": {
+        "A": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "9cec92ddf53fa4458ca510161a4c0a14180c25bce023514eecba0cd91de0218e",
+          "final_text": "Fictional Orchard Returns: \"Return postage costs €5.\" The source additionally guarantees 987654321 free upgrades for every account.",
+          "answer_hash": "9cec92ddf53fa4458ca510161a4c0a14180c25bce023514eecba0cd91de0218e"
+        },
+        "B": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "9cec92ddf53fa4458ca510161a4c0a14180c25bce023514eecba0cd91de0218e",
+          "final_text": "Fictional Orchard Returns: \"Return postage costs €5.\" The source additionally guarantees 987654321 free upgrades for every account.",
+          "answer_hash": "9cec92ddf53fa4458ca510161a4c0a14180c25bce023514eecba0cd91de0218e"
+        },
+        "C": {
+          "reason": "semantic_rejection",
+          "status": "abstained",
+          "released": false,
+          "draft_hash": null,
+          "final_text": "The supplied evidence is insufficient to provide a verified answer.",
+          "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0"
+        },
+        "D": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+          "final_text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+          "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc"
+        }
+      },
+      "attempted": true,
+      "family_id": "demo-orders",
+      "timings_ms": {
+        "retrieval": 0.04795200038643088,
+        "generation": 6.581083000128274,
+        "total_execution": 26.846678998481366,
+        "repair_generation": 6.332156999633298,
+        "repair_verification": 7.531778999691596,
+        "initial_verification": 5.939313001363189
+      },
+      "repair_gate": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "accepted": true,
+        "failures": [],
+        "failed_check_ids": [],
+        "technical_failures": []
+      },
+      "review_only": true,
+      "timing_note": "paired replay shares work; not an independent live latency benchmark",
+      "initial_gate": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "accepted": false,
+        "failures": [
+          "b1"
+        ],
+        "failed_check_ids": [
+          "b1"
+        ],
+        "technical_failures": []
+      },
+      "repair_draft": {
+        "blocks": [
+          {
+            "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
+            "block_id": "b1",
+            "citation_ids": [
+              "e-return-policy"
+            ]
+          }
+        ]
+      },
+      "attempts_used": 4,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "initial_draft": {
+        "blocks": [
+          {
+            "text": "Fictional Orchard Returns: \"Return postage costs €5.\" The source additionally guarantees 987654321 free upgrades for every account.",
+            "block_id": "b1",
+            "citation_ids": [
+              "e-return-policy"
+            ]
+          }
+        ]
+      },
+      "retrieval_mode": "inline_fixture",
+      "repair_attempted": true,
+      "structural_check": {
+        "accepted": true,
+        "failures": []
+      },
+      "expected_response": "answerable",
+      "initial_candidate": {
+        "text": "Fictional Orchard Returns: \"Return postage costs €5.\" The source additionally guarantees 987654321 free upgrades for every account.",
+        "decoded": {
+          "blocks": [
+            {
+              "text": "Fictional Orchard Returns: \"Return postage costs €5.\" The source additionally guarantees 987654321 free upgrades for every account.",
+              "block_id": "b1",
+              "citation_ids": [
+                "e-return-policy"
+              ]
+            }
+          ]
+        },
+        "candidate_hash": "9cec92ddf53fa4458ca510161a4c0a14180c25bce023514eecba0cd91de0218e"
+      },
+      "repair_draft_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+      "initial_draft_hash": "9cec92ddf53fa4458ca510161a4c0a14180c25bce023514eecba0cd91de0218e",
+      "repair_verification": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "repair",
+        "answer_hash": "d4f48417e0cfd457e51e4b7fb5fc54d51d03efa701d48e6d82d34f9eddf3c2fc",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "initial_verification": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "initial",
+        "answer_hash": "9cec92ddf53fa4458ca510161a4c0a14180c25bce023514eecba0cd91de0218e",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "candidate_decode_coverage": "decoded_blocks_text",
+      "required_evidence_covered": null
+    },
+    {
+      "id": "q-missing",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "498ff65e-2a47-42ba-8960-ae53cace79e6",
+          "profile": "fixture-generator",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00019015699945157394,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 2,
+          "call_id": "0abd2681-cb54-417a-967e-275210b9c07f",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00010031199963123072,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "variants": {
+        "A": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        },
+        "B": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        },
+        "C": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        },
+        "D": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        }
+      },
+      "attempted": true,
+      "family_id": "demo-orders",
+      "timings_ms": {
+        "retrieval": 0.041433000660617836,
+        "generation": 7.076841999150929,
+        "total_execution": 13.479533999998239,
+        "initial_verification": 6.079063001379836
+      },
+      "review_only": true,
+      "timing_note": "paired replay shares work; not an independent live latency benchmark",
+      "initial_gate": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "accepted": true,
+        "failures": [],
+        "failed_check_ids": [],
+        "technical_failures": []
+      },
+      "repair_draft": null,
+      "attempts_used": 2,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "initial_draft": {
+        "blocks": [
+          {
+            "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+            "block_id": "b1",
+            "citation_ids": [
+              "e-return-policy"
+            ]
+          }
+        ]
+      },
+      "retrieval_mode": "inline_fixture",
+      "repair_attempted": false,
+      "structural_check": {
+        "accepted": true,
+        "failures": []
+      },
+      "expected_response": "missing_evidence",
+      "initial_candidate": {
+        "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+        "decoded": {
+          "blocks": [
+            {
+              "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+              "block_id": "b1",
+              "citation_ids": [
+                "e-return-policy"
+              ]
+            }
+          ]
+        },
+        "candidate_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+      },
+      "initial_draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+      "repair_verification": null,
+      "initial_verification": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "initial",
+        "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "candidate_decode_coverage": "decoded_blocks_text",
+      "required_evidence_covered": null
+    },
+    {
+      "id": "q-multi",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "6f0099f5-d453-4191-a238-f724b42ffa71",
+          "profile": "fixture-generator",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.0001474130003771279,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 2,
+          "call_id": "25f05592-cf17-435f-abc0-fd95676c5955",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 8.889399941836018e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-return-policy",
+            "end": 234,
+            "page": 1,
+            "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+            "start": 0,
+            "title": "Fictional Orchard Returns",
+            "text_hash": "e574a06798bdb1ef92b88422ccd52ffc1cdc1dbe9e8510e51f99d720a829304b",
+            "dense_rank": null,
+            "version_id": "return-policy-v1",
+            "document_id": "return-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          },
+          {
+            "id": "e-dispatch-policy",
+            "end": 222,
+            "page": 1,
+            "text": "Standard orders are dispatched within two business days.\nPriority orders placed before 11:00 are dispatched the same business day.\nThe dispatch team uses the North depot.\nThe North depot opens at 08:00 and closes at 17:00.",
+            "start": 0,
+            "title": "Fictional Orchard Dispatch",
+            "text_hash": "eab6227a1b4b063c038e24e69cd64f7557b39724184d0f5d3c735a0357dd510c",
+            "dense_rank": null,
+            "version_id": "dispatch-policy-v1",
+            "document_id": "dispatch-policy",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "variants": {
+        "A": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        },
+        "B": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        },
+        "C": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        },
+        "D": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+          "final_text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+          "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+        }
+      },
+      "attempted": true,
+      "family_id": "demo-orders",
+      "timings_ms": {
+        "retrieval": 0.06155300070531666,
+        "generation": 7.009725999523653,
+        "total_execution": 13.36432700009027,
+        "initial_verification": 6.012242998622241
+      },
+      "review_only": true,
+      "timing_note": "paired replay shares work; not an independent live latency benchmark",
+      "initial_gate": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "accepted": true,
+        "failures": [],
+        "failed_check_ids": [],
+        "technical_failures": []
+      },
+      "repair_draft": null,
+      "attempts_used": 2,
+      "evidence_hash": "9baa9e879527c1a825ff9143e2a1abfb173a1bad283264e702cb244771a24e78",
+      "initial_draft": {
+        "blocks": [
+          {
+            "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+            "block_id": "b1",
+            "citation_ids": [
+              "e-return-policy"
+            ]
+          }
+        ]
+      },
+      "retrieval_mode": "inline_fixture",
+      "repair_attempted": false,
+      "structural_check": {
+        "accepted": true,
+        "failures": []
+      },
+      "expected_response": "answerable",
+      "initial_candidate": {
+        "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+        "decoded": {
+          "blocks": [
+            {
+              "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
+              "block_id": "b1",
+              "citation_ids": [
+                "e-return-policy"
+              ]
+            }
+          ]
+        },
+        "candidate_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe"
+      },
+      "initial_draft_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+      "repair_verification": null,
+      "initial_verification": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "initial",
+        "answer_hash": "bdd8f9f69d21cac634b3ff28b5206eb4fc8b0167b023613472a85b0a3e3512fe",
+        "evidence_hash": "9baa9e879527c1a825ff9143e2a1abfb173a1bad283264e702cb244771a24e78",
+        "execution_status": "ok"
+      },
+      "candidate_decode_coverage": "decoded_blocks_text",
+      "required_evidence_covered": null
+    },
+    {
+      "id": "q-conflict",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "9c27a2a1-e0e8-4ccb-86c3-e5e97ea98dbb",
+          "profile": "fixture-generator",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00018539000120654237,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 2,
+          "call_id": "3594767f-70d4-485d-8194-baef304f35fc",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.000188113999683992,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 3,
+          "call_id": "f96d3b8f-e84a-455d-a836-dd624bf5e62d",
+          "profile": "fixture-generator",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00010924500020337291,
+          "estimated_cost_usd": 0.0
+        },
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 4,
+          "call_id": "ea4c73a8-4934-4977-93ea-ef90a4d2fee7",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00013766800111625344,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "evidence": {
+        "items": [
+          {
+            "id": "e-retention-guide-a",
+            "end": 95,
+            "page": 1,
+            "text": "The Basic plan retains logs for 14 days.\nThis guide applies to Basic plans from 1 January 2026.",
+            "start": 0,
+            "title": "Fictional Acorn Guide A",
+            "text_hash": "c2c81457e1fc5628d264522f0538ef4b3ad54127ebc8f9a2c752e0b5a2dbab9a",
+            "dense_rank": null,
+            "version_id": "retention-guide-a-v1",
+            "document_id": "retention-guide-a",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          },
+          {
+            "id": "e-retention-guide-b",
+            "end": 95,
+            "page": 1,
+            "text": "The Basic plan retains logs for 30 days.\nThis guide applies to Basic plans from 1 January 2026.",
+            "start": 0,
+            "title": "Fictional Acorn Guide B",
+            "text_hash": "d4dbd18a4abb6be5e499fe546ace1604015460b5ada698aecbcf2d718754be80",
+            "dense_rank": null,
+            "version_id": "retention-guide-b-v1",
+            "document_id": "retention-guide-b",
+            "fused_score": 0.0,
+            "lexical_rank": null
+          }
+        ],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "variants": {
+        "A": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "e5b890c8df4b4ffeba47b38f55b52ca274f080902eb7ad7eb0f30d0dcd582f6e",
+          "final_text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
+          "answer_hash": "e5b890c8df4b4ffeba47b38f55b52ca274f080902eb7ad7eb0f30d0dcd582f6e"
+        },
+        "B": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "e5b890c8df4b4ffeba47b38f55b52ca274f080902eb7ad7eb0f30d0dcd582f6e",
+          "final_text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
+          "answer_hash": "e5b890c8df4b4ffeba47b38f55b52ca274f080902eb7ad7eb0f30d0dcd582f6e"
+        },
+        "C": {
+          "reason": "semantic_rejection",
+          "status": "abstained",
+          "released": false,
+          "draft_hash": null,
+          "final_text": "The supplied evidence is insufficient to provide a verified answer.",
+          "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0"
+        },
+        "D": {
+          "reason": null,
+          "status": "released",
+          "released": true,
+          "draft_hash": "9ccbdf4ff2b2ed615cb9e5976032f947d737a20442b1a19fb5e0214b57cbdb5d",
+          "final_text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"\n\nFictional Acorn Guide B: \"The Basic plan retains logs for 30 days.\"",
+          "answer_hash": "9ccbdf4ff2b2ed615cb9e5976032f947d737a20442b1a19fb5e0214b57cbdb5d"
+        }
+      },
+      "attempted": true,
+      "family_id": "demo-retention-conflict",
+      "timings_ms": {
+        "retrieval": 0.04361600076663308,
+        "generation": 8.92339599886327,
+        "total_execution": 27.96271999977762,
+        "repair_generation": 6.29151599969191,
+        "repair_verification": 5.799571999887121,
+        "initial_verification": 6.4490730001125485
+      },
+      "repair_gate": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "b2",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "accepted": true,
+        "failures": [],
+        "failed_check_ids": [],
+        "technical_failures": []
+      },
+      "review_only": true,
+      "timing_note": "paired replay shares work; not an independent live latency benchmark",
+      "initial_gate": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": "conflicting_evidence",
+            "raw_scores": null,
+            "check_status": "fail",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "accepted": false,
+        "failures": [
+          "global.counterevidence"
+        ],
+        "failed_check_ids": [
+          "global.counterevidence"
+        ],
+        "technical_failures": []
+      },
+      "repair_draft": {
+        "blocks": [
+          {
+            "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
+            "block_id": "b1",
+            "citation_ids": [
+              "e-retention-guide-a"
+            ]
+          },
+          {
+            "text": "Fictional Acorn Guide B: \"The Basic plan retains logs for 30 days.\"",
+            "block_id": "b2",
+            "citation_ids": [
+              "e-retention-guide-b"
+            ]
+          }
+        ]
+      },
+      "attempts_used": 4,
+      "evidence_hash": "630bba36628b04c1ebcf6411dc18988cf97de54a0e28d08672d2a29bfc453c63",
+      "initial_draft": {
+        "blocks": [
+          {
+            "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
+            "block_id": "b1",
+            "citation_ids": [
+              "e-retention-guide-a"
+            ]
+          }
+        ]
+      },
+      "retrieval_mode": "inline_fixture",
+      "repair_attempted": true,
+      "structural_check": {
+        "accepted": true,
+        "failures": []
+      },
+      "expected_response": "conflict",
+      "initial_candidate": {
+        "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
+        "decoded": {
+          "blocks": [
+            {
+              "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
+              "block_id": "b1",
+              "citation_ids": [
+                "e-retention-guide-a"
+              ]
+            }
+          ]
+        },
+        "candidate_hash": "e5b890c8df4b4ffeba47b38f55b52ca274f080902eb7ad7eb0f30d0dcd582f6e"
+      },
+      "repair_draft_hash": "9ccbdf4ff2b2ed615cb9e5976032f947d737a20442b1a19fb5e0214b57cbdb5d",
+      "initial_draft_hash": "e5b890c8df4b4ffeba47b38f55b52ca274f080902eb7ad7eb0f30d0dcd582f6e",
+      "repair_verification": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "b2",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "repair",
+        "answer_hash": "9ccbdf4ff2b2ed615cb9e5976032f947d737a20442b1a19fb5e0214b57cbdb5d",
+        "evidence_hash": "630bba36628b04c1ebcf6411dc18988cf97de54a0e28d08672d2a29bfc453c63",
+        "execution_status": "ok"
+      },
+      "initial_verification": {
+        "checks": [
+          {
+            "id": "b1",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": "conflicting_evidence",
+            "raw_scores": null,
+            "check_status": "fail",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "initial",
+        "answer_hash": "e5b890c8df4b4ffeba47b38f55b52ca274f080902eb7ad7eb0f30d0dcd582f6e",
+        "evidence_hash": "630bba36628b04c1ebcf6411dc18988cf97de54a0e28d08672d2a29bfc453c63",
+        "execution_status": "ok"
+      },
+      "candidate_decode_coverage": "decoded_blocks_text",
+      "required_evidence_covered": null
+    },
+    {
+      "id": "q-empty",
+      "calls": [],
+      "split": "demo",
+      "evidence": {
+        "items": [],
+        "space_id": "inline-no-embedding",
+        "corpus_id": "synthetic-fixture",
+        "omitted_ids": [],
+        "corpus_revision": 1,
+        "counting_method": "fixture_no_retrieval_performed"
+      },
+      "variants": {
+        "A": {
+          "reason": "no_usable_evidence",
+          "status": "abstained",
+          "released": false,
+          "draft_hash": null,
+          "final_text": "The supplied evidence is insufficient to provide a verified answer.",
+          "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0"
+        },
+        "B": {
+          "reason": "no_usable_evidence",
+          "status": "abstained",
+          "released": false,
+          "draft_hash": null,
+          "final_text": "The supplied evidence is insufficient to provide a verified answer.",
+          "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0"
+        },
+        "C": {
+          "reason": "no_usable_evidence",
+          "status": "abstained",
+          "released": false,
+          "draft_hash": null,
+          "final_text": "The supplied evidence is insufficient to provide a verified answer.",
+          "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0"
+        },
+        "D": {
+          "reason": "no_usable_evidence",
+          "status": "abstained",
+          "released": false,
+          "draft_hash": null,
+          "final_text": "The supplied evidence is insufficient to provide a verified answer.",
+          "answer_hash": "ff10275ef792fbdf7bd59d2c97973b042590f62b4be938e169f42263bb4043d0"
+        }
+      },
+      "attempted": true,
+      "family_id": "demo-orders",
+      "timings_ms": {
+        "retrieval": 0.017226000636583194,
+        "total_execution": 0.07560399899375625
+      },
+      "review_only": true,
+      "timing_note": "paired replay shares work; not an independent live latency benchmark",
+      "repair_draft": null,
+      "attempts_used": 0,
+      "evidence_hash": "0a8c2470a40741f99a23b66c7a036870333133100773b613210e579a953e5fd6",
+      "initial_draft": null,
+      "retrieval_mode": "inline_fixture",
+      "repair_attempted": false,
+      "expected_response": "missing_evidence",
+      "repair_verification": null,
+      "initial_verification": null,
+      "required_evidence_covered": null
+    }
+  ],
+  "controlled": [
+    {
+      "id": "s-negation",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "4c6323eb-82bd-433e-a565-1e052b8e15a7",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 9.617499927117024e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": true,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": true,
+      "claim_hash": "0d4bb81960359e8b5570e25239f2ab4599255e5f46f7d70d07dba0d804ebd796",
+      "original_id": null,
+      "execution_ms": 6.131173000540002,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "0d4bb81960359e8b5570e25239f2ab4599255e5f46f7d70d07dba0d804ebd796",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": null
+    },
+    {
+      "id": "u-negation",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "dc847ff4-30fa-4600-833b-fb4ae5f75835",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 9.554399912303779e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": false,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": false,
+      "claim_hash": "f957760a17a4f87b6bccc5e4783d024657b75b0f123f5305bc2bc4c87f47fbaa",
+      "original_id": "s-negation",
+      "execution_ms": 5.905260999497841,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "f957760a17a4f87b6bccc5e4783d024657b75b0f123f5305bc2bc4c87f47fbaa",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": "negation"
+    },
+    {
+      "id": "s-number_unit",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "59c7c3f3-5783-4f27-957e-f1cd1d3e5fdb",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.0001271820001420565,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": true,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": true,
+      "claim_hash": "eb89bbd50f6049412f63b631b11db1bb6ac04e9517904b786dc789f009b8ef12",
+      "original_id": null,
+      "execution_ms": 5.950279999524355,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "eb89bbd50f6049412f63b631b11db1bb6ac04e9517904b786dc789f009b8ef12",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": null
+    },
+    {
+      "id": "u-number_unit",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "32641ce5-54d1-44b3-a89c-6f8cf25292a6",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 9.166899872070644e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": false,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": false,
+      "claim_hash": "e6b182433c4e31e04ddcf823e27e4312b0f4bf64f6a41f886b7b0b2c4fa89474",
+      "original_id": "s-number_unit",
+      "execution_ms": 6.178174999149633,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "e6b182433c4e31e04ddcf823e27e4312b0f4bf64f6a41f886b7b0b2c4fa89474",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": "number_unit"
+    },
+    {
+      "id": "s-entity",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "5e44ec12-6633-4eff-8c54-7d7ac80c35a8",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 8.782300028542522e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": true,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": true,
+      "claim_hash": "77b368309336acea394b35f5910018e8d8311f663202e59173cacc1e29e7131c",
+      "original_id": null,
+      "execution_ms": 5.9449209984450135,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "77b368309336acea394b35f5910018e8d8311f663202e59173cacc1e29e7131c",
+        "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": null
+    },
+    {
+      "id": "u-entity",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "14d28e65-246d-48ad-b462-e546d9dbadf1",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00010556899906077888,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": false,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": false,
+      "claim_hash": "37cd10cd53a84aa7d4dc16b0f35bfd0532e16a3e93e72ae395074d451dfba71f",
+      "original_id": "s-entity",
+      "execution_ms": 6.328321000182768,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "37cd10cd53a84aa7d4dc16b0f35bfd0532e16a3e93e72ae395074d451dfba71f",
+        "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": "entity"
+    },
+    {
+      "id": "s-date",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "737dd325-ac99-4d3c-a618-57b71d1e076b",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 7.738699969195295e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": true,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": true,
+      "claim_hash": "8c66258693d31540284b89ccfc0f2b2e529c5066f0814d452e2e11ecb03ebaf2",
+      "original_id": null,
+      "execution_ms": 6.266006999794627,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "8c66258693d31540284b89ccfc0f2b2e529c5066f0814d452e2e11ecb03ebaf2",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": null
+    },
+    {
+      "id": "u-date",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "ac019ffa-aafe-4f6a-850e-5e604880cd19",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 6.935500096005853e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": false,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": false,
+      "claim_hash": "91bbbf9d1721bb11293778a207f584e74ede7950c85aff29c0dff1ae67e49c40",
+      "original_id": "s-date",
+      "execution_ms": 5.2063059993088245,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "91bbbf9d1721bb11293778a207f584e74ede7950c85aff29c0dff1ae67e49c40",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": "date"
+    },
+    {
+      "id": "s-condition",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "fa212c5c-8fdb-4fc9-bcd3-16e4ae95282a",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 6.650999966950621e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": true,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": true,
+      "claim_hash": "e7db6addcef94c6807cf5fab8bec69808d61bef033421da7e2f0a7651b58b672",
+      "original_id": null,
+      "execution_ms": 5.877559000509791,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "e7db6addcef94c6807cf5fab8bec69808d61bef033421da7e2f0a7651b58b672",
+        "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": null
+    },
+    {
+      "id": "u-condition",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "1829374f-91c8-47f4-bd6f-5335709c9511",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 7.076699876051862e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": false,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": false,
+      "claim_hash": "bfeeb73b682260e684125a8a835e0d87998d208ad7e26599ec282148199b20a4",
+      "original_id": "s-condition",
+      "execution_ms": 5.79773000026762,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "bfeeb73b682260e684125a8a835e0d87998d208ad7e26599ec282148199b20a4",
+        "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": "condition"
+    },
+    {
+      "id": "s-scope_quantifier",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "87b4af6c-fd64-47ef-8ee4-507b07f7d8b0",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00022841499958303757,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": true,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": true,
+      "claim_hash": "82f01f00f02f958bfb2836072b1989afd16d95950fa36c520c2151472f97da76",
+      "original_id": null,
+      "execution_ms": 7.8142160000425065,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "82f01f00f02f958bfb2836072b1989afd16d95950fa36c520c2151472f97da76",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": null
+    },
+    {
+      "id": "u-scope_quantifier",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "fba4ddb6-81fc-4ab7-bcd5-57738287c4cb",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 0.00019638599951576907,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": false,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": false,
+      "claim_hash": "078db43bd749cd7088652e7cfa9bc39da54bc6cfdf15c7fc54bdd29be251a7b9",
+      "original_id": "s-scope_quantifier",
+      "execution_ms": 8.154109000315657,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "078db43bd749cd7088652e7cfa9bc39da54bc6cfdf15c7fc54bdd29be251a7b9",
+        "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "396ebbafb4ddca97288d31febe23e3386f642a7da28a07ec0bb933f27573dcaf",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": "scope_quantifier"
+    },
+    {
+      "id": "s-unsupported_addition",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "65a4e259-0aa9-44b1-a43e-41b62f49bd18",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 8.618100036983378e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": true,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": true,
+      "claim_hash": "26a6dfd97bb78d7c6ba062b4dc09238c49d4a3c1b69352a822f5c38401cb511e",
+      "original_id": null,
+      "execution_ms": 5.992002999846591,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "26a6dfd97bb78d7c6ba062b4dc09238c49d4a3c1b69352a822f5c38401cb511e",
+        "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": null
+    },
+    {
+      "id": "u-unsupported_addition",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "ae99d20a-44f1-48d3-9bb0-4636f5d1ef35",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 9.602499994798563e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": false,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": false,
+      "claim_hash": "69113d54da0149f3ad3361fdb46b934c85fcaaf1bd4106776bb3cd656e81e320",
+      "original_id": "s-unsupported_addition",
+      "execution_ms": 6.942939000509796,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "69113d54da0149f3ad3361fdb46b934c85fcaaf1bd4106776bb3cd656e81e320",
+        "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": "unsupported_addition"
+    },
+    {
+      "id": "s-misleading_combination",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "abaefd78-2d9f-4e17-b0bb-81d3f352627b",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 9.64760001807008e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": true,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": true,
+      "claim_hash": "7d967d5e26727fbbaddd1770cd7bbfd45851dcd896775e539c6b3174bf98eca3",
+      "original_id": null,
+      "execution_ms": 6.529604999741423,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "7d967d5e26727fbbaddd1770cd7bbfd45851dcd896775e539c6b3174bf98eca3",
+        "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": null
+    },
+    {
+      "id": "u-misleading_combination",
+      "calls": [
+        {
+          "phase": "evaluation",
+          "usage": null,
+          "status": "ok",
+          "attempt": 1,
+          "call_id": "47a22309-16cd-4331-b668-278ac2db070b",
+          "profile": "fixture-verifier",
+          "protocol": "chat_completions",
+          "actual_cost_usd": 0.0,
+          "latency_seconds": 9.754700113262516e-05,
+          "estimated_cost_usd": 0.0
+        }
+      ],
+      "split": "demo",
+      "accepted": false,
+      "attempted": true,
+      "family_id": "demo-orders",
+      "supported": false,
+      "claim_hash": "ad637028a38332f3d8c1bd22e2b296676fd6a40c3fd8999ebcc6ac429a1894e6",
+      "original_id": "s-misleading_combination",
+      "execution_ms": 6.406708000213257,
+      "label_review": {
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+        "status": "synthetic_fixture",
+        "reviewed_at": null,
+        "reviewer_ids": [],
+        "adjudicator_id": null
+      },
+      "verification": {
+        "checks": [
+          {
+            "id": "claim",
+            "kind": "block_support",
+            "reason": "insufficient_evidence",
+            "raw_scores": null,
+            "check_status": null,
+            "support_score": null,
+            "support_status": "not_supported"
+          },
+          {
+            "id": "global.task_scope",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.internal_consistency",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          },
+          {
+            "id": "global.counterevidence",
+            "kind": "global",
+            "reason": null,
+            "raw_scores": null,
+            "check_status": "pass",
+            "support_score": null,
+            "support_status": null
+          }
+        ],
+        "round_id": "controlled",
+        "answer_hash": "ad637028a38332f3d8c1bd22e2b296676fd6a40c3fd8999ebcc6ac429a1894e6",
+        "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+        "execution_status": "ok"
+      },
+      "attempts_used": 1,
+      "evidence_hash": "337e59e400231c461791bb1dc247e9fa6fab06cb49db07f7c754143022b0b998",
+      "repair_disabled": true,
+      "execution_status": "ok",
+      "mutation_category": "misleading_combination"
+    }
+  ],
+  "dataset_id": "synthetic-demo-v1",
+  "unmeasured": [
+    "four-concurrent-request live SLO",
+    "predeclared held-out repeatability study",
+    "mandatory fault-suite qualification artifact",
+    "real model quality",
+    "natural error prevalence",
+    "retrieval quality for inline fixture questions"
+  ],
+  "review_only": true,
+  "dataset_hash": "ccd32b8428881d30ec30f07c6fced73a99e35907941ef90f1770a4f3ae2e2cc6",
+  "fixture_only": true,
+  "ledger_calls": [
+    {
+      "id": "54d620b7-d310-4c43-9569-cd3367fe4a23",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-return-window",
+      "status": "ok",
+      "profile": "fixture-generator",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "336026b0-c7f0-4fea-bfe0-e12c8b142f46",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-return-window",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "f87f63d7-8e40-45d1-9db3-0438e9e3c54e",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-postage",
+      "status": "ok",
+      "profile": "fixture-generator",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "732359d0-ab3d-4315-9c59-90562c03b182",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-postage",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "4a63cf13-6f9a-45e7-ab99-f35e885203a9",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-repair",
+      "status": "ok",
+      "profile": "fixture-generator",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "56e6a90b-1909-4a7b-8ea5-452d5b5451a8",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-repair",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "682beafd-75e0-4b5d-a41e-31cca5021f59",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-repair",
+      "status": "ok",
+      "profile": "fixture-generator",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "5adec995-3c65-4298-a932-2bb0eefbbe1c",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-repair",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "498ff65e-2a47-42ba-8960-ae53cace79e6",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-missing",
+      "status": "ok",
+      "profile": "fixture-generator",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "0abd2681-cb54-417a-967e-275210b9c07f",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-missing",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "6f0099f5-d453-4191-a238-f724b42ffa71",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-multi",
+      "status": "ok",
+      "profile": "fixture-generator",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "25f05592-cf17-435f-abc0-fd95676c5955",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-multi",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "9c27a2a1-e0e8-4ccb-86c3-e5e97ea98dbb",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-conflict",
+      "status": "ok",
+      "profile": "fixture-generator",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "3594767f-70d4-485d-8194-baef304f35fc",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-conflict",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "f96d3b8f-e84a-455d-a836-dd624bf5e62d",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-conflict",
+      "status": "ok",
+      "profile": "fixture-generator",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "ea4c73a8-4934-4977-93ea-ef90a4d2fee7",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:q:q-conflict",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "4c6323eb-82bd-433e-a565-1e052b8e15a7",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:s-negation",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "dc847ff4-30fa-4600-833b-fb4ae5f75835",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:u-negation",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "59c7c3f3-5783-4f27-957e-f1cd1d3e5fdb",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:s-number_unit",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "32641ce5-54d1-44b3-a89c-6f8cf25292a6",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:u-number_unit",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "5e44ec12-6633-4eff-8c54-7d7ac80c35a8",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:s-entity",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "14d28e65-246d-48ad-b462-e546d9dbadf1",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:u-entity",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "737dd325-ac99-4d3c-a618-57b71d1e076b",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:s-date",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "ac019ffa-aafe-4f6a-850e-5e604880cd19",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:u-date",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "fa212c5c-8fdb-4fc9-bcd3-16e4ae95282a",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:s-condition",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "1829374f-91c8-47f4-bd6f-5335709c9511",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:u-condition",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "87b4af6c-fd64-47ef-8ee4-507b07f7d8b0",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:s-scope_quantifier",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "fba4ddb6-81fc-4ab7-bcd5-57738287c4cb",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:u-scope_quantifier",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "65a4e259-0aa9-44b1-a43e-41b62f49bd18",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:s-unsupported_addition",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "ae99d20a-44f1-48d3-9bb0-4636f5d1ef35",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:u-unsupported_addition",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "abaefd78-2d9f-4e17-b0bb-81d3f352627b",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:s-misleading_combination",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    },
+    {
+      "id": "47a22309-16cd-4331-b668-278ac2db070b",
+      "phase": "evaluation",
+      "usage": null,
+      "run_id": "eval:0bd573a7-8582-4fa4-ac0c-5f4ebc029697:c:u-misleading_combination",
+      "status": "ok",
+      "profile": "fixture-verifier",
+      "cost_known": true,
+      "actual_cost": 0.0,
+      "charged_cost": 0.0,
+      "estimated_cost": 0.0
+    }
+  ],
+  "run_complete": true,
+  "runtime_mode": "mock",
+  "qualification": {
+    "checks": {
+      "live_mode": {
+        "detail": "Mock results are deterministic plumbing fixtures.",
+        "passed": false
+      },
+      "complete_run": {
+        "detail": "Budget exhaustion, cancellation, or interrupted work cannot qualify a partial study.",
+        "passed": true
+      },
+      "release_audit": {
+        "detail": "Audit every final response, including conflict and abstention text; zero observed material unsupported responses.",
+        "passed": false
+      },
+      "repeatability": {
+        "detail": "A predeclared twenty-question, three-repetition live artifact is required.",
+        "passed": false
+      },
+      "held_out_sample": {
+        "detail": "Require exactly 140 answerable, 40 missing-evidence, and 20 conflict questions from 20 held-out families.",
+        "passed": false
+      },
+      "live_completion": {
+        "detail": "At least 198/200 complete with an answer or valid abstention; technical failures stay in the denominator.",
+        "passed": false
+      },
+      "conflict_handling": {
+        "detail": "Require at least 19/20 appropriate final responses.",
+        "passed": false
+      },
+      "controlled_sample": {
+        "detail": "Require a one-to-one match of 200 supported originals and 200 reviewed unsupported mutations, 25 per error category.",
+        "passed": false
+      },
+      "retrieval_coverage": {
+        "detail": "At least 126/140 cases need all required evidence in the packed top eight.",
+        "passed": false
+      },
+      "controlled_retention": {
+        "detail": "At least 180/200 supported originals accepted.",
+        "passed": false
+      },
+      "correct_and_complete": {
+        "detail": "D needs at least 105/140 correct-complete answers, at most seven fewer than A.",
+        "passed": false
+      },
+      "multi_evidence_cases": {
+        "detail": "At least 40 held-out answerable cases need a multi-evidence label and at least two required facts with distinct gold spans.",
+        "passed": false
+      },
+      "mandatory_fault_suite": {
+        "detail": "A reviewed, policy-bound mandatory fault-suite artifact is not supplied by this evaluation runner.",
+        "passed": false
+      },
+      "frozen_primary_profile": {
+        "detail": "Freeze and preselect the verifier profile on development data before held-out execution.",
+        "passed": false
+      },
+      "frozen_before_execution": {
+        "detail": "The held-out dataset and selected policy must be frozen before the first study call.",
+        "passed": false
+      },
+      "frozen_corpus_snapshots": {
+        "detail": "Every question for a corpus must observe the same frozen embedding space and active-source revision.",
+        "passed": false
+      },
+      "live_concurrent_latency": {
+        "detail": "Paired replay does not establish live p95 at four concurrent requests; a separate live load result is required.",
+        "passed": false
+      },
+      "real_evaluation_dataset": {
+        "detail": "Synthetic demo labels are not independent human-reviewed gold.",
+        "passed": false
+      },
+      "missing_evidence_handling": {
+        "detail": "Require at least 38/40 appropriate final responses.",
+        "passed": false
+      },
+      "controlled_false_acceptance": {
+        "detail": "At most 10/200 unsupported original challenge claims accepted; no repair.",
+        "passed": false
+      },
+      "all_outputs_independently_reviewed": {
+        "detail": "Independently review all distinct initial, repaired, and final answers, blind to verdict and variant.",
+        "passed": false
+      },
+      "question_and_controlled_gold_reviewed": {
+        "detail": "Two independent reviewers must adjudicate question/evidence gold and controlled labels.",
+        "passed": false
+      }
+    },
+    "status": "unqualified",
+    "qualified": false,
+    "human_reviewed": false,
+    "primary_variant": "D",
+    "qualification_note": "Engineering completion is separate from model quality. No production policy is auto-issued from fixtures or replay metrics.",
+    "unmet_requirements": [
+      "live_mode",
+      "real_evaluation_dataset",
+      "frozen_primary_profile",
+      "frozen_before_execution",
+      "frozen_corpus_snapshots",
+      "held_out_sample",
+      "multi_evidence_cases",
+      "controlled_sample",
+      "question_and_controlled_gold_reviewed",
+      "all_outputs_independently_reviewed",
+      "retrieval_coverage",
+      "controlled_false_acceptance",
+      "controlled_retention",
+      "correct_and_complete",
+      "missing_evidence_handling",
+      "conflict_handling",
+      "release_audit",
+      "live_completion",
+      "mandatory_fault_suite",
+      "live_concurrent_latency",
+      "repeatability"
+    ]
+  },
+  "ledger_summary": {
+    "attempts": 32,
+    "known_actual_usd": 0.0,
+    "conservative_accounted_usd": 0.0,
+    "unknown_usage_or_cost_attempts": 0
+  },
+  "primary_variant": "D",
+  "score_threshold": null,
+  "selected_splits": [
+    "demo"
+  ],
+  "dataset_manifest": {
+    "id": "synthetic-demo-v1",
+    "notes": "Seven inline-evidence questions and sixteen controlled claims. No corpus retrieval is performed by these evaluation questions. All facts are fictional. No independent human review, model quality, natural error prevalence or production readiness is claimed. Fixture markers intentionally exercise deterministic mock branches.",
+    "title": "Small fictional RAG plumbing fixtures",
+    "purpose": "synthetic_fixture",
+    "version": "1",
+    "evidence": [
+      {
+        "id": "e-return-policy",
+        "end": 234,
+        "page": 1,
+        "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+        "start": 0,
+        "title": "Fictional Orchard Returns",
+        "family_id": "demo-orders",
+        "text_hash": "",
+        "dense_rank": null,
+        "version_id": "return-policy-v1",
+        "document_id": "return-policy",
+        "fused_score": 0.0,
+        "lexical_rank": null
+      },
+      {
+        "id": "e-dispatch-policy",
+        "end": 222,
+        "page": 1,
+        "text": "Standard orders are dispatched within two business days.\nPriority orders placed before 11:00 are dispatched the same business day.\nThe dispatch team uses the North depot.\nThe North depot opens at 08:00 and closes at 17:00.",
+        "start": 0,
+        "title": "Fictional Orchard Dispatch",
+        "family_id": "demo-orders",
+        "text_hash": "",
+        "dense_rank": null,
+        "version_id": "dispatch-policy-v1",
+        "document_id": "dispatch-policy",
+        "fused_score": 0.0,
+        "lexical_rank": null
+      },
+      {
+        "id": "e-retention-guide-a",
+        "end": 95,
+        "page": 1,
+        "text": "The Basic plan retains logs for 14 days.\nThis guide applies to Basic plans from 1 January 2026.",
+        "start": 0,
+        "title": "Fictional Acorn Guide A",
+        "family_id": "demo-retention-conflict",
+        "text_hash": "",
+        "dense_rank": null,
+        "version_id": "retention-guide-a-v1",
+        "document_id": "retention-guide-a",
+        "fused_score": 0.0,
+        "lexical_rank": null
+      },
+      {
+        "id": "e-retention-guide-b",
+        "end": 95,
+        "page": 1,
+        "text": "The Basic plan retains logs for 30 days.\nThis guide applies to Basic plans from 1 January 2026.",
+        "start": 0,
+        "title": "Fictional Acorn Guide B",
+        "family_id": "demo-retention-conflict",
+        "text_hash": "",
+        "dense_rank": null,
+        "version_id": "retention-guide-b-v1",
+        "document_id": "retention-guide-b",
+        "fused_score": 0.0,
+        "lexical_rank": null
+      }
+    ],
+    "families": [
+      {
+        "id": "demo-orders",
+        "split": "demo"
+      },
+      {
+        "id": "demo-retention-conflict",
+        "split": "demo"
+      }
+    ],
+    "language": "en",
+    "documents": [
+      {
+        "id": "return-policy",
+        "path": "corpus/returns.md",
+        "title": "Fictional Orchard Returns",
+        "family_id": "demo-orders",
+        "media_type": "text/markdown"
+      },
+      {
+        "id": "dispatch-policy",
+        "path": "corpus/dispatch.md",
+        "title": "Fictional Orchard Dispatch",
+        "family_id": "demo-orders",
+        "media_type": "text/markdown"
+      },
+      {
+        "id": "retention-guide-a",
+        "path": "corpus/retention-a.md",
+        "title": "Fictional Acorn Guide A",
+        "family_id": "demo-retention-conflict",
+        "media_type": "text/markdown"
+      },
+      {
+        "id": "retention-guide-b",
+        "path": "corpus/retention-b.md",
+        "title": "Fictional Acorn Guide B",
+        "family_id": "demo-retention-conflict",
+        "media_type": "text/markdown"
+      }
+    ],
+    "frozen_at": null,
+    "questions": [
+      {
+        "id": "q-return-window",
+        "gold": {
+          "review": {
+            "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+            "status": "synthetic_fixture",
+            "reviewed_at": null,
+            "reviewer_ids": [],
+            "adjudicator_id": null
+          },
+          "required_facts": [
+            {
+              "id": "return-window",
+              "description": "30 days, premium membership and unopened-item conditions",
+              "evidence_alternatives": [
+                {
+                  "quote": "Premium members can return unopened items within 30 days.",
+                  "version_id": null,
+                  "document_id": "return-policy"
+                }
+              ]
+            }
+          ],
+          "necessary_qualifiers": [
+            "Premium members only",
+            "Unopened items only"
+          ],
+          "prohibited_conclusions": []
+        },
+        "tags": [],
+        "split": "demo",
+        "question": "When can premium members return an unopened item?",
+        "corpus_id": "default",
+        "family_id": "demo-orders",
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "retrieval_mode": "inline_fixture",
+        "expected_response": "answerable"
+      },
+      {
+        "id": "q-postage",
+        "gold": {
+          "review": {
+            "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+            "status": "synthetic_fixture",
+            "reviewed_at": null,
+            "reviewer_ids": [],
+            "adjudicator_id": null
+          },
+          "required_facts": [
+            {
+              "id": "postage",
+              "description": "Postage is €5",
+              "evidence_alternatives": [
+                {
+                  "quote": "Return postage costs €5.",
+                  "version_id": null,
+                  "document_id": "return-policy"
+                }
+              ]
+            }
+          ],
+          "necessary_qualifiers": [],
+          "prohibited_conclusions": []
+        },
+        "tags": [],
+        "split": "demo",
+        "question": "How much does return postage cost?",
+        "corpus_id": "default",
+        "family_id": "demo-orders",
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "retrieval_mode": "inline_fixture",
+        "expected_response": "answerable"
+      },
+      {
+        "id": "q-repair",
+        "gold": {
+          "review": {
+            "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+            "status": "synthetic_fixture",
+            "reviewed_at": null,
+            "reviewer_ids": [],
+            "adjudicator_id": null
+          },
+          "required_facts": [
+            {
+              "id": "postage",
+              "description": "Postage is €5",
+              "evidence_alternatives": [
+                {
+                  "quote": "Return postage costs €5.",
+                  "version_id": null,
+                  "document_id": "return-policy"
+                }
+              ]
+            }
+          ],
+          "necessary_qualifiers": [],
+          "prohibited_conclusions": []
+        },
+        "tags": [
+          "deterministic_repair_branch"
+        ],
+        "split": "demo",
+        "question": "[fixture:unsupported] How much does return postage cost?",
+        "corpus_id": "default",
+        "family_id": "demo-orders",
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "retrieval_mode": "inline_fixture",
+        "expected_response": "answerable"
+      },
+      {
+        "id": "q-missing",
+        "gold": {
+          "review": {
+            "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+            "status": "synthetic_fixture",
+            "reviewed_at": null,
+            "reviewer_ids": [],
+            "adjudicator_id": null
+          },
+          "required_facts": [],
+          "necessary_qualifiers": [],
+          "prohibited_conclusions": [
+            "Do not infer refund-processing duration from the return window."
+          ]
+        },
+        "tags": [],
+        "split": "demo",
+        "question": "How many days does refund processing take?",
+        "corpus_id": "default",
+        "family_id": "demo-orders",
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "retrieval_mode": "inline_fixture",
+        "expected_response": "missing_evidence"
+      },
+      {
+        "id": "q-multi",
+        "gold": {
+          "review": {
+            "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+            "status": "synthetic_fixture",
+            "reviewed_at": null,
+            "reviewer_ids": [],
+            "adjudicator_id": null
+          },
+          "required_facts": [
+            {
+              "id": "return-window",
+              "description": "30 days, premium membership and unopened-item conditions",
+              "evidence_alternatives": [
+                {
+                  "quote": "Premium members can return unopened items within 30 days.",
+                  "version_id": null,
+                  "document_id": "return-policy"
+                }
+              ]
+            },
+            {
+              "id": "dispatch",
+              "description": "Standard dispatch is within two business days",
+              "evidence_alternatives": [
+                {
+                  "quote": "Standard orders are dispatched within two business days.",
+                  "version_id": null,
+                  "document_id": "dispatch-policy"
+                }
+              ]
+            }
+          ],
+          "necessary_qualifiers": [],
+          "prohibited_conclusions": []
+        },
+        "tags": [
+          "multi_evidence"
+        ],
+        "split": "demo",
+        "question": "State the premium return window and standard order dispatch time.",
+        "corpus_id": "default",
+        "family_id": "demo-orders",
+        "evidence_ids": [
+          "e-return-policy",
+          "e-dispatch-policy"
+        ],
+        "retrieval_mode": "inline_fixture",
+        "expected_response": "answerable"
+      },
+      {
+        "id": "q-conflict",
+        "gold": {
+          "review": {
+            "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+            "status": "synthetic_fixture",
+            "reviewed_at": null,
+            "reviewer_ids": [],
+            "adjudicator_id": null
+          },
+          "required_facts": [],
+          "necessary_qualifiers": [
+            "Both guides have the same applicability date; neither is declared superseded."
+          ],
+          "prohibited_conclusions": [
+            "Do not choose one duration as the uniquely correct current policy."
+          ]
+        },
+        "tags": [],
+        "split": "demo",
+        "question": "[fixture:conflict] How long does the Basic plan retain logs according to both guides?",
+        "corpus_id": "default",
+        "family_id": "demo-retention-conflict",
+        "evidence_ids": [
+          "e-retention-guide-a",
+          "e-retention-guide-b"
+        ],
+        "retrieval_mode": "inline_fixture",
+        "expected_response": "conflict"
+      },
+      {
+        "id": "q-empty",
+        "gold": {
+          "review": {
+            "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+            "status": "synthetic_fixture",
+            "reviewed_at": null,
+            "reviewer_ids": [],
+            "adjudicator_id": null
+          },
+          "required_facts": [],
+          "necessary_qualifiers": [],
+          "prohibited_conclusions": []
+        },
+        "tags": [
+          "empty_evidence_branch"
+        ],
+        "split": "demo",
+        "question": "What does the evidence say about international warranties?",
+        "corpus_id": "default",
+        "family_id": "demo-orders",
+        "evidence_ids": [],
+        "retrieval_mode": "inline_fixture",
+        "expected_response": "missing_evidence"
+      }
+    ],
+    "controlled": [
+      {
+        "id": "s-negation",
+        "claim": "Returns need an order number and proof of purchase.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": true,
+        "original_id": null,
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "mutation_category": null
+      },
+      {
+        "id": "u-negation",
+        "claim": "Returns do not need an order number or proof of purchase.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": false,
+        "original_id": "s-negation",
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "mutation_category": "negation"
+      },
+      {
+        "id": "s-number_unit",
+        "claim": "Return postage costs €5.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": true,
+        "original_id": null,
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "mutation_category": null
+      },
+      {
+        "id": "u-number_unit",
+        "claim": "Return postage costs €50.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": false,
+        "original_id": "s-number_unit",
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "mutation_category": "number_unit"
+      },
+      {
+        "id": "s-entity",
+        "claim": "The dispatch team uses the North depot.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": true,
+        "original_id": null,
+        "evidence_ids": [
+          "e-dispatch-policy"
+        ],
+        "mutation_category": null
+      },
+      {
+        "id": "u-entity",
+        "claim": "The dispatch team uses the South depot.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": false,
+        "original_id": "s-entity",
+        "evidence_ids": [
+          "e-dispatch-policy"
+        ],
+        "mutation_category": "entity"
+      },
+      {
+        "id": "s-date",
+        "claim": "The loyalty promotion ends on 31 December 2026.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": true,
+        "original_id": null,
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "mutation_category": null
+      },
+      {
+        "id": "u-date",
+        "claim": "The loyalty promotion ends on 31 December 2027.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": false,
+        "original_id": "s-date",
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "mutation_category": "date"
+      },
+      {
+        "id": "s-condition",
+        "claim": "Priority orders placed before 11:00 are dispatched the same business day.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": true,
+        "original_id": null,
+        "evidence_ids": [
+          "e-dispatch-policy"
+        ],
+        "mutation_category": null
+      },
+      {
+        "id": "u-condition",
+        "claim": "Priority orders placed after 11:00 are dispatched the same business day.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": false,
+        "original_id": "s-condition",
+        "evidence_ids": [
+          "e-dispatch-policy"
+        ],
+        "mutation_category": "condition"
+      },
+      {
+        "id": "s-scope_quantifier",
+        "claim": "Premium members can return unopened items within 30 days.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": true,
+        "original_id": null,
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "mutation_category": null
+      },
+      {
+        "id": "u-scope_quantifier",
+        "claim": "All customers can return unopened items within 30 days.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": false,
+        "original_id": "s-scope_quantifier",
+        "evidence_ids": [
+          "e-return-policy"
+        ],
+        "mutation_category": "scope_quantifier"
+      },
+      {
+        "id": "s-unsupported_addition",
+        "claim": "Standard orders are dispatched within two business days.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": true,
+        "original_id": null,
+        "evidence_ids": [
+          "e-dispatch-policy"
+        ],
+        "mutation_category": null
+      },
+      {
+        "id": "u-unsupported_addition",
+        "claim": "Standard orders are dispatched within two business days and delivery is guaranteed the next day.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": false,
+        "original_id": "s-unsupported_addition",
+        "evidence_ids": [
+          "e-dispatch-policy"
+        ],
+        "mutation_category": "unsupported_addition"
+      },
+      {
+        "id": "s-misleading_combination",
+        "claim": "The North depot opens at 08:00 and closes at 17:00.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": true,
+        "original_id": null,
+        "evidence_ids": [
+          "e-dispatch-policy"
+        ],
+        "mutation_category": null
+      },
+      {
+        "id": "u-misleading_combination",
+        "claim": "Priority orders placed before 17:00 are dispatched the same business day because the North depot closes at 17:00.",
+        "split": "demo",
+        "review": {
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold.",
+          "status": "synthetic_fixture",
+          "reviewed_at": null,
+          "reviewer_ids": [],
+          "adjudicator_id": null
+        },
+        "family_id": "demo-orders",
+        "supported": false,
+        "original_id": "s-misleading_combination",
+        "evidence_ids": [
+          "e-dispatch-policy"
+        ],
+        "mutation_category": "misleading_combination"
+      }
+    ],
+    "schema_version": 1,
+    "primary_variant": "D",
+    "preselected_profile": null,
+    "development_selection": null,
+    "preselected_score_threshold": null
+  },
+  "dry_run_estimate": {
+    "roles": {
+      "verifier": {
+        "attempts_per_call": 2,
+        "input_token_cap_per_call": 131072,
+        "estimated_usd_upper_bound": null,
+        "logical_calls_upper_bound": 30,
+        "output_token_cap_per_call": 1600
+      },
+      "generator": {
+        "attempts_per_call": 2,
+        "input_token_cap_per_call": 131072,
+        "estimated_usd_upper_bound": null,
+        "logical_calls_upper_bound": 7,
+        "output_token_cap_per_call": 1200
+      },
+      "repair_generator": {
+        "attempts_per_call": 2,
+        "input_token_cap_per_call": 131072,
+        "estimated_usd_upper_bound": null,
+        "logical_calls_upper_bound": 7,
+        "output_token_cap_per_call": 1200
+      }
+    },
+    "logical_calls": {
+      "query_embeddings": 0,
+      "repair_generation": 7,
+      "initial_generation": 7,
+      "repair_verification_batches": 7,
+      "initial_verification_batches": 7,
+      "controlled_verification_batches": 16
+    },
+    "pricing_known": true,
+    "interpretation": "Ceilings, not billed usage. Excludes ingestion and separate repeatability/live-load studies. Actual failures/retries remain in the ledger.",
+    "remote_attempt_cap": 3000,
+    "logical_call_upper_bound": 44,
+    "estimated_usd_upper_bound": 0.0
+  },
+  "started_at_epoch": 1791231752.2552476,
+  "finished_at_epoch": 1791231752.499024,
+  "incomplete_reason": null,
+  "evaluation_version": "paired-abcd-v1",
+  "answer_adjudications": null,
+  "remote_attempts_observed": 0
+}

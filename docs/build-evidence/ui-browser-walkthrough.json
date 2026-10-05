@@ -1,0 +1,48 @@
+{
+  "backend": "PGlite PostgreSQL/pgvector via socket",
+  "mode": "deterministic mock fixtures",
+  "checks": [
+    "actual API configuration and fixture labels",
+    "empty corpus abstention, no answer leakage",
+    "browser multipart upload through durable ingestion to searchable source",
+    "source preview renders uploaded HTML as inert text",
+    "answer release, citation navigation, exact immutable source version",
+    "one unsupported-content repair, complete recheck, draft limited to labeled trace",
+    "persistent semantic rejection produces abstention",
+    "new source version activation retains historical cited version",
+    "actual durable demo evaluation with visible metrics and JSON export",
+    "mobile rendering without horizontal page overflow"
+  ],
+  "errors": [],
+  "started_at": "2026-10-05T20:18:00.155Z",
+  "status": "passed",
+  "source_versions": [
+    "3afb4010-2727-42f1-bb7d-104ae70b7b61",
+    "1fe781bb-b04e-4da7-ae5b-af0f9ae5ca0b"
+  ],
+  "run_ids": [
+    "92c6bff5-bba0-44c8-916d-610d50546d3f",
+    "e63da848-1284-4d6b-899e-88893e1afdc8",
+    "17e0de70-eb84-4bfb-bc0c-0cf43a1539b0",
+    "1075e4bd-1a68-42bf-9514-6b3fc0ff0eec"
+  ],
+  "finished_at": "2026-10-05T20:18:11.628Z",
+  "evaluation": {
+    "id": "c18b338f-e1e3-4565-9a27-4fafdd56e137",
+    "status": "completed",
+    "fixture_only": true,
+    "question_cases": 7,
+    "controlled_cases": 16,
+    "remote_attempts_observed": 0,
+    "qualification_status": "unqualified",
+    "human_reviewed": false,
+    "json_download_verified": true
+  },
+  "static_sha256": {
+    "app.js": "88fd6e7615b23a2ca141fb5fa998a5d272a4088ff8cd454c75de02071f1eaa33",
+    "favicon.svg": "0a35b736a41f25ec3060efd7489f46b3b7db581fb265205062e1d0d4a21e5178",
+    "index.html": "96a0098135210a9d4a70c29f9af423e97637c87dfe834466abf42089ca4b2e0e",
+    "styles.css": "69eb3e051706151ac6c5bc62d66aa602548f318d6452003037242e882c5847f6"
+  },
+  "scope": "Actual browser against FastAPI, durable Worker and PGlite PostgreSQL/pgvector in an isolated process namespace. Deterministic mock providers; no hosted models or paid endpoint calls. Workflow verification does not measure model quality or native PostgreSQL deployment behavior."
+}

@@ -1,0 +1,18 @@
+{
+  "checked_on": "2026-10-05",
+  "method": "Docker Hub v2 tag metadata; digests pin the multiarchitecture OCI index",
+  "images": [
+    {
+      "image": "python:3.12-slim-bookworm",
+      "digest": "sha256:54c85f3c47607a77f32adec749d3c81d1348bf25833671f512b26a9b6d778cb3",
+      "source": "https://hub.docker.com/v2/repositories/library/python/tags/3.12-slim-bookworm"
+    },
+    {
+      "image": "pgvector/pgvector:0.8.2-pg17-bookworm",
+      "digest": "sha256:feb68f4f15446397d8cac7f4fe48fe4586de83160d1fc48b46283312d1a33966",
+      "source": "https://hub.docker.com/v2/repositories/pgvector/pgvector/tags/0.8.2-pg17-bookworm"
+    }
+  ],
+  "native_container_execution_verified": false,
+  "note": "This build environment does not provide Docker. Run the supplied native verification workflow on the deployment host."
+}

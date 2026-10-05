@@ -1,0 +1,579 @@
+{
+  "schema_version": 1,
+  "id": "synthetic-demo-v1",
+  "version": "1",
+  "title": "Small fictional RAG plumbing fixtures",
+  "purpose": "synthetic_fixture",
+  "language": "en",
+  "notes": "Seven inline-evidence questions and sixteen controlled claims. No corpus retrieval is performed by these evaluation questions. All facts are fictional. No independent human review, model quality, natural error prevalence or production readiness is claimed. Fixture markers intentionally exercise deterministic mock branches.",
+  "primary_variant": "D",
+  "families": [
+    {
+      "id": "demo-orders",
+      "split": "demo"
+    },
+    {
+      "id": "demo-retention-conflict",
+      "split": "demo"
+    }
+  ],
+  "documents": [
+    {
+      "id": "return-policy",
+      "family_id": "demo-orders",
+      "title": "Fictional Orchard Returns",
+      "path": "corpus/returns.md",
+      "media_type": "text/markdown"
+    },
+    {
+      "id": "dispatch-policy",
+      "family_id": "demo-orders",
+      "title": "Fictional Orchard Dispatch",
+      "path": "corpus/dispatch.md",
+      "media_type": "text/markdown"
+    },
+    {
+      "id": "retention-guide-a",
+      "family_id": "demo-retention-conflict",
+      "title": "Fictional Acorn Guide A",
+      "path": "corpus/retention-a.md",
+      "media_type": "text/markdown"
+    },
+    {
+      "id": "retention-guide-b",
+      "family_id": "demo-retention-conflict",
+      "title": "Fictional Acorn Guide B",
+      "path": "corpus/retention-b.md",
+      "media_type": "text/markdown"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "e-return-policy",
+      "document_id": "return-policy",
+      "version_id": "return-policy-v1",
+      "family_id": "demo-orders",
+      "title": "Fictional Orchard Returns",
+      "text": "Premium members can return unopened items within 30 days.\nReturn postage costs €5.\nThe loyalty promotion ends on 31 December 2026.\nOnly cardboard packaging is accepted for recycling.\nReturns need an order number and proof of purchase.",
+      "page": 1,
+      "start": 0,
+      "end": 234
+    },
+    {
+      "id": "e-dispatch-policy",
+      "document_id": "dispatch-policy",
+      "version_id": "dispatch-policy-v1",
+      "family_id": "demo-orders",
+      "title": "Fictional Orchard Dispatch",
+      "text": "Standard orders are dispatched within two business days.\nPriority orders placed before 11:00 are dispatched the same business day.\nThe dispatch team uses the North depot.\nThe North depot opens at 08:00 and closes at 17:00.",
+      "page": 1,
+      "start": 0,
+      "end": 222
+    },
+    {
+      "id": "e-retention-guide-a",
+      "document_id": "retention-guide-a",
+      "version_id": "retention-guide-a-v1",
+      "family_id": "demo-retention-conflict",
+      "title": "Fictional Acorn Guide A",
+      "text": "The Basic plan retains logs for 14 days.\nThis guide applies to Basic plans from 1 January 2026.",
+      "page": 1,
+      "start": 0,
+      "end": 95
+    },
+    {
+      "id": "e-retention-guide-b",
+      "document_id": "retention-guide-b",
+      "version_id": "retention-guide-b-v1",
+      "family_id": "demo-retention-conflict",
+      "title": "Fictional Acorn Guide B",
+      "text": "The Basic plan retains logs for 30 days.\nThis guide applies to Basic plans from 1 January 2026.",
+      "page": 1,
+      "start": 0,
+      "end": 95
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-return-window",
+      "family_id": "demo-orders",
+      "split": "demo",
+      "question": "When can premium members return an unopened item?",
+      "expected_response": "answerable",
+      "retrieval_mode": "inline_fixture",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "gold": {
+        "required_facts": [
+          {
+            "id": "return-window",
+            "description": "30 days, premium membership and unopened-item conditions",
+            "evidence_alternatives": [
+              {
+                "quote": "Premium members can return unopened items within 30 days.",
+                "document_id": "return-policy"
+              }
+            ]
+          }
+        ],
+        "necessary_qualifiers": [
+          "Premium members only",
+          "Unopened items only"
+        ],
+        "prohibited_conclusions": [],
+        "review": {
+          "status": "synthetic_fixture",
+          "reviewer_ids": [],
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+        }
+      },
+      "tags": []
+    },
+    {
+      "id": "q-postage",
+      "family_id": "demo-orders",
+      "split": "demo",
+      "question": "How much does return postage cost?",
+      "expected_response": "answerable",
+      "retrieval_mode": "inline_fixture",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "gold": {
+        "required_facts": [
+          {
+            "id": "postage",
+            "description": "Postage is €5",
+            "evidence_alternatives": [
+              {
+                "quote": "Return postage costs €5.",
+                "document_id": "return-policy"
+              }
+            ]
+          }
+        ],
+        "necessary_qualifiers": [],
+        "prohibited_conclusions": [],
+        "review": {
+          "status": "synthetic_fixture",
+          "reviewer_ids": [],
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+        }
+      },
+      "tags": []
+    },
+    {
+      "id": "q-repair",
+      "family_id": "demo-orders",
+      "split": "demo",
+      "question": "[fixture:unsupported] How much does return postage cost?",
+      "expected_response": "answerable",
+      "retrieval_mode": "inline_fixture",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "gold": {
+        "required_facts": [
+          {
+            "id": "postage",
+            "description": "Postage is €5",
+            "evidence_alternatives": [
+              {
+                "quote": "Return postage costs €5.",
+                "document_id": "return-policy"
+              }
+            ]
+          }
+        ],
+        "necessary_qualifiers": [],
+        "prohibited_conclusions": [],
+        "review": {
+          "status": "synthetic_fixture",
+          "reviewer_ids": [],
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+        }
+      },
+      "tags": [
+        "deterministic_repair_branch"
+      ]
+    },
+    {
+      "id": "q-missing",
+      "family_id": "demo-orders",
+      "split": "demo",
+      "question": "How many days does refund processing take?",
+      "expected_response": "missing_evidence",
+      "retrieval_mode": "inline_fixture",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "gold": {
+        "required_facts": [],
+        "necessary_qualifiers": [],
+        "prohibited_conclusions": [
+          "Do not infer refund-processing duration from the return window."
+        ],
+        "review": {
+          "status": "synthetic_fixture",
+          "reviewer_ids": [],
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+        }
+      },
+      "tags": []
+    },
+    {
+      "id": "q-multi",
+      "family_id": "demo-orders",
+      "split": "demo",
+      "question": "State the premium return window and standard order dispatch time.",
+      "expected_response": "answerable",
+      "retrieval_mode": "inline_fixture",
+      "evidence_ids": [
+        "e-return-policy",
+        "e-dispatch-policy"
+      ],
+      "gold": {
+        "required_facts": [
+          {
+            "id": "return-window",
+            "description": "30 days, premium membership and unopened-item conditions",
+            "evidence_alternatives": [
+              {
+                "quote": "Premium members can return unopened items within 30 days.",
+                "document_id": "return-policy"
+              }
+            ]
+          },
+          {
+            "id": "dispatch",
+            "description": "Standard dispatch is within two business days",
+            "evidence_alternatives": [
+              {
+                "quote": "Standard orders are dispatched within two business days.",
+                "document_id": "dispatch-policy"
+              }
+            ]
+          }
+        ],
+        "necessary_qualifiers": [],
+        "prohibited_conclusions": [],
+        "review": {
+          "status": "synthetic_fixture",
+          "reviewer_ids": [],
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+        }
+      },
+      "tags": [
+        "multi_evidence"
+      ]
+    },
+    {
+      "id": "q-conflict",
+      "family_id": "demo-retention-conflict",
+      "split": "demo",
+      "question": "[fixture:conflict] How long does the Basic plan retain logs according to both guides?",
+      "expected_response": "conflict",
+      "retrieval_mode": "inline_fixture",
+      "evidence_ids": [
+        "e-retention-guide-a",
+        "e-retention-guide-b"
+      ],
+      "gold": {
+        "required_facts": [],
+        "necessary_qualifiers": [
+          "Both guides have the same applicability date; neither is declared superseded."
+        ],
+        "prohibited_conclusions": [
+          "Do not choose one duration as the uniquely correct current policy."
+        ],
+        "review": {
+          "status": "synthetic_fixture",
+          "reviewer_ids": [],
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+        }
+      },
+      "tags": []
+    },
+    {
+      "id": "q-empty",
+      "family_id": "demo-orders",
+      "split": "demo",
+      "question": "What does the evidence say about international warranties?",
+      "expected_response": "missing_evidence",
+      "retrieval_mode": "inline_fixture",
+      "evidence_ids": [],
+      "gold": {
+        "required_facts": [],
+        "necessary_qualifiers": [],
+        "prohibited_conclusions": [],
+        "review": {
+          "status": "synthetic_fixture",
+          "reviewer_ids": [],
+          "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+        }
+      },
+      "tags": [
+        "empty_evidence_branch"
+      ]
+    }
+  ],
+  "controlled": [
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "s-negation",
+      "claim": "Returns need an order number and proof of purchase.",
+      "supported": true
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "u-negation",
+      "claim": "Returns do not need an order number or proof of purchase.",
+      "supported": false,
+      "original_id": "s-negation",
+      "mutation_category": "negation"
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "s-number_unit",
+      "claim": "Return postage costs €5.",
+      "supported": true
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "u-number_unit",
+      "claim": "Return postage costs €50.",
+      "supported": false,
+      "original_id": "s-number_unit",
+      "mutation_category": "number_unit"
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-dispatch-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "s-entity",
+      "claim": "The dispatch team uses the North depot.",
+      "supported": true
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-dispatch-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "u-entity",
+      "claim": "The dispatch team uses the South depot.",
+      "supported": false,
+      "original_id": "s-entity",
+      "mutation_category": "entity"
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "s-date",
+      "claim": "The loyalty promotion ends on 31 December 2026.",
+      "supported": true
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "u-date",
+      "claim": "The loyalty promotion ends on 31 December 2027.",
+      "supported": false,
+      "original_id": "s-date",
+      "mutation_category": "date"
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-dispatch-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "s-condition",
+      "claim": "Priority orders placed before 11:00 are dispatched the same business day.",
+      "supported": true
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-dispatch-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "u-condition",
+      "claim": "Priority orders placed after 11:00 are dispatched the same business day.",
+      "supported": false,
+      "original_id": "s-condition",
+      "mutation_category": "condition"
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "s-scope_quantifier",
+      "claim": "Premium members can return unopened items within 30 days.",
+      "supported": true
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-return-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "u-scope_quantifier",
+      "claim": "All customers can return unopened items within 30 days.",
+      "supported": false,
+      "original_id": "s-scope_quantifier",
+      "mutation_category": "scope_quantifier"
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-dispatch-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "s-unsupported_addition",
+      "claim": "Standard orders are dispatched within two business days.",
+      "supported": true
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-dispatch-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "u-unsupported_addition",
+      "claim": "Standard orders are dispatched within two business days and delivery is guaranteed the next day.",
+      "supported": false,
+      "original_id": "s-unsupported_addition",
+      "mutation_category": "unsupported_addition"
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-dispatch-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "s-misleading_combination",
+      "claim": "The North depot opens at 08:00 and closes at 17:00.",
+      "supported": true
+    },
+    {
+      "family_id": "demo-orders",
+      "split": "demo",
+      "evidence_ids": [
+        "e-dispatch-policy"
+      ],
+      "review": {
+        "status": "synthetic_fixture",
+        "reviewer_ids": [],
+        "notes": "Authored fictional fixture labels only; not independent human-reviewed evaluation gold."
+      },
+      "id": "u-misleading_combination",
+      "claim": "Priority orders placed before 17:00 are dispatched the same business day because the North depot closes at 17:00.",
+      "supported": false,
+      "original_id": "s-misleading_combination",
+      "mutation_category": "misleading_combination"
+    }
+  ]
+}

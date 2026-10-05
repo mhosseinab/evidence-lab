@@ -1,0 +1,182 @@
+{
+  "$defs": {
+    "AnswerReview": {
+      "additionalProperties": false,
+      "properties": {
+        "question_id": {
+          "title": "Question Id",
+          "type": "string"
+        },
+        "answer_hash": {
+          "title": "Answer Hash",
+          "type": "string"
+        },
+        "all_material_facts_reviewed": {
+          "default": false,
+          "title": "All Material Facts Reviewed",
+          "type": "boolean"
+        },
+        "substantive": {
+          "title": "Substantive",
+          "type": "boolean"
+        },
+        "fully_supported": {
+          "title": "Fully Supported",
+          "type": "boolean"
+        },
+        "correct_and_complete": {
+          "title": "Correct And Complete",
+          "type": "boolean"
+        },
+        "appropriate_response": {
+          "title": "Appropriate Response",
+          "type": "boolean"
+        },
+        "material_claims": {
+          "items": {
+            "$ref": "#/$defs/MaterialClaimReview"
+          },
+          "title": "Material Claims",
+          "type": "array"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        }
+      },
+      "required": [
+        "question_id",
+        "answer_hash",
+        "substantive",
+        "fully_supported",
+        "correct_and_complete",
+        "appropriate_response"
+      ],
+      "title": "AnswerReview",
+      "type": "object"
+    },
+    "MaterialClaimReview": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "block_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Id"
+        },
+        "supported": {
+          "title": "Supported",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "supported"
+      ],
+      "title": "MaterialClaimReview",
+      "type": "object"
+    },
+    "Review": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "default": "unreviewed",
+          "enum": [
+            "unreviewed",
+            "synthetic_fixture",
+            "single_reviewed",
+            "adjudicated"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reviewer_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reviewer Ids",
+          "type": "array"
+        },
+        "adjudicator_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Adjudicator Id"
+        },
+        "reviewed_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewed At"
+        },
+        "notes": {
+          "default": "",
+          "title": "Notes",
+          "type": "string"
+        }
+      },
+      "title": "Review",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "dataset_hash": {
+      "title": "Dataset Hash",
+      "type": "string"
+    },
+    "answers": {
+      "items": {
+        "$ref": "#/$defs/AnswerReview"
+      },
+      "title": "Answers",
+      "type": "array"
+    },
+    "review_packets": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Review Packets",
+      "type": "array"
+    }
+  },
+  "required": [
+    "dataset_hash",
+    "answers"
+  ],
+  "title": "AnswerReviews",
+  "type": "object"
+}

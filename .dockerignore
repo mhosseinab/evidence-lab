@@ -1,0 +1,17 @@
+.venv
+.git
+.pytest_cache
+.ruff_cache
+**/__pycache__
+**/*.pyc
+**/*.egg-info
+configs/*.yaml
+!configs/mock.yaml
+!configs/mock.compose.yaml
+!configs/*.example.yaml
+configs/secrets
+.env
+artifacts
+build
+dist
+node_modules

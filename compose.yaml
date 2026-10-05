@@ -1,0 +1,66 @@
+name: grounded-rag-poc
+
+x-app: &app
+  image: grounded-rag-poc:local
+  build: .
+  init: true
+  volumes:
+    - ${RAG_CONFIG:-./configs/mock.compose.yaml}:/app/configs/runtime.yaml:ro
+    - artifacts:/app/artifacts
+    - policies:/app/policies
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.2-pg17-bookworm@sha256:feb68f4f15446397d8cac7f4fe48fe4586de83160d1fc48b46283312d1a33966
+    environment:
+      POSTGRES_DB: rag
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d rag"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    <<: *app
+    command: ["rag-poc", "migrate", "--config", "/app/configs/runtime.yaml"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    <<: *app
+    command: ["rag-poc", "serve", "--config", "/app/configs/runtime.yaml", "--host", "0.0.0.0"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    <<: *app
+    command: ["rag-poc", "worker", "--config", "/app/configs/runtime.yaml"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  postgres:
+  artifacts:
+  policies:
