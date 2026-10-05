@@ -300,6 +300,7 @@ def test_postgres_mock_upload_retrieval_update_and_cited_verdict_round_trip(isol
         hub = ProviderHub(cfg, store=store)
         try:
             first_job = store.claim_job("ingestion-integration", 120)
+            assert first_job is not None
             assert first_job["id"] == upload["job_id"]
             result = await ingest_job(first_job, store, hub, cfg)
             assert result["status"] == "ready"
@@ -323,6 +324,7 @@ def test_postgres_mock_upload_retrieval_update_and_cited_verdict_round_trip(isol
 
             updated = store.create_document("leave-policy.txt", raw_update, "text/plain", corpus_id, document_id=upload["document_id"], pipeline_revision=pipeline_revision(cfg))
             second_job = store.claim_job("ingestion-integration", 120)
+            assert second_job is not None
             assert second_job["id"] == updated["job_id"]
             result = await ingest_job(second_job, store, hub, cfg)
             store.finish_job(second_job["id"], second_job["token"], "succeeded", result=result)
@@ -331,7 +333,8 @@ def test_postgres_mock_upload_retrieval_update_and_cited_verdict_round_trip(isol
             assert all(item.version_id == updated["version_id"] for item in fresh.items)
             assert fresh.corpus_revision > pack.corpus_revision
             assert pack.content_hash == before and "25 days" in pack.items[0].text
-            assert store.get_version(upload["version_id"], include_bytes=True)["raw"] == raw_source
+            original_version = store.get_version(upload["version_id"], include_bytes=True)
+            assert original_version is not None and original_version["raw"] == raw_source
             assert store.get_calls(first_job["id"])
         finally:
             await hub.aclose()

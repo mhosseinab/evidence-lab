@@ -28,6 +28,10 @@ tasks:
     desc: Check Python sources and tests
     cmds:
     - .venv/bin/ruff check apps/evidence-lab
+  typecheck:
+    desc: Check backend, tests and tooling with Basedpyright
+    cmds:
+    - .venv/bin/basedpyright
   test:
     desc: Run all app tests (always rerun; database prerequisites can change)
     cmds:

@@ -38,7 +38,8 @@ def connection_env(dsn):
     # Do not inherit stale libpq connection values from another database.
     env = {key: value for key, value in os.environ.items() if not key.startswith("PG")}
     for key, value in options.items():
-        env[LIBPQ_ENV[key]] = value
+        if value is not None:
+            env[LIBPQ_ENV[key]] = str(value)
     return env
 
 

@@ -69,7 +69,14 @@ def draft(text="The blue widget costs seven dollars.", block_id="b1") -> Draft:
     return Draft(blocks=[AnswerBlock(block_id=block_id, text=text, citation_ids=["e1"])])
 
 
-def context(*, max_attempts=10, seconds=10) -> CallContext:
+def unexpected_transport(requests):
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        raise AssertionError("Preflight must reject this operation before HTTP transport")
+    return handler
+
+
+def context(*, max_attempts=10, seconds: float = 10) -> CallContext:
     return CallContext.for_seconds("run-1", "queries", seconds, max_attempts)
 
 
@@ -201,7 +208,7 @@ async def test_every_embedding_input_is_preflighted_before_first_batch():
     profile.max_batch_input_tokens = 500
     profile.batch_size = 1
     requests = []
-    hub = ProviderHub(config, store=Ledger(), client=httpx.MockTransport(lambda request: requests.append(request)))
+    hub = ProviderHub(config, store=Ledger(), client=httpx.MockTransport(unexpected_transport(requests)))
     with pytest.raises(ProviderError) as error:
         await hub.embed(["short", "x" * 501], context())
     assert error.value.status == "over_budget" and requests == []
@@ -213,6 +220,7 @@ async def test_every_embedding_input_is_preflighted_before_first_batch():
 async def test_chat_capabilities_and_no_unsupported_temperature(style):
     config = configuration()
     profile = config.role_profile("generator")
+    assert profile.capabilities is not None
     profile.capabilities.structured_output = style
     profile.capabilities.output_limit_parameter = "max_tokens"
     def handler(request):
@@ -548,7 +556,7 @@ async def test_live_readiness_blocks_before_http(missing):
     elif missing == "key":
         profile.api_key = None
     requests = []
-    hub = ProviderHub(config, store=None if missing == "store" else ledger, client=httpx.MockTransport(lambda request: requests.append(request)))
+    hub = ProviderHub(config, store=None if missing == "store" else ledger, client=httpx.MockTransport(unexpected_transport(requests)))
     with pytest.raises(ProviderError) as error:
         await hub.generate("Price?", evidence(), context())
     assert error.value.status in {"budget_exhausted", "provider_unavailable"}
@@ -635,7 +643,7 @@ async def test_full_prompt_budget_checks_suffix_without_local_truncation():
     profile.max_input_tokens = 6000
     pack = evidence(text="a" * 20000 + " IMPORTANT COUNTEREVIDENCE AT THE END")
     requests = []
-    hub = ProviderHub(config, store=Ledger(), client=httpx.MockTransport(lambda request: requests.append(request)))
+    hub = ProviderHub(config, store=Ledger(), client=httpx.MockTransport(unexpected_transport(requests)))
     with pytest.raises(ProviderError) as error:
         await hub.verify("Price?", draft(), pack, context())
     assert error.value.status == "over_budget" and not requests

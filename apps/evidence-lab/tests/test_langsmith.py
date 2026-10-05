@@ -54,7 +54,8 @@ def test_langsmith_environment_key_is_explicit_and_redacted(monkeypatch, tmp_pat
         load_config(path)
     monkeypatch.setenv("EVIDENCE_LAB_TRACE_KEY", "private-trace-key")
     config = load_config(path)
-    assert config.langsmith.api_key.get_secret_value() == "private-trace-key"
+    key = config.langsmith.api_key
+    assert key is not None and key.get_secret_value() == "private-trace-key"
     assert "private-trace-key" not in json.dumps(config.safe_dict())
 
 
@@ -74,7 +75,7 @@ def test_real_sdk_exports_only_allowlisted_metadata_to_selected_endpoint():
     batches = []
 
     class Handler(BaseHTTPRequestHandler):
-        def log_message(self, *_args):
+        def log_message(self, format: str, *args: object) -> None:
             pass
 
         def do_GET(self):

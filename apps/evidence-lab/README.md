@@ -28,3 +28,8 @@ without prompts, answers, evidence or conversation content.
 Use `task dev` for API, worker and Vue hot reload together. Configure `memory`
 and `langsmith` in private YAML; all fields are documented in the root README
 and `configs/README.md`.
+
+`task app:typecheck` checks backend source, tests and tooling with pinned
+Basedpyright. Root `task lint`, `task check` and `task typecheck` include it.
+The repository's `pyproject.toml` binds checking to Python 3.12 and the root
+`.venv`, using standard mode without per-rule diagnostic suppression.

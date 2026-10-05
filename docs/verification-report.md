@@ -125,3 +125,16 @@ Live model/Clef calls, a hosted LangSmith account, model accuracy, held-out gold
 ### README review before publication
 
 All five repository READMEs were checked against code, Taskfiles and samples. Local links resolve; documented Task names and representative CLI examples match their parsers; all 104 configuration schema fields are represented in the root tables. Both mock samples validate without inference. Corrected compiled dashboard versus asset URLs, model versus tracing credentials in mock mode, and the Clef sample listing. Charts and configuration tables remain intact. `git diff --check` passed; no code changed during this documentation pass.
+
+
+## Python editor diagnostics — 6 October 2026
+
+Fixed the PostgreSQL dictionary-row connection type, required-row handling, optional values, provider result typing, model inheritance and test-double contracts. Explicit guards preserve existing missing-resource responses and keep unexpected database output in safe storage errors. No per-rule ignores, excluded project files or diagnostic suppression were added.
+
+Basedpyright 1.40.2 is pinned in the root dev group. `[tool.basedpyright]` checks Python 3.12 using the root `.venv` in standard mode across backend source, tests and tooling. The complete checker reported **zero errors, zero warnings and zero notes across 51 Python files**. Standard-mode baseline before fixes contained 323 errors; editor totals can differ by loaded files and interpreter settings. The editor's standalone bundle lacked its normal CLI stub resources, so verification used the complete pinned installation.
+
+`task app:typecheck` runs the Python checker. Root `task typecheck`, `task lint` and `task check` include it. README commands were updated. Full `task check` with dedicated native PostgreSQL/pgvector test connections passed **387 Python + 28 dashboard tests, with no failures or skips**. Ruff, Vue/TypeScript, Biome, lock consistency, README links and `git diff --check` passed. No live inference calls were made.
+
+Evidence: [full checks](build-evidence/python-types/task-check.log.txt), [Python type check](build-evidence/python-types/typecheck.log.txt). Reproduce with `task setup`, `task app:typecheck`, then dedicated `EVIDENCE_LAB_TEST_DSN` and `EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN` connections for `task check`. Reload the Python language server if it retains stale editor diagnostics.
+
+The disposable test database/container and temporary checker cache were removed after verification. Existing application data and dashboard assets were preserved.

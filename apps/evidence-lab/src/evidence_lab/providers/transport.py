@@ -231,6 +231,7 @@ class CallExecutor:
         for attempt in range(profile.max_attempts):
             retry_after = None
             failure: ProviderError | None = None
+            decoded: tuple[T] | None = None
             async with self._slots(name, ctx):
                 call_id = await self._reserve(name, profile, estimated_cost, ctx, mock=False)
                 started = time.monotonic()
@@ -244,7 +245,7 @@ class CallExecutor:
                         usage = _usage(data, profile.protocol)
                         if usage is not None:
                             actual_cost = _cost(profile, usage.get("input_tokens"), usage.get("output_tokens"))
-                        decoded = decoder(data)
+                        decoded = (decoder(data),)
                         ctx.remaining()  # A late response can never be published.
                     status = "ok"
                 except asyncio.CancelledError:
@@ -271,7 +272,9 @@ class CallExecutor:
                     await self._finish(call_id, status, usage, actual_cost, detail)
             if failure is None:
                 ctx.remaining()
-                return decoded
+                if decoded is None:
+                    raise ProviderError("invalid_response", "Provider processing did not produce a result")
+                return decoded[0]
             can_retry = failure.retryable
             if failure.status == "invalid_response":
                 can_retry = format_retry and failure.retryable and format_retries < 1

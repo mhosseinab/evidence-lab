@@ -590,11 +590,11 @@ Run from the repository root:
 ```bash
 task setup         # install locked uv/pnpm dependencies and build the dashboard
 task lock          # deliberately update workspace dependency locks
-task lint          # Ruff, dashboard type checking and Biome lint
+task lint          # Ruff, Basedpyright, dashboard type checking and Biome lint
 task format        # format Python with Ruff and frontend sources with Biome
 task test          # Python and frontend tests; integration prerequisites apply
 task check         # lint, then the complete test suite
-task typecheck     # check dashboard TypeScript types
+task typecheck     # check Python and dashboard TypeScript types
 task build         # build dashboard assets, then the Python distribution
 task clean         # remove generated development/build caches
 ```
@@ -616,9 +616,9 @@ task app:test -- --junitxml=artifacts/pytest.xml
 | `task setup` | Install locked Python/frontend dependencies; build dashboard |
 | `task dev` | Prepare default mock DB; supervise API, worker and Vue hot reload |
 | `task lock` | Update uv and pnpm dependency locks deliberately |
-| `task lint` | Ruff for backend/tooling, Vue/TypeScript type checking and Biome |
+| `task lint` | Ruff and Basedpyright for backend/tests/tooling, Vue/TypeScript type checking and Biome |
 | `task format` | Format Python and frontend/shared tooling sources |
-| `task typecheck` | Dashboard Vue/TypeScript checks |
+| `task typecheck` | Python Basedpyright and dashboard Vue/TypeScript checks |
 | `task test` | Backend and dashboard tests; missing DB prerequisites produce skips |
 | `task test:offline` | Backend tests excluding integration/native markers, plus dashboard tests |
 | `task check` | Lint then full tests, sequentially |
@@ -630,6 +630,7 @@ task app:test -- --junitxml=artifacts/pytest.xml
 | `task app:migrate` | Apply migrations and initialize the default corpus |
 | `task app:seed` | Ingest bundled demo sources; run jobs locally with `--wait` |
 | `task app:lint` | Ruff backend source/test checks |
+| `task app:typecheck` | Basedpyright for backend, Python tests and tooling using the root `.venv` |
 | `task app:test` | Backend tests, with dashboard build dependency |
 | `task app:test:offline` | Backend tests excluding DB integration/native markers |
 | `task app:build` | Build dashboard dependency and Python distributions into root `dist/` |

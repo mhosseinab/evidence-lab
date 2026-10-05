@@ -138,6 +138,7 @@ class ProviderError(Exception):
         super().__init__(message)
         self.status = status
         self.retryable = retryable
+        self.retry_after: str | float | None = None
 
 
 @dataclass

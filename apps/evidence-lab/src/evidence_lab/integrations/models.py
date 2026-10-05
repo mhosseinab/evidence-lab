@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from langchain_core.caches import BaseCache
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
@@ -33,7 +34,7 @@ class LedgerChatModel(BaseChatModel):
     evidence: EvidencePack = Field(exclude=True, repr=False)
     context: CallContext = Field(exclude=True, repr=False)
     repair: dict | None = Field(default=None, exclude=True, repr=False)
-    cache: bool = False
+    cache: BaseCache | bool | None = False
 
     @property
     def _llm_type(self) -> str:
@@ -65,7 +66,10 @@ class LedgerChatModel(BaseChatModel):
             raise ValueError("This provider enforces the Draft schema; request with_structured_output(Draft)")
         async def generate(input):
             message = await self.ainvoke(input)
-            return Draft.model_validate_json(message.content)
+            content = message.content
+            if not isinstance(content, str):
+                raise ProviderError("invalid_response", "Structured draft generation requires a JSON text response")
+            return Draft.model_validate_json(content)
 
         return PrivateRunnable(generate, name="generate_structured_draft")
 

@@ -29,7 +29,9 @@ def _isolated_test_schema():
     scoped_dsn = scoped_url.render_as_string(hide_password=False)
     try:
         with psycopg.connect(scoped_dsn) as connection:
-            assert connection.execute("SELECT current_schema()").fetchone()[0] == schema, "Test schema isolation must be enforced by the server."
+            schema_row = connection.execute("SELECT current_schema()").fetchone()
+            assert schema_row is not None
+            assert schema_row[0] == schema, "Test schema isolation must be enforced by the server."
             connection.execute("CREATE TABLE alembic_version (version_num varchar(32) PRIMARY KEY)")
         Store(scoped_dsn).migrate()
         with psycopg.connect(scoped_dsn) as connection:

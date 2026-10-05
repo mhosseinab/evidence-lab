@@ -14,9 +14,10 @@ from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from decimal import Decimal, ROUND_CEILING
 from pathlib import Path
+from typing import Any, overload
 
 import psycopg
-from psycopg.rows import dict_row
+from psycopg.rows import DictRow, dict_row
 from psycopg.types.json import Jsonb
 
 from .domain import PIPELINE_VERSION, ProviderError
@@ -50,7 +51,26 @@ def _id() -> str:
     return str(uuid.uuid4())
 
 
-def _json_safe(value):
+def _required_row(row: DictRow | None) -> DictRow:
+    """Validate a row guaranteed by an aggregate, write or foreign-key relation."""
+    if row is None:
+        raise StorageError("invalid_data", "The database operation did not return its required row.")
+    return row
+
+
+@overload
+def _json_safe(value: dict[Any, Any]) -> dict[str, Any]: ...
+
+
+@overload
+def _json_safe(value: list[Any] | tuple[Any, ...]) -> list[Any]: ...
+
+
+@overload
+def _json_safe(value: Any) -> Any: ...
+
+
+def _json_safe(value: Any) -> Any:
     if isinstance(value, dict):
         return {str(k): _json_safe(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
@@ -70,7 +90,19 @@ def _json_safe(value):
     return value
 
 
-def _metadata(value):
+@overload
+def _metadata(value: dict[Any, Any]) -> dict[str, Any]: ...
+
+
+@overload
+def _metadata(value: list[Any] | tuple[Any, ...]) -> list[Any]: ...
+
+
+@overload
+def _metadata(value: Any) -> Any: ...
+
+
+def _metadata(value: Any) -> Any:
     """Redact credential-shaped metadata fields without changing evidence text."""
     secret_names = {"api_key", "apikey", "authorization", "password", "secret", "token",
                     "auth_headers", "headers", "database_dsn", "dsn"}
@@ -136,7 +168,9 @@ class Store:
     @contextmanager
     def _transaction(self, *, readonly=False):
         try:
-            with psycopg.connect(self._dsn, row_factory=dict_row, connect_timeout=10) as connection:
+            with psycopg.Connection[DictRow].connect(
+                self._dsn, row_factory=dict_row, connect_timeout=10,
+            ) as connection:
                 if readonly:
                     connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
                 yield connection
@@ -172,10 +206,10 @@ class Store:
     def health(self) -> bool:
         try:
             with self._transaction(readonly=True) as connection:
-                row = connection.execute(
+                row = _required_row(connection.execute(
                     "SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname='vector') AS vector, "
                     "to_regclass('evidence_corpora') IS NOT NULL AS schema"
-                ).fetchone()
+                ).fetchone())
                 return bool(row["vector"] and row["schema"])
         except StorageError:
             return False
@@ -243,11 +277,11 @@ class Store:
         if self._payload_bytes(connection) + additional > self.limits["max_retained_payload_bytes"]:
             raise StorageError("quota_exceeded", "Retained payload quota is exhausted.")
 
-    def _insert_job(self, connection, kind, payload):
-        return connection.execute(
+    def _insert_job(self, connection: psycopg.Connection[DictRow], kind, payload) -> DictRow:
+        return _required_row(connection.execute(
             "INSERT INTO evidence_jobs(id,kind,payload) VALUES (%s,%s,%s) RETURNING *",
             (_id(), kind, _json(payload)),
-        ).fetchone()
+        ).fetchone())
 
     def create_document(self, name, raw: bytes, media_type, corpus_id="default",
                         document_id=None, pipeline_revision=PIPELINE_VERSION) -> dict:
@@ -283,17 +317,17 @@ class Store:
                 if not document:
                     raise StorageError("not_found", "Document not found.")
             else:
-                count = connection.execute(
+                count = _required_row(connection.execute(
                     "SELECT count(*) AS n FROM evidence_documents WHERE corpus_id=%s AND deleted_at IS NULL",
                     (corpus_id,),
-                ).fetchone()["n"]
+                ).fetchone())["n"]
                 if count >= self.limits["max_documents"]:
                     raise StorageError("quota_exceeded", "Corpus document limit reached.")
                 document_id = _id()
-                document = connection.execute(
+                document = _required_row(connection.execute(
                     "INSERT INTO evidence_documents(id,corpus_id,name,media_type) VALUES (%s,%s,%s,%s) RETURNING *",
                     (document_id, corpus_id, name, media_type),
-                ).fetchone()
+                ).fetchone())
             version_id = _id()
             version_no = document["latest_version_no"] + 1
             job = self._insert_job(connection, "ingest", {"version_id": version_id, "corpus_id": corpus_id})
@@ -479,8 +513,8 @@ class Store:
             version = self._owned_version(connection, version_id, lease)
             if version["space_id"] != space_id:
                 raise StorageError("space_changed", "Embedding space does not match the staged version.")
-            space = connection.execute("SELECT dimensions FROM evidence_embedding_spaces WHERE id=%s",
-                                       (space_id,)).fetchone()
+            space = _required_row(connection.execute("SELECT dimensions FROM evidence_embedding_spaces WHERE id=%s",
+                                       (space_id,)).fetchone())
             chunks = connection.execute(
                 "SELECT id,text_hash FROM evidence_chunks WHERE version_id=%s AND id=ANY(%s)",
                 (version_id, list(vectors)),
@@ -494,20 +528,20 @@ class Store:
                     "INSERT INTO evidence_embedding_cache(space_id,text_hash,embedding) VALUES (%s,%s,%s::vector) "
                     "ON CONFLICT DO NOTHING", (space_id, chunk["text_hash"], literal),
                 )
-                same = connection.execute(
+                same = _required_row(connection.execute(
                     "SELECT embedding=%s::vector AS same FROM evidence_embedding_cache "
                     "WHERE space_id=%s AND text_hash=%s", (literal, space_id, chunk["text_hash"]),
-                ).fetchone()
+                ).fetchone())
                 if not same["same"]:
                     raise StorageError("embedding_conflict", "Cached embeddings differ within an immutable space.")
                 connection.execute(
                     "INSERT INTO evidence_chunk_embeddings(chunk_id,space_id,embedding) VALUES (%s,%s,%s::vector) "
                     "ON CONFLICT DO NOTHING", (chunk["id"], space_id, literal),
                 )
-                same = connection.execute(
+                same = _required_row(connection.execute(
                     "SELECT embedding=%s::vector AS same FROM evidence_chunk_embeddings WHERE chunk_id=%s AND space_id=%s",
                     (literal, chunk["id"], space_id),
-                ).fetchone()
+                ).fetchone())
                 if not same["same"]:
                     raise StorageError("embedding_conflict", "Stored chunk embeddings are immutable.")
 
@@ -515,8 +549,8 @@ class Store:
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
             version = self._owned_version(connection, version_id, lease)
-            corpus = connection.execute("SELECT * FROM evidence_corpora WHERE id=%s FOR UPDATE",
-                                        (version["corpus_id"],)).fetchone()
+            corpus = _required_row(connection.execute("SELECT * FROM evidence_corpora WHERE id=%s FOR UPDATE",
+                                        (version["corpus_id"],)).fetchone())
             if corpus["space_id"] != space_id or version["space_id"] != space_id:
                 raise StorageError("space_changed", "Corpus embedding space changed before activation.")
             if version["active_version_id"] == version_id:
@@ -525,18 +559,18 @@ class Store:
                 raise StorageError("superseded", "A newer source version was requested; this version cannot activate.")
             if version["state"] != "extracted":
                 raise StorageError("invalid_state", "Source extraction is incomplete or requires review.")
-            counts = connection.execute(
+            counts = _required_row(connection.execute(
                 "SELECT count(*) AS chunks,count(e.chunk_id) AS vectors FROM evidence_chunks ch "
                 "LEFT JOIN evidence_chunk_embeddings e ON e.chunk_id=ch.id AND e.space_id=%s "
                 "WHERE ch.version_id=%s", (space_id, version_id),
-            ).fetchone()
+            ).fetchone())
             if not counts["chunks"] or counts["chunks"] != counts["vectors"]:
                 raise StorageError("incomplete_embeddings", "Every source chunk requires a valid embedding.")
-            active_count = connection.execute(
+            active_count = _required_row(connection.execute(
                 "SELECT count(*) AS n FROM evidence_chunks ch JOIN evidence_documents d ON d.active_version_id=ch.version_id "
                 "WHERE d.corpus_id=%s AND d.deleted_at IS NULL AND d.id<>%s",
                 (version["corpus_id"], version["document_id"]),
-            ).fetchone()["n"]
+            ).fetchone())["n"]
             if active_count + counts["chunks"] > self.limits["max_active_chunks"]:
                 raise StorageError("quota_exceeded", "Activating this version would exceed the corpus chunk limit.")
             self._check_quota(connection)
@@ -549,10 +583,10 @@ class Store:
                 "updated_at=clock_timestamp() WHERE id=%s",
                 (version_id, version["version_no"], version["document_id"]),
             )
-            revision = connection.execute(
+            revision = _required_row(connection.execute(
                 "UPDATE evidence_corpora SET revision=revision+1 WHERE id=%s RETURNING revision",
                 (version["corpus_id"],),
-            ).fetchone()["revision"]
+            ).fetchone())["revision"]
             return {"version_id": version_id, "corpus_revision": revision, "state": "ready"}
 
     def retrieve(self, corpus_id, space_id, query, vector, dense_limit=40, lexical_limit=40) -> dict:
@@ -757,12 +791,12 @@ class Store:
             self._check_quota(connection, len(json.dumps(serialized_settings.obj).encode("utf-8")))
             run_id = _id()
             job = self._insert_job(connection, "query", {"run_id": run_id, "corpus_id": corpus_id})
-            row = connection.execute(
+            row = _required_row(connection.execute(
                 "INSERT INTO evidence_runs(id,job_id,corpus_id,space_id,question,settings,conversation_id) "
                 "VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING *",
                 (run_id, job["id"], corpus_id, corpus["space_id"], question,
                  serialized_settings, conversation_id),
-            ).fetchone()
+            ).fetchone())
             return self._run_dict(row)
 
     def _run_dict(self, row):
@@ -887,14 +921,14 @@ class Store:
                 owner = connection.execute("SELECT status FROM evidence_jobs WHERE id=%s", (owner_job,)).fetchone()
                 if owner and owner["status"] not in {"queued", "running"}:
                     raise StorageError("cancelled", "The owning job has stopped.")
-            stats = connection.execute(
+            stats = _required_row(connection.execute(
                 "SELECT COALESCE(sum(charged_cost),0) AS total,"
                 "COALESCE(sum(charged_cost) FILTER (WHERE phase=%s),0) AS phase,"
                 "count(*) FILTER (WHERE run_id=%s) AS attempts,"
                 "count(*) FILTER (WHERE status='reserved' AND active_until>clock_timestamp()) AS active,"
                 "count(*) FILTER (WHERE status='reserved' AND active_until>clock_timestamp() AND profile=%s) AS active_profile "
                 "FROM evidence_calls WHERE mock=%s", (phase, run_id, profile, mock),
-            ).fetchone()
+            ).fetchone())
             if stats["attempts"] >= attempt_cap:
                 raise StorageError("budget_exhausted", "Persistent run attempt limit reached.")
             if stats["active"] >= concurrency:
@@ -958,9 +992,9 @@ class Store:
                 "count(*) FILTER (WHERE status='reserved' AND active_until>clock_timestamp()) AS active_calls "
                 "FROM evidence_calls GROUP BY mock,phase ORDER BY mock,phase"
             ).fetchall()
-            actual_disk = connection.execute(
+            actual_disk = _required_row(connection.execute(
                 "SELECT pg_database_size(current_database()) AS database_bytes"
-            ).fetchone()["database_bytes"]
+            ).fetchone())["database_bytes"]
             payload = self._payload_bytes(connection)
             return _json_safe({"phases": rows, "retained_payload_bytes": payload,
                                "max_retained_payload_bytes": self.limits["max_retained_payload_bytes"],

@@ -40,6 +40,7 @@ async def test_chat_and_embeddings_use_existing_call_accounting(pack, context):
         assert isinstance(model, BaseChatModel)
         message = await model.ainvoke([HumanMessage(content="What does the widget cost?")])
         assert isinstance(message, AIMessage)
+        assert isinstance(message.content, str)
         draft = Draft.model_validate_json(message.content)
         assert draft.blocks[0].citation_ids == ["e1"]
         assert context.attempts_used == 1

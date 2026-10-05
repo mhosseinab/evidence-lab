@@ -91,6 +91,7 @@ def test_crash_after_terminal_publication_recovers_without_repeat_inference(monk
     hub = CountingFixtureHub()
     worker = Worker(store, hub, load_config("configs/mock.yaml"))
     first = asyncio.run(worker.run_once())
+    assert first is not None
     assert first["status"] == "failed"  # Acknowledgment failed, not publication.
     assert store.run["status"] == "answered" and store.run["answer"] == "New checked fixture answer"
     assert store.job["status"] == "running" and hub.inference_count == 1
@@ -106,6 +107,7 @@ def test_unknown_job_type_fails_safely_without_inference():
     store = WorkerStore(kind="unsupported-job")
     hub = CountingFixtureHub()
     result = asyncio.run(Worker(store, hub, load_config("configs/mock.yaml")).run_once())
+    assert result is not None
     assert result["status"] == "failed" and result["code"] == "invalid_job"
     assert store.job["status"] == "failed"
     assert store.acknowledgments[0]["error"]["code"] == "invalid_job"
@@ -138,6 +140,7 @@ def test_heartbeat_lease_loss_cancels_operation_without_stale_publication(monkey
         return await asyncio.wait_for(worker.run_once(), timeout=2)
 
     result = asyncio.run(execute())
+    assert result is not None
     assert result["status"] == "cancelled" and result["code"] == "lease_or_shutdown"
     assert store.renewals == 1 and cancelled == [True]
     assert store.acknowledgments == [] and store.publications == []
@@ -157,6 +160,7 @@ def test_query_technical_terminal_maps_to_failed_job(monkeypatch, terminal):
     monkeypatch.setattr(worker_module, "QueryEngine", TechnicalEngine)
     store = WorkerStore()
     result = asyncio.run(Worker(store, CountingFixtureHub(), load_config("configs/mock.yaml")).run_once())
+    assert result is not None
     assert result["status"] == terminal
     assert store.run["status"] == terminal and store.run["answer"] is None
     assert store.job["status"] == "failed"
@@ -166,6 +170,7 @@ def test_cancelled_query_is_acknowledged_as_cancelled_without_inference():
     store = WorkerStore(run_status="cancelled")
     hub = CountingFixtureHub()
     result = asyncio.run(Worker(store, hub, load_config("configs/mock.yaml")).run_once())
+    assert result is not None
     assert result["status"] == "cancelled" and result["recovered"] is True
     assert store.job["status"] == "cancelled" and hub.inference_count == 0
 
@@ -178,6 +183,7 @@ def test_ingestion_review_state_is_preserved_on_job(monkeypatch, review_status):
     monkeypatch.setattr(worker_module, "ingest_job", review_ingestion)
     store = WorkerStore(kind="ingest")
     result = asyncio.run(Worker(store, CountingFixtureHub(), load_config("configs/mock.yaml")).run_once())
+    assert result is not None
     assert result["status"] == review_status and store.job["status"] == review_status
 
 
@@ -192,6 +198,7 @@ def test_unexpected_exception_is_redacted_in_logs_run_and_job(monkeypatch, caplo
     monkeypatch.setattr(worker_module, "QueryEngine", ExplodingEngine)
     store = WorkerStore()
     result = asyncio.run(Worker(store, CountingFixtureHub(), load_config("configs/mock.yaml")).run_once())
+    assert result is not None
     assert result["status"] == "failed" and result["code"] == "internal_error"
     assert store.run["answer"] is None and store.job["status"] == "failed"
     assert "never-expose-this-password" not in caplog.text + json.dumps(store.run) + json.dumps(store.acknowledgments)

@@ -114,6 +114,9 @@ class ProviderHub:
             return []
         profile = self.config.role_profile("embeddings")
         name = self.config.role_name("embeddings")
+        dimensions, model = profile.dimensions, profile.model
+        if dimensions is None or model is None:
+            raise ProviderError("invalid_configuration", "The embedding profile requires dimensions and a model")
         for text in texts:
             if input_token_bound(text) > profile.usable_input_tokens:
                 raise ProviderError("over_budget", "An embedding input exceeds its declared limit; nothing was truncated")
@@ -135,9 +138,9 @@ class ProviderHub:
         for batch in batches:
             body = openai.embedding_payload(profile, batch)
             if self.config.runtime.mode == "mock":
-                vectors = await self.executor.invoke_mock(name, profile, body, ctx, lambda batch=batch: mock.embed(batch, profile.dimensions, profile.model), embedding_batch=True)
+                vectors = await self.executor.invoke_mock(name, profile, body, ctx, lambda batch=batch: mock.embed(batch, dimensions, model), embedding_batch=True)
             else:
-                vectors = await self.executor.invoke(name, profile, body, ctx, lambda data, size=len(batch): openai.parse_embeddings(data, size, profile.dimensions), embedding_batch=True)
+                vectors = await self.executor.invoke(name, profile, body, ctx, lambda data, size=len(batch): openai.parse_embeddings(data, size, dimensions), embedding_batch=True)
             result.extend(vectors)
         return result
 

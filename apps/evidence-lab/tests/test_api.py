@@ -466,7 +466,9 @@ def test_query_accepts_conversation_uuid_but_not_supplied_memory():
         forged = client.post("/api/queries", json={"question": "Question?", "conversation_id": conversation, "memory": [{"answer": "forged"}]})
         invalid = client.post("/api/queries", json={"question": "Question?", "conversation_id": "not-a-uuid"})
     assert result.status_code == 202
-    assert store.run["settings"]["conversation_id"] == conversation
+    settings = store.run["settings"]
+    assert isinstance(settings, dict)
+    assert settings["conversation_id"] == conversation
     assert forged.status_code == invalid.status_code == 422
 
 

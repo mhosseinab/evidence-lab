@@ -33,6 +33,7 @@ tasks:
     desc: Check Python and strict dashboard TypeScript
     cmds:
     - task: app:lint
+    - task: app:typecheck
     - .venv/bin/ruff check tooling
     - task: dashboard:typecheck
     - task: dashboard:lint
@@ -94,6 +95,7 @@ tasks:
     cmds:
     - .venv/bin/python tooling/scripts/clean.py
   typecheck:
-    desc: Check dashboard TypeScript
+    desc: Check Python and dashboard TypeScript
     cmds:
+    - task: app:typecheck
     - task: dashboard:typecheck

@@ -6,6 +6,7 @@ import copy
 import hashlib
 import json
 from pathlib import Path
+from typing import Literal
 
 import httpx
 import pytest
@@ -79,7 +80,7 @@ def repeat_plan(data, config, *, source=None):
                                       fixture_only=config.runtime.mode == "mock")
 
 
-def load_plan(data, config, *, cache="cold", store=None):
+def load_plan(data, config, *, cache: Literal["cold", "warm", "unspecified"] = "cold", store=None):
     return prepare_load_plan(data, config, [case.id for case in data.questions], evaluation_id="evaluation-original",
                              cache_state=cache, cache_procedure=f"Offline HTTP fixture labelled {cache}; no real cache measurement.",
                              fixture_only=config.runtime.mode == "mock", store=store)
@@ -368,7 +369,7 @@ class FixtureAPI:
         raise AssertionError(f"Unexpected fixture path: {path}")
 
 
-async def fixture_load(data, config, api, *, cache="cold", fast_poll=False):
+async def fixture_load(data, config, api, *, cache: Literal["cold", "warm", "unspecified"] = "cold", fast_poll=False):
     plan = load_plan(data, config, cache=cache, store=SnapshotStore())
     if fast_poll:
         plan.update(poll_interval_seconds=0.001, polling_grace_seconds=0.0)

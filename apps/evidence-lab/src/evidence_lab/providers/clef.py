@@ -11,7 +11,7 @@ ProviderHub enforces conservative full-payload bounds before sending anything.
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Any, Literal, cast
 
 from evidence_lab.domain import CheckResult, Draft, EvidencePack, GLOBAL_IDS, ProviderError, VerificationResult
 from .openai import validate_coverage
@@ -105,12 +105,15 @@ def parse_verification(data: Any, profile: Any, draft: Draft, evidence: Evidence
         supported = chosen == "supported"
         checks.append(CheckResult(
             id=domain_id, kind="block_support", support_status="supported" if supported else "not_supported",
-            reason=None if supported else chosen, support_score=scores["supported"], raw_scores=scores,
+            reason=None if supported else cast(
+                Literal["contradicted", "insufficient_evidence", "conflicting_evidence", "not_provided"], chosen,
+            ), support_score=scores["supported"], raw_scores=scores,
         ))
     for key in GLOBAL_IDS:
         chosen, scores = _choice(answers[key], {"pass", "fail"})
         checks.append(CheckResult(
-            id=key, kind="global", check_status=chosen, reason=None if chosen == "pass" else "not_provided",
+            id=key, kind="global", check_status="pass" if chosen == "pass" else "fail",
+            reason=None if chosen == "pass" else "not_provided",
             support_score=scores["pass"], raw_scores=scores,
         ))
     validate_coverage(checks, draft)

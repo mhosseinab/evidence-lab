@@ -45,7 +45,8 @@ def test_mock_example_has_usable_fixture_settings_and_disabled_spend():
     assert config.runtime.mode == "mock"
     assert config.runtime.require_openai_compatible is True
     assert config.role_profile("embeddings").dimensions == 64
-    assert config.role_profile("generator").max_input_tokens >= 131072
+    max_input_tokens = config.role_profile("generator").max_input_tokens
+    assert max_input_tokens is not None and max_input_tokens >= 131072
     assert config.verification.mode == "gated"
     assert config.verification.policy_id == "mock-fixture-only"
     assert config.budgets.total_max_estimated_cost_usd == 0
@@ -124,7 +125,8 @@ def test_explicit_profile_selection_resolves_only_newly_active_reference(tmp_pat
         (tmp_path / "candidate.key").write_text("new-candidate-secret\n")
     selected = config.with_roles(verifier="candidate")
     assert selected.role_name("verifier") == "candidate"
-    assert selected.role_profile("verifier").api_key.get_secret_value() == "new-candidate-secret"
+    key = selected.role_profile("verifier").api_key
+    assert key is not None and key.get_secret_value() == "new-candidate-secret"
     assert config.role_name("verifier") != "candidate" and config.profiles["candidate"].api_key is None
     safe = json.dumps(selected.safe_dict())
     assert "new-candidate-secret" not in safe and "candidate.key" not in safe and str(tmp_path) not in safe
@@ -295,9 +297,12 @@ def test_direct_env_and_file_secrets_work_without_environment_requirement(tmp_pa
     verifier["api_key_file"] = "verifier.key"
     (tmp_path / "verifier.key").write_text("file-key\n")
     config = load_config(save(tmp_path, live_data))
-    assert config.role_profile("embeddings").api_key.get_secret_value() == "direct-key"
-    assert config.role_profile("generator").api_key.get_secret_value() == "environment-key"
-    assert config.role_profile("verifier").api_key.get_secret_value() == "file-key"
+    embeddings_key = config.role_profile("embeddings").api_key
+    assert embeddings_key is not None and embeddings_key.get_secret_value() == "direct-key"
+    generator_key = config.role_profile("generator").api_key
+    assert generator_key is not None and generator_key.get_secret_value() == "environment-key"
+    verifier_key = config.role_profile("verifier").api_key
+    assert verifier_key is not None and verifier_key.get_secret_value() == "file-key"
     safe = json.dumps(config.safe_dict())
     assert all(secret not in safe for secret in ("direct-key", "environment-key", "file-key", "verifier.key"))
 
@@ -360,7 +365,8 @@ def test_date_pricing_and_bounds(tmp_path, mock_data):
     profile = mock_data["profiles"][mock_data["roles"]["generator"]]
     profile["pricing"] = {"input_usd_per_million": 1.0, "output_usd_per_million": 2.0, "checked_on": "2026-10-05"}
     config = load_config(save(tmp_path, mock_data))
-    assert config.role_profile("generator").pricing.input_usd_per_million == 1.0
+    pricing = config.role_profile("generator").pricing
+    assert pricing is not None and pricing.input_usd_per_million == 1.0
     profile["pricing"]["checked_on"] = "not-a-date"
     with pytest.raises(ConfigError, match="ISO date"):
         load_config(save(tmp_path, mock_data))

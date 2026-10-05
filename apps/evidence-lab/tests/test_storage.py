@@ -141,6 +141,7 @@ class TestPostgresPersistence:
         _expire_job(storage_dsn, job)
         reopened = Store(storage_dsn)
         lease = reopened.claim_job("replacement-worker")
+        assert lease is not None
         assert lease["id"] == job["id"] and lease["token"] != job["token"]
         assert lease["attempts"] == 2
         reopened.save_extraction(document["version_id"], pages, chunks, "extracted", lease)
@@ -499,8 +500,10 @@ class TestNativeMultiSessionConcurrency:
         with ThreadPoolExecutor(max_workers=2) as pool:
             futures = [pool.submit(claim, f"worker-{index}") for index in range(2)]
             claimed = [future.result(timeout=15) for future in futures]
-        assert {job["id"] for job in claimed} == {job["id"] for job in jobs}
-        assert len({job["token"] for job in claimed}) == 2
+        assert all(job is not None for job in claimed)
+        claimed_jobs = [job for job in claimed if job is not None]
+        assert {job["id"] for job in claimed_jobs} == {job["id"] for job in jobs}
+        assert len({job["token"] for job in claimed_jobs}) == 2
 
     def test_competing_reservations_cannot_overrun_global_spend(self, store, storage_dsn):
         limits = _call_limits(total_cap=0.1)

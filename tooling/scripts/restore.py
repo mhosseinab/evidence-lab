@@ -31,17 +31,21 @@ def main():
     config = load_config(args.config)
     try:
         with psycopg.connect(config.database.dsn, connect_timeout=10) as connection:
-            present = connection.execute(
+            present_row = connection.execute(
                 "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
                 "WHERE n.nspname NOT IN ('pg_catalog','information_schema') "
                 "AND n.nspname NOT LIKE 'pg_toast%' AND c.relkind IN ('r','p','m','v','S')"
-            ).fetchone()[0]
-            if present:
+            ).fetchone()
+            if present_row is None:
+                raise SystemExit("Restore refused: target database object inspection returned no result.")
+            if present_row[0]:
                 raise SystemExit("Restore refused: target database contains user objects. Use a new empty database.")
-            available = connection.execute(
+            available_row = connection.execute(
                 "SELECT EXISTS(SELECT 1 FROM pg_available_extensions WHERE name='vector')"
-            ).fetchone()[0]
-            if not available:
+            ).fetchone()
+            if available_row is None:
+                raise SystemExit("Restore refused: pgvector availability inspection returned no result.")
+            if not available_row[0]:
                 raise SystemExit("Install the pgvector extension on the target PostgreSQL server first.")
         env = connection_env(config.database.dsn)
         subprocess.run(

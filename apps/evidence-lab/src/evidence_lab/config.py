@@ -540,7 +540,7 @@ def _resolve_keys(config: AppConfig, directory: Path) -> None:
         profile = config.profiles[name]
         if profile.api_key_env is not None:
             value = os.environ.get(profile.api_key_env)
-            if _placeholder(value):
+            if value is None or _placeholder(value):
                 raise ConfigError("An active API key environment reference is unset, empty or still a placeholder.")
             profile.api_key = SecretStr(value)
             # Keep exactly one resolved source so a validated config round trip
@@ -584,7 +584,7 @@ def load_config(path: str | Path) -> AppConfig:
         _resolve_keys(config, config_path.resolve().parent)
         if config.langsmith.enabled and config.langsmith.api_key_env is not None:
             value = os.environ.get(config.langsmith.api_key_env)
-            if _placeholder(value) or any(ord(ch) < 32 or ord(ch) > 126 for ch in value):
+            if value is None or _placeholder(value) or any(ord(ch) < 32 or ord(ch) > 126 for ch in value):
                 raise ConfigError("The selected LangSmith API key environment reference is unset or invalid.")
             config.langsmith.api_key = SecretStr(value)
             config.langsmith.api_key_env = None

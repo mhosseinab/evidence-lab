@@ -389,6 +389,8 @@ async def run_repeatability(plan, dataset, store, hub, config) -> dict[str, Any]
                 row.update(status="missing_initial_input", decision="technical_failure")
                 report["runs"].append(row)
                 continue
+            if frozen.draft is None or frozen.evidence is None:
+                raise ExperimentError("Available frozen inputs must contain a complete draft and evidence.")
             if stable_hash(cases[frozen.question_id].question) != frozen.question_hash:
                 raise ExperimentError("A question changed after its input was frozen.")
             allowance = min(plan.max_attempts_per_run, plan.study_attempt_cap - consumed)
@@ -767,6 +769,8 @@ def estimate_experiment(plan, dataset, config) -> dict[str, Any]:
             if frozen.unavailable_reason:
                 preflight_failures += 3
                 continue
+            if frozen.draft is None or frozen.evidence is None:
+                raise ExperimentError("Available frozen inputs must contain a complete draft and evidence.")
             try:
                 hub._validate_draft_size(frozen.draft)
                 payload = hub._verification_payload(profile, questions[frozen.question_id], frozen.draft, frozen.evidence)

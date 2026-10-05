@@ -72,11 +72,17 @@ def native_restore_databases():
     try:
         try:
             admin = psycopg.connect(admin_dsn, autocommit=True, connect_timeout=10)
-            version = admin.execute("SELECT version()").fetchone()[0]
+            version_row = admin.execute("SELECT version()").fetchone()
+            assert version_row is not None
+            version = version_row[0]
             if "pglite" in version.lower():
                 pytest.skip("Native pg_dump/restore verification requires native PostgreSQL")
-            capable = admin.execute("SELECT rolsuper OR rolcreatedb FROM pg_roles WHERE rolname=current_user").fetchone()[0]
-            available = admin.execute("SELECT EXISTS(SELECT 1 FROM pg_available_extensions WHERE name='vector')").fetchone()[0]
+            capable_row = admin.execute("SELECT rolsuper OR rolcreatedb FROM pg_roles WHERE rolname=current_user").fetchone()
+            assert capable_row is not None
+            capable = capable_row[0]
+            available_row = admin.execute("SELECT EXISTS(SELECT 1 FROM pg_available_extensions WHERE name='vector')").fetchone()
+            assert available_row is not None
+            available = available_row[0]
             if not capable:
                 pytest.skip("Native admin role cannot create dedicated temporary databases")
             if not available:
@@ -100,7 +106,9 @@ def native_restore_databases():
             # migration, and confirm extension installation privileges up front.
             for url, name in ((source_url, source_name), (target_url, target_name)):
                 with psycopg.connect(url, connect_timeout=10) as connection:
-                    actual = connection.execute("SELECT current_database()").fetchone()[0]
+                    actual_row = connection.execute("SELECT current_database()").fetchone()
+                    assert actual_row is not None
+                    actual = actual_row[0]
                     if actual != name:
                         raise ValueError("Dedicated database identity mismatch")
             with psycopg.connect(source_url, connect_timeout=10) as connection:

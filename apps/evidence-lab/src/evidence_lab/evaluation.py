@@ -20,7 +20,7 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 from statistics import NormalDist
-from typing import Any, Literal
+from typing import Any, Literal, TypeGuard
 
 from pydantic import Field, ValidationError, model_validator
 
@@ -850,7 +850,7 @@ def _controlled_metrics(rows: list[dict[str, Any]]) -> dict[str, Any]:
             pairs.append({"family_id": mutation["family_id"],
                           "before": bool(original["accepted"]), "after": bool(mutation["accepted"])})
     by_error = {}
-    for name in sorted({r.get("mutation_category") for r in unsupported if r.get("mutation_category")}):
+    for name in sorted({category for r in unsupported if (category := r.get("mutation_category"))}):
         group = [r for r in unsupported if r.get("mutation_category") == name]
         by_error[name] = proportion(sum(bool(r["accepted"]) for r in group), len(group))
     return {
@@ -1455,7 +1455,7 @@ def _fault_artifact_checks(artifact: dict[str, Any], report: dict[str, Any]) -> 
     return {"passed": not errors, "detail": "; ".join(errors) if errors else "All named fault areas, native PostgreSQL and restore checks passed.", "errors": errors}
 
 
-def _finite_number(value: Any) -> bool:
+def _finite_number(value: Any) -> TypeGuard[int | float]:
     return type(value) in (int, float) and math.isfinite(value)
 
 
