@@ -1,10 +1,35 @@
 # Evidence Lab
 
-An end-to-end, document-grounded question-answering application with a bounded verification gate. It accepts documents, stores immutable sources, retrieves evidence, creates a cited draft, verifies that exact draft and either releases it, repairs it once, or abstains. The application and PostgreSQL run on your infrastructure. Real inference uses your configured external endpoints.
+Document-grounded question answering with cited drafts, verification, one optional repair and explicit abstention. PostgreSQL stores application state; live inference uses configured external endpoints.
 
-**No model server, GPU, model weights or tokenizer downloads are included.** The default demo uses deterministic fixtures and makes no inference requests. Its answers are labeled `fixture_only`; they demonstrate application behavior, not model accuracy.
+The default demo uses deterministic `fixture_only` answers and makes no inference requests. No models or tokenizers are downloaded or hosted.
 
-The approved design is in [docs/implementation-plan.md](docs/implementation-plan.md). Actual verification results and remaining deployment checks are in [docs/verification-report.md](docs/verification-report.md).
+See the [approved design](docs/implementation-plan.md), [verification results](docs/verification-report.md) and [Cloudflare Clef activation](#cloudflare-clef-verifier).
+
+## Names and workspace layout
+
+Names: CLI/distribution `evidence-lab`, Python package `evidence_lab`, frontend `@evidence-lab/dashboard`, Compose project `evidence-lab`, image `evidence-lab:local`. The checkout may remain `rag-poc`; `rag_*` tables and `RAG_*` variables retain compatibility.
+
+```text
+.
+├── apps/
+│   ├── evidence-lab/           # Python API, worker, migrations and tests
+│   └── dashboard/              # Vue 3 + TypeScript application and tests
+│       ├── src/{views,components,composables,api,types,utils,assets}/
+│       ├── public/             # Editable favicon/static inputs
+│       └── dist/               # Generated Vite output (ignored)
+├── tooling/                    # Development, backup/restore and cleanup helpers
+├── configs/                    # Mock/Compose samples and private live template
+├── data/                       # Synthetic fixture documents and datasets
+├── docs/                       # Contracts, evaluation, experiments and evidence
+├── .agents/{skills,agents}/    # Project workflows and agent role definitions
+├── .codex/agents               # Link to canonical project agent definitions
+├── Taskfile.yml                # Root Task runner; app Taskfiles live under apps/
+├── pyproject.toml / uv.lock     # Root Python workspace and lock
+└── pnpm-workspace.yaml / pnpm-lock.yaml  # Frontend workspace and lock
+```
+
+Vue builds into `apps/dashboard/dist/`. The old Python static UI, source manifest and verification script are removed; Git tracks source history and Task runs checks.
 
 ## Start the complete demo
 
@@ -15,24 +40,24 @@ task compose:up
 task compose:seed
 ```
 
-Open **http://127.0.0.1:8000**. The Documents view shows each uploaded source and processing state. The Ask view displays the released answer, immutable citations and retrieved evidence. The Evaluations view runs the bundled synthetic A/B/C/D comparison and exports its raw result.
+Open **http://127.0.0.1:8000** for Documents, Ask and Evaluations.
 
-The Compose stack contains PostgreSQL/pgvector, a migration job, an API and a worker. The PostgreSQL and HTTP ports bind to localhost. The demo database credentials are `rag:rag`; they are local sample values. Images are pinned by digest in `apps/evidence-lab/Dockerfile` and `compose.yaml`, with their registry metadata in `docs/container-images.json`.
+Compose runs PostgreSQL/pgvector, migrations, API and worker on localhost. Sample DB credentials: `rag:rag`. Pinned images are recorded in [container-images.json](docs/container-images.json).
 
-For a small, explicit walkthrough, upload a text file containing:
+Upload a text file containing:
 
 ```text
 The Atlas refund period is 30 days after purchase.
 Refund requests require the order identifier.
 ```
 
-Ask `What is the Atlas refund period in days?`. Open the citation to inspect the exact source version. In mock mode, adding `[fixture:unsupported]` to the question deliberately inserts an unsupported initial claim; the worker rejects it, repairs once and verifies the entire replacement. Inspect the separately labeled operator trace to see both rounds. `[fixture:conflict]` exercises persistent rejection and abstention. These markers are fixture controls, not features of live models.
+Ask `What is the Atlas refund period in days?` and open its citation. Mock markers: `[fixture:unsupported]` exercises repair; `[fixture:conflict]` exercises abstention.
 
-Stop processes with `task compose:stop`. This preserves the database volume. The source, vectors, job records, traces and evaluation reports are stored in PostgreSQL.
+`task compose:stop` stops services and preserves database data.
 
 ## Local development
 
-Install Python 3.12 or newer, [uv](https://docs.astral.sh/uv/), [Task](https://taskfile.dev/), Node.js 24 or newer and [pnpm](https://pnpm.io/). The default mock development command uses Docker Compose to provide PostgreSQL with pgvector at `postgresql://rag:rag@localhost:5432/rag`.
+Requirements: Python 3.12+, [uv](https://docs.astral.sh/uv/), [Task](https://taskfile.dev/), Node.js 24+, [pnpm](https://pnpm.io/) and Docker Compose for the default database.
 
 ```bash
 task setup
@@ -44,22 +69,151 @@ Start the API, worker and Vue hot reload in one terminal:
 task dev
 ```
 
-Open Vite’s printed URL (normally `http://127.0.0.1:5173/static/`). Ctrl+C stops all three services; if one exits, the others stop too. Use `task dev CONFIG=configs/private.yaml` to select configuration. The API uses its configured host/port, and Vite proxies to that address. Pass `-- --dashboard-port 5174` to select a different frontend port. With the unchanged default mock configuration, this command starts the Compose database when unavailable, waits for it to become healthy, and applies migrations before launching services. The database stays running after Ctrl+C, preserving development data. For a custom configuration, start its PostgreSQL service and run `task app:migrate CONFIG=...` first; task dev checks availability/schema and never starts or migrates a custom database automatically. The API and worker require restarting after Python changes.
+Open `http://127.0.0.1:5173/static/`. The default mock configuration starts PostgreSQL if needed and applies migrations. Ctrl+C stops API, worker and Vite; the database stays running. Restart after Python changes.
 
-Optionally run `task app:seed` in another terminal after startup to load demo documents. For the compiled dashboard, run `task dashboard:serve` and `task app:worker` in separate terminals after preparing the database.
+For custom configuration, prepare PostgreSQL and run `task app:migrate CONFIG=...` first. Use `task dev CONFIG=configs/private.yaml -- --dashboard-port 5174` to select configuration and frontend port.
 
-The worker processes up to four jobs concurrently by default. A persistent reservation ledger enforces the configured outbound concurrency across worker processes. PostgreSQL leases fence every worker publication, and a restart cannot reset remote attempt or cost accounting. The `--once` worker option processes at most one job for debugging.
+Seed demo documents with `task app:seed`. For the compiled dashboard, run `task dashboard:serve` and `task app:worker` separately after preparing the database.
+
+Workers default to four concurrent jobs. PostgreSQL leases and reservations enforce publication, spending and outbound-call limits across restarts.
+
+## Architecture and data flow
+
+The API admits work; the worker executes durable jobs. PostgreSQL holds shared state, and provider adapters handle all inference. Retrieval preview runs directly through the API.
+
+```mermaid
+flowchart LR
+  subgraph Dashboard["Vue dashboard: apps/dashboard/src"]
+    Views["App.vue, views and components"] --> State["useDashboard and typed context"]
+    State --> Client["api/client.ts and types/api.ts"]
+  end
+  Client --> API["api.py: HTTP admission and public results"]
+  CLI["cli.py: operator commands"] --> Store["storage.py: PostgreSQL / pgvector"]
+  API --> Store
+  API --> Retrieval["retrieval.py: hybrid evidence"]
+  Store --> Worker["worker.py: claim and renew leases"]
+  Worker --> Ingestion["ingestion.py: extract, chunk, embed"]
+  Worker --> Engine["engine.py: query orchestration"]
+  Worker --> Eval["evaluation.py: paired studies"]
+  Engine --> Retrieval
+  Engine --> Policy["policy.py: structural checks and release gate"]
+  Engine --> Hub["providers: embedding, generation, verification"]
+  Ingestion --> Hub
+  Retrieval --> Hub
+  Eval --> Hub
+  Ingestion --> Store
+  Retrieval --> Store
+  Engine --> Store
+  Eval --> Store
+  Hub --> Store
+  Hub --> Inference["Deterministic fixtures OR external inference"]
+```
+
+`domain.py` defines contracts; `config.py` validates settings/secrets; `experiments.py` runs load and repeatability studies. PostgreSQL fences worker writes and reserves provider costs before transport.
+
+### Development and container serving
+
+| Address (default) | Service | What it serves |
+|---|---|---|
+| `http://127.0.0.1:5173/static/` | Vite, started by `task dev` | Vue source with hot reload; `/api` and `/health` proxy to the configured API |
+| `http://127.0.0.1:8000/` | FastAPI | Compiled dashboard from `apps/dashboard/dist/`, plus `/api/*` and health endpoints |
+| `127.0.0.1:5432` | PostgreSQL/pgvector | Durable documents, versions, vectors, jobs, runs, traces and budget ledger |
+
+Both dashboard addresses use the same backend/database. Use 5173 for frontend hot reload. Run only one API on port 8000.
+
+```mermaid
+flowchart LR
+  Browser["Browser"] --> Vite["Development: Vite :5173/static/"]
+  Vite -->|"/api and /health proxy"| API["FastAPI :8000"]
+  Browser -->|"Compiled dashboard and API on one origin"| API
+  Build["Vue + TypeScript → Vite build"] --> Assets["apps/dashboard/dist"]
+  Assets --> API
+  API --> DB["PostgreSQL :5432"]
+  Worker["Durable worker"] --> DB
+  Worker --> Providers["Configured inference adapters"]
+```
+
+Compose finishes migrations before starting API/worker. `task dev` prepares the default mock database before starting local services.
+
+### Document ingestion
+
+```mermaid
+sequenceDiagram
+  participant UI as Dashboard
+  participant API as API admission
+  participant DB as PostgreSQL
+  participant W as Worker
+  participant P as Embedding adapter
+  UI->>API: Upload text, Markdown or PDF
+  API->>DB: Store immutable bytes/version and enqueue ingestion
+  API-->>UI: 202 with document, version and job IDs
+  W->>DB: Claim job with fenced lease
+  W->>W: Extract pages and stable chunks
+  W->>DB: Read embedding cache and save staged extraction
+  W->>P: Embed missing chunk text within limits
+  P-->>W: Validated vectors
+  W->>DB: Save vectors and activate complete version
+  UI->>API: Poll job and document state
+  API->>DB: Read durable processing result
+  API-->>UI: Ready, needs_review or failure state
+```
+
+Uploads create immutable versions; only complete vectors activate them. Ambiguous PDFs stay `needs_review`. CLI `ingest --wait` processes jobs locally.
+
+### Query and answer release
+
+```mermaid
+flowchart TD
+  Q["Accept question → durable run/job"] --> R["Embed query; exact dense + lexical retrieval"]
+  R --> F["RRF fusion, overlap deduplication, frozen evidence pack"]
+  F --> E{"Evidence available?"}
+  E -->|No| A["Abstain: insufficient evidence"]
+  E -->|Yes| D["Generate structured cited draft"]
+  D --> S{"Citation and quotation checks pass?"}
+  S -->|No| T["Technical failure; no public draft"]
+  S -->|Yes| V["Verify every block + all global checks"]
+  V --> C{"Complete valid verdict?"}
+  C -->|No| T
+  C -->|Yes| G{"Semantic checks accepted?"}
+  G -->|No| Repair{"Repair still allowed?"}
+  Repair -->|Yes: at most once| Fix["Generate complete replacement using same evidence"]
+  Fix --> S
+  Repair -->|No| A2["Abstain: unsupported after verification"]
+  G -->|Yes| P{"Release policy allows answer?"}
+  P -->|Yes| Answer["Publish exact checked answer and citations"]
+  P -->|No| Shadow["Shadow result; candidate only in operator trace"]
+```
+
+Deadlines include queue time. Failures never publish drafts; repairs repeat every check against the same frozen evidence. Live gated mode requires qualification before inference.
+
+### Evaluation and qualification
+
+```mermaid
+flowchart LR
+  Dataset["Dataset + frozen evidence/initial draft"] --> ABCD["Paired A/B/C/D evaluation"]
+  ABCD --> Report["Raw report + annotation template"]
+  Humans["Independent human review"] --> Reviewed["Hash-bound reviewed report"]
+  Report --> Reviewed
+  Faults["Externally collected fault study"] --> Qualify["qualify: assess complete evidence"]
+  Load["Independent live-load study"] --> Qualify
+  Repeat["Repeatability study"] --> Qualify
+  Reviewed --> Qualify
+  Qualify --> Policy["Qualified policy bound to implementation and settings"]
+  Policy --> Gate["Live gated release"]
+```
+
+Fixtures remain unqualified. See [evaluation](docs/evaluation.md), [experiments](docs/experiments.md) and [verification results](docs/verification-report.md).
 
 ## Configure your providers
 
-Copy `configs/live.example.yaml` to `configs/private.yaml`. Supply complete values for the three active roles: `embeddings`, `generator` and `verifier`. The example intentionally fails validation until its placeholders are replaced.
+Copy the live template and replace placeholders for `embeddings`, `generator` and `verifier`:
 
 ```bash
 cp configs/live.example.yaml configs/private.yaml
 task app:cli -- config-check --config configs/private.yaml
 ```
 
-**Endpoints and API keys come from this YAML file.** Direct `api_key` values are supported. A profile can instead explicitly select one `api_key_env` or `api_key_file` reference; these are optional. Only the private file contains actual keys. Configuration output, run provenance and errors redact credentials and the database DSN.
+Credentials come from private YAML: choose `api_key`, `api_key_env` or `api_key_file`. Logs and public configuration redact secrets and the database DSN.
 
 Each profile specifies:
 
@@ -73,30 +227,83 @@ Each profile specifies:
 | Limits | Input/output limits, batch dimensions, timeout, attempts and concurrency |
 | `pricing` | Declared input/output USD per million tokens and `checked_on` date |
 
-Providers using one of the supported wire protocols can be changed by configuration. A different protocol needs a separate adapter. There is no automatic provider fallback. `max_tokens` versus `max_completion_tokens`, schema support and embedding dimensions are explicit capabilities.
+Protocols and capabilities are explicit; changing wire protocols requires an adapter. There is no automatic provider fallback.
 
-Keep live `verification.mode: shadow` during setup. A candidate draft is available only in the unverified operator trace; the normal answer field stays empty. Live gated release requires a matching qualification artifact. The same profile can be used for generation and verification, but that does not establish independence; compare an independently selected verifier during evaluation where appropriate.
+Start live setup in `verification.mode: shadow`. Candidates remain in the unverified operator trace; gated answers require a matching qualified policy.
 
-All live calls require known prices and **positive total and phase budgets**. The phase names are `ingestion`, `queries`, `smoke` and `evaluation`. Zero disables spending in that scope. A nonzero global cap does not enable a phase whose cap is still zero. Every attempt reserves its maximum estimated cost before transport, including retries and repair. Missing usage remains conservatively reserved. Provider billing controls remain separate from this local ledger.
+Live calls require declared prices and positive global/phase budgets. Zero disables spending. Retries and repairs reserve cost before transport.
 
-Run a minimal contract smoke check only after configuring the desired endpoints and smoke budget:
+After configuring endpoints and the smoke budget:
 
 ```bash
 task app:cli -- smoke --config configs/private.yaml
 task app:cli -- smoke --config configs/private.yaml --execute
 ```
 
-The first command is a dry run. The second sends one embedding request, one draft request and one batch verification request, subject to retries and budgets. A smoke pass establishes basic endpoint compatibility, not domain quality.
+The first command plans calls; `--execute` sends embedding, generation and verification requests.
 
-### Optional Cloudflare Clef
+## Cloudflare Clef verifier
 
-Clef is an explicit native adapter. Set `runtime.require_openai_compatible: false`, complete the inactive `clef_full` profile, and select it as `roles.verifier`. Its full operation URL ends in `@cf/cloudflare/clef`; the native body model is `clef`. The adapter implements the documented state/question/choice contract and validates complete question coverage and probability distributions. It does not route Clef through Chat Completions.
+**Clef is supported through a native `cloudflare_clef` adapter.** It checks answer blocks and global consistency against frozen evidence; your configured chat model still generates answers. See [Cloudflare's Clef reference](https://developers.cloudflare.com/workers-ai/models/clef/).
 
-Before a paid comparison, recheck access, the current model contract and prices against the provider. Select any native probability threshold on development data and freeze it before held-out testing. These native values are not calibrated guarantees. FactCG and MiniCheck remain deferred, as requested; neither is downloaded or hosted.
+### Activate Clef
 
-### Move from mock to live storage
+1. Copy `configs/live.example.yaml` to `configs/private.yaml` and complete the embedding/generator profiles, including limits and dated prices.
+2. Get your Cloudflare account ID and a [Workers AI API token](https://developers.cloudflare.com/workers-ai/get-started/rest-api/).
+3. Merge these settings into the private file, replacing the account/token placeholders:
 
-Mock and live embeddings have different space identities. Changing endpoint/model/space/dimensions cannot silently mix vectors with an existing corpus. Create a new corpus with the workspace selector and re-upload your original sources under the new embedding configuration. Older corpora remain available for source inspection; queries against a mismatched space fail explicitly before inference. You can also use a separate database or Compose project, preserving the old volume. Update the private YAML DSN to the chosen database. Inside the supplied Compose network the DB hostname is `db`.
+```yaml
+runtime:
+  mode: live
+  require_openai_compatible: false
+roles:
+  embeddings: embedding_primary
+  generator: chat_primary
+  verifier: clef_full
+verification:
+  mode: shadow
+profiles:
+  clef_full:
+    protocol: cloudflare_clef
+    endpoint: https://api.cloudflare.com/client/v4/accounts/REPLACE_ACCOUNT_ID/ai/run/@cf/cloudflare/clef
+    api_key: REPLACE_API_TOKEN
+    model: clef
+    max_input_tokens: 65536
+    max_questions: 64
+    context_headroom_fraction: 0.25
+    timeout_seconds: 30
+    max_attempts: 2
+    concurrency: 4
+    pricing:
+      input_usd_per_million: 0.24
+      output_usd_per_million: 0
+      checked_on: '2026-10-06'
+```
+
+The endpoint uses `@cf/cloudflare/clef`; the request body's model is `clef`. Omit `max_output_tokens` and chat `capabilities`. Recheck [current pricing](https://developers.cloudflare.com/workers-ai/models/clef/) before spending. You can substitute one `api_key_env` or `api_key_file` reference for the direct token.
+
+4. Set positive `budgets.total_max_estimated_cost_usd` and phase caps for the operations you will run (`smoke`, `ingestion`, `queries`, `evaluation`). Zero disables that phase. Every active profile needs dated pricing.
+5. Validate and preview the smoke check:
+
+```bash
+task app:cli CONFIG=configs/private.yaml -- config-check
+task app:cli CONFIG=configs/private.yaml -- smoke
+# Makes budgeted external calls to embeddings, generator and Clef:
+task app:cli CONFIG=configs/private.yaml -- smoke --execute
+```
+
+6. Prepare the configured PostgreSQL database, then start the app:
+
+```bash
+task app:migrate CONFIG=configs/private.yaml
+task dev CONFIG=configs/private.yaml
+```
+
+Use a new corpus when switching from fixture embeddings. In `shadow` mode, checked candidates appear only in the operator trace; public answers require a matching qualification artifact and `verification.mode: gated`. Restart API/worker after changing verifier settings. FactCG and MiniCheck remain deferred.
+
+## Move from mock to live storage
+
+After changing the embedding space, create a new corpus and re-upload sources. Existing vectors cannot be mixed with the new space. Compose database hostname: `db`.
 
 To run a private configuration in Compose:
 
@@ -104,42 +311,192 @@ To run a private configuration in Compose:
 RAG_CONFIG=./configs/private.yaml task compose:up
 ```
 
-For a separate live Compose project, stop the demo processes to free the local ports and use `docker compose -p evidence-lab-live ...`. Keep endpoint and credential changes in the mounted private YAML. Restart the API and worker after configuration changes. Optional `runtime.operator_token` protects all `/api/` operations; the UI has an operator-token entry dialog.
+Restart API/worker after configuration changes. For a separate project, free the ports and use `docker compose -p evidence-lab-live ...`.
 
-Compose defaults to project `evidence-lab` and application image `evidence-lab:local`. An existing `grounded-rag-poc` deployment and its volume are preserved; renaming the source does not move stored data. Stop its processes before starting another stack on the same localhost ports. To deliberately retain that deployment's Compose project and named volume, run the new configuration with the original project name:
+The rename preserves existing deployment data. To reuse the old Compose project and volume:
 
 ```bash
 docker compose -p grounded-rag-poc stop
 docker compose -p grounded-rag-poc up --build -d
 ```
 
-Keep database credentials, configuration DSNs, `rag_*` table names and the existing `RAG_CONFIG`/`RAG_TEST_*` environment names unchanged unless separately migrating those persisted contracts. There is no automatic data migration between Compose projects.
+Compose projects do not migrate data automatically. Preserve DSNs, credentials, `rag_*` tables and `RAG_*` variables unless explicitly migrating them.
 
-The container runs as UID `10001`; the mounted YAML must be readable by that user. Direct `api_key` values work with the supplied mount. If you select `api_key_file`, add a read-only mount for that file at its configured container path. If you select `api_key_env`, explicitly forward the named variable to the API and worker in Compose.
+Containers run as UID `10001`; mounted YAML must be readable. Mount `api_key_file` read-only or explicitly forward the selected `api_key_env` variable.
+
+## Configuration reference
+
+Schema: [config.py](apps/evidence-lab/src/evidence_lab/config.py). Select YAML with Task `CONFIG=...` or CLI `--config`. Samples: `mock.yaml` (local), `mock.compose.yaml` (DB host `db`), `live.example.yaml` (incomplete live template). Tables show schema defaults; samples may override them.
+
+Strict UTF-8 YAML, ≤1 MiB. Unknown/duplicate keys, wrong types and non-finite values fail validation. Required fields have no default; `null` means unset.
+
+| Root field | Default | Meaning |
+| --- | --- | --- |
+| `config_version` | `1` | Only schema version `1` is supported. |
+| `runtime`, `database`, `ingestion`, `retrieval`, `verification`, `budgets`, `evaluation` | Section defaults below | Optional sections use their schema defaults. |
+| `profiles` | Required | Nonempty mapping of named provider contracts. Names start with a letter or number and contain up to 96 letters, numbers, `.`, `_` or `-`. |
+| `roles` | Required | Assigns pipeline roles to profiles. |
+
+### Runtime and database
+
+| YAML field | Default | Meaning and constraints |
+| --- | --- | --- |
+| `runtime.mode` | `mock` | `mock` uses deterministic fixtures without remote inference or credential resolution; `live` uses configured remote providers. |
+| `runtime.require_openai_compatible` | `true` | Active native `cloudflare_clef` profiles require `false`. |
+| `runtime.remote_concurrency` | `4` | Global remote-call concurrency / default worker concurrency; integer 1–64. |
+| `runtime.query_deadline_seconds` | `60` | Query deadline in seconds; >0, ≤3600. |
+| `runtime.max_remote_attempts_per_query` | `10` | Total provider-attempt allowance per query; 1–100. |
+| `runtime.ingestion_deadline_seconds` | `1800` | Ingestion deadline in seconds; >0, ≤86400. |
+| `runtime.max_remote_attempts_per_ingestion` | `2000` | Provider-attempt allowance per ingestion; 1–100000. |
+| `runtime.host` | `127.0.0.1` | API bind address; the serve command can override it. |
+| `runtime.port` | `8000` | API TCP port; 1–65535; the serve command can override it. |
+| `runtime.worker_lease_seconds` | `120` | Job lease duration in seconds; 10–3600; worker heartbeats renew leases. |
+| `runtime.poll_seconds` | `0.5` | Worker polling interval in seconds; >0, ≤60. |
+| `runtime.operator_token` | `null` | Optional secret; when nonempty, `/api/` requests require `Authorization: Bearer <token>`. Health and dashboard assets remain accessible. Enter it in the dashboard's operator-token control. |
+| `database.dsn` | `postgresql://rag:rag@localhost:5432/rag` | PostgreSQL URL with a host and database name; accepts `postgresql` or `postgres`. Credentials are redacted from public configuration. No production storage fallback. |
+
+### Ingestion and retention
+
+| YAML field | Default | Meaning and constraints |
+| --- | --- | --- |
+| `ingestion.max_upload_bytes` | `20971520` (20 MiB) | Maximum original file size; ≥1 byte. |
+| `ingestion.max_pdf_pages` | `200` | Maximum PDF page count; ≥1. |
+| `ingestion.max_documents` | `100` | Document quota; ≥1. |
+| `ingestion.max_active_chunks` | `10000` | Active chunk quota; ≥1. |
+| `ingestion.max_retained_payload_bytes` | `5368709120` (5 GiB) | Retained original-payload quota; ≥1 byte. |
+| `ingestion.inactive_retention_days` | `30` | Age threshold for inactive-version retention cleanup; ≥1 day. |
+| `ingestion.failed_staging_retention_days` | `7` | Age threshold for failed-staging cleanup; ≥1 day. |
+| `ingestion.max_extracted_chars` | `10000000` | Extracted document text limit; ≥1 character. |
+| `ingestion.max_page_extracted_chars` | `1000000` | Per-page extraction limit; ≥1 and no larger than document limit. |
+| `ingestion.chunk_target_chars` | `1600` | Target chunk length; ≥1 character. |
+| `ingestion.chunk_max_chars` | `2400` | Maximum chunk length; ≥ target length. |
+| `ingestion.chunk_overlap_chars` | `200` | Chunk overlap; ≥0 and strictly smaller than target length. |
+| `ingestion.embedding_batch_size` | `16` | Ingestion batch size; 1–16, additionally bounded by the embedding profile's batch size and context allowance. |
+
+Retention runs through explicit CLI `cleanup`; it is not scheduled automatically.
+
+### Retrieval and answer verification
+
+| YAML field | Default | Meaning and constraints |
+| --- | --- | --- |
+| `retrieval.dense_candidates` | `40` | Vector-search candidate count; 0–1000. |
+| `retrieval.lexical_candidates` | `40` | Full-text candidate count; 0–1000. At least one retrieval branch must have a positive count. |
+| `retrieval.rrf_constant` | `60` | Reciprocal rank fusion constant; integer ≥1. |
+| `retrieval.evidence_chunks` | `8` | Maximum selected evidence chunks; 1–64, further constrained by context packing. |
+| `retrieval.search_mode` | `exact` | Only exact vector search is supported. |
+| `verification.mode` | `shadow` | `shadow`, `evaluation` or `gated`; see the answer-release flow. |
+| `verification.policy_id` | `null` | Identifier of the selected qualification policy. |
+| `verification.policy_path` | `null` | Path to its qualification artifact. Setting an ID/path alone does not qualify a live gate. |
+| `verification.score_threshold` | `null` | Optional scalar verifier threshold; 0–1. |
+| `verification.max_answer_blocks` | `8` | Answer block limit; 1–8. |
+| `verification.max_answer_bytes` | `8000` | Answer size limit in bytes; 512–64000. |
+| `verification.max_repair_bytes` | `16384` | Repair payload size limit in bytes; 512–128000. |
+| `verification.max_content_repairs` | `1` | Content repair count; 0 or 1. |
+| `verification.evidence_policy` | `frozen` | Only frozen evidence is supported; repair uses the original evidence pack. |
+
+### Budgets and evaluation
+
+| YAML field | Default | Meaning and constraints |
+| --- | --- | --- |
+| `budgets.total_max_estimated_cost_usd` | `0` | Global estimated spending cap in USD; ≥0. Zero disables live calls. |
+| `budgets.phase_max_estimated_cost_usd.ingestion` | `0` | Ingestion estimated spending cap in USD; ≥0. |
+| `budgets.phase_max_estimated_cost_usd.queries` | `0` | Query estimated spending cap in USD; ≥0. |
+| `budgets.phase_max_estimated_cost_usd.smoke` | `0` | Smoke-call estimated spending cap in USD; ≥0. |
+| `budgets.phase_max_estimated_cost_usd.evaluation` | `0` | Evaluation estimated spending cap in USD; ≥0. Omitted phase entries default to zero; only these four keys are accepted. |
+| `evaluation.max_remote_attempts` | `3000` | Evaluation provider-attempt allowance; integer ≥1. |
+| `evaluation.dataset_dir` | `data` | Schema setting retained for dataset organization; current loading uses explicit CLI dataset paths or the bundled-demo resolver, rather than this field. |
+| `evaluation.allowlisted_datasets` | `{demo: data/demo/dataset.json}` | Named dataset mapping. HTTP evaluation currently accepts only bundled `demo` in mock mode; the configured demo path is a fallback when repository demo assets are absent. |
+| `evaluation.gold_path` | `null` | Human-review annotation path used when an explicit evaluation annotations argument is absent. |
+| `evaluation.policy_output_dir` | `policies` | Schema setting retained for policy organization; current policy output is selected through explicit CLI output paths. |
+
+Live spending requires positive global and phase caps plus dated active-profile prices. Unknown costs retain conservative reservations.
+
+### Role assignments
+
+| YAML field | Default | Supported profile protocol |
+| --- | --- | --- |
+| `roles.embeddings` | Required | `embeddings` |
+| `roles.generator` | Required | `chat_completions` |
+| `roles.verifier` | Required | `chat_completions` or `cloudflare_clef` |
+| `roles.repair_generator` | `null` | `chat_completions`; unset uses the generator profile. |
+| `roles.evaluation_judge` | `null` | `chat_completions` or `cloudflare_clef`; configure when a judge is requested. |
+
+Role names must exist in `profiles`. Inactive profiles undergo schema validation but do not resolve secrets or require completed live endpoints.
+
+### Provider profiles
+
+Replace `<name>` with a profile key.
+
+| YAML field under `profiles.<name>` | Default | Meaning and constraints |
+| --- | --- | --- |
+| `protocol` | Required | `embeddings`, `chat_completions` or native `cloudflare_clef`. |
+| `endpoint` | `null` | Complete operation URL; no path is appended. Active live profiles require HTTP(S), host and non-root operation path, without URL credentials, query strings, fragments or placeholders. |
+| `api_key` | `null` | Direct secret in private YAML; supported without environment variables. |
+| `api_key_env` | `null` | Name of an explicitly selected environment variable containing the key. |
+| `api_key_file` | `null` | UTF-8 secret file, ≤64 KiB; relative paths resolve from the configuration file's directory, `~` expands, surrounding whitespace is stripped. |
+| `auth_header` | `Authorization` | Valid HTTP authentication header name. |
+| `auth_prefix` | `Bearer` | Printable ASCII prefix; empty string sends the key without a prefix. |
+| `model` | `null` | Provider model identifier; required for active embedding/live profiles. Native Clef accepts only `clef` or `clef-flash`. |
+| `semantic_revision` | `null` | Operator-declared semantic model revision for embedding provenance and policy compatibility; unset revisions are reported as unpinned. |
+| `embedding_space` | `null` | Embedding-space identifier; required for active embeddings. |
+| `dimensions` | `null` | Embedding vector dimensions; integer 1–16000; required for active embeddings. |
+| `request_dimensions` | `false` | Include the configured dimensions in embedding request bodies when supported by the endpoint. |
+| `batch_size` | `16` | Profile batch ceiling; 1–2048. Ingestion also enforces its 1–16 application ceiling. |
+| `capabilities` | `null` | Explicit chat request capabilities below; required for active chat profiles. |
+| `max_input_tokens` | `null` | Declared context allowance; integer ≥1; required for every active profile. Native Clef ≤65536. |
+| `max_batch_input_tokens` | `null` | Aggregate embedding-batch allowance; integer ≥1; defaults effectively to `max_input_tokens`. |
+| `max_output_tokens` | `null` | Chat output reservation; integer ≥1 and smaller than usable input allowance; required for active chat, unsupported by native Clef. |
+| `max_questions` | `64` | Native verification question batch ceiling; 1–64. An active native verifier must fit `max_answer_blocks + 3` checks. |
+| `token_counting` | `conservative_utf8_bytes` | Only this conservative bound is supported: serialized UTF-8 bytes plus 64 framing units, without downloaded tokenizers. |
+| `context_headroom_fraction` | `0.15` | Reserved context fraction; ≥0 and <1; usable input is `floor(max_input_tokens × (1 − fraction))`, before chat output/application reserves. |
+| `timeout_seconds` | `30` | Per-attempt timeout; >0, ≤3600 seconds, also bounded by the job deadline. |
+| `max_attempts` | `2` | Per-operation provider attempts; 1 or 2, also bounded by job attempt limits. |
+| `concurrency` | `4` | Profile remote concurrency ceiling; 1–64; the global ceiling also applies. |
+| `pricing` | `null` | Dated pricing below; required on all active live profiles whenever any spending cap is nonzero. |
+| `capabilities.structured_output` | `json_schema` | `json_schema`, `json_object` or `text_json`; explicit chat capability declaration. |
+| `capabilities.output_limit_parameter` | `max_completion_tokens` | `max_completion_tokens` or `max_tokens`, matching provider support. |
+| `capabilities.temperature` | `false` | Whether the endpoint accepts a temperature parameter; `true` sends `temperature: 0`. This is a capability flag, not a temperature value. |
+| `pricing.input_usd_per_million` | Required | Nonnegative USD per million input tokens. |
+| `pricing.output_usd_per_million` | `0` | Nonnegative USD per million output tokens. |
+| `pricing.checked_on` | Required | Quoted ISO date string `YYYY-MM-DD`; record when the operator checked the price. |
+
+Active live profiles require exactly one credential source and a nonempty printable ASCII key. Mock mode ignores credential references. `api_key_file` resolves relative to the YAML file; dataset, policy and output paths resolve from the working directory.
+
+### Environment variables and Task/dev controls
+
+| Variable/control | Scope and default | Meaning |
+| --- | --- | --- |
+| `CONFIG=path` | Task; `configs/mock.yaml` | Selects YAML for native app/dev/backup/restore tasks. It does not select the Compose-mounted file. |
+| `RAG_CONFIG` | Compose; `./configs/mock.compose.yaml` | Host configuration file mounted read-only at `/app/configs/runtime.yaml`. |
+| `EVIDENCE_LAB_API_URL` | Vite development; `http://127.0.0.1:8000` | Proxy target for `/api` and `/health`. `task dev` sets it automatically from the selected runtime host/port, translating wildcard hosts to loopback. It is not a browser-exposed API key or production config variable. |
+| `--dashboard-port` | `task dev -- --dashboard-port 5174`; `5173` | Vite dev TCP port, 1–65535; strict port selection fails rather than silently switching ports. |
+| A profile's `api_key_env` name | Active live provider only; none | Arbitrary explicitly configured credential variable, e.g. `RAG_EMBEDDING_API_KEY`; the example name has no automatic meaning without the YAML reference. |
+| `RAG_DATABASE_DSN` | Direct Alembic invocation; unset | DSN fallback for Alembic when an application-provided migration connection is absent. Normal `task app:migrate` reads `database.dsn` from YAML. |
+| `RAG_TEST_DSN` | Integration tests; unset | Dedicated PostgreSQL/pgvector test database. Tests create/drop private schemas; unset skips database-dependent tests. |
+| `RAG_TEST_NATIVE_ADMIN_DSN` | Native restore tests; unset | Explicit opt-in connection for creating/deleting uniquely named disposable test databases. Requires database-creation permission, pgvector and native `pg_dump`/`pg_restore`; unset skips that gate. |
+| `RAG_TEST_BACKEND` | Tests; unset | `pglite` selects test-only fixture handling and skips native-only gates. It never enables a production storage fallback. |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Compose database; literal `rag` values | Database initialization settings currently fixed in `compose.yaml`; they are not interpolated host environment overrides. The sample credentials are for the loopback mock setup. |
+
+The backup/restore helpers derive libpq variables from the YAML DSN and discard inherited `PG*` variables, so stale shell values cannot redirect them. Supported mappings are `host→PGHOST`, `hostaddr→PGHOSTADDR`, `port→PGPORT`, `dbname→PGDATABASE`, `user→PGUSER`, `password→PGPASSWORD`, `sslmode→PGSSLMODE`, `sslrootcert→PGSSLROOTCERT`, `sslcert→PGSSLCERT`, `sslkey→PGSSLKEY`, `sslcrl→PGSSLCRL`, `sslcrldir→PGSSLCRLDIR`, `connect_timeout→PGCONNECT_TIMEOUT`, `options→PGOPTIONS`, `application_name→PGAPPNAME`, `target_session_attrs→PGTARGETSESSIONATTRS`, `channel_binding→PGCHANNELBINDING`, `service→PGSERVICE`, `passfile→PGPASSFILE` and `gssencmode→PGGSSENCMODE`. These are derived subprocess settings, not independent application YAML overrides.
 
 ## What the release gate enforces
 
-1. Retrieve exact dense and lexical candidates from the same active-version snapshot. Fuse their ranks with RRF and remove overlapping duplicates.
-2. Pack whole evidence chunks within the shared generator/repair/verifier context allowance. The conservative UTF-8-byte bound does not require a tokenizer download.
-3. Decode a bounded structured draft containing answer blocks and source IDs. Validate citation membership and verbatim quotations.
-4. Verify every block plus `global.task_scope`, `global.internal_consistency` and `global.counterevidence` in one batch. Bind the normalized verdict to answer hash, evidence hash and round ID in application code.
-5. On a completed semantic rejection, optionally generate one complete repair against the same frozen evidence. Recheck all blocks and global checks, including unchanged text.
-6. Release the exact checked text only if all checks and the qualified policy pass within the deadline. Otherwise return an explicit abstention, shadow result or technical failure.
+The release flow above checks citations, every answer block and `global.task_scope`, `global.internal_consistency`, `global.counterevidence`. Verdicts bind to answer/evidence hashes and round IDs.
 
-An incomplete verifier response, timeout or budget exhaustion is a technical failure, not evidence that the question is unanswerable. Public run endpoints never expose intermediate drafts. The operator trace is a separate, explicitly unverified view. Documents and model output are rendered as text, and the adapters do not provide model tools or execute document instructions.
+Incomplete verification is a technical failure. Public endpoints hide drafts; documents and model output render as text without tools or instruction execution.
 
-The current ingestion scope is English UTF-8 text, Markdown and readable PDFs, with defaults of 20 MiB, 200 PDF pages, 100 documents and 10,000 active chunks. Scanned pages require OCR outside this implementation. Mixed or ambiguous PDF extraction is marked `needs_review` rather than partially activated. Inspect it and supply a reviewed text version. Exact source offsets use normalized-page Unicode code points; they are not UTF-8 bytes or JavaScript UTF-16 indices.
+Input: English UTF-8 text, Markdown and readable PDFs. OCR is external; ambiguous extraction requires review. Source offsets use normalized Unicode code points.
 
 ## Evaluate the system
 
-The bundled fixture dataset contains synthetic examples with deliberately controlled behavior. Its metrics stay **unqualified**, and natural answer-quality fields remain pending human review. Inline fixture evidence does not measure retrieval quality. The ordinary seeded documents separately exercise the retrieval pipeline.
+The bundled dataset is synthetic and unqualified; human quality review remains pending.
 
 ```bash
 task app:cli -- evaluate --config configs/mock.yaml
 task app:cli -- evaluate --config configs/mock.yaml --execute --output artifacts/demo
 ```
 
-The first command estimates logical calls and cost bounds. Execution creates a durable evaluation job, preserves every case, and exports JSON, per-question and controlled-case CSVs, a Markdown report and a human annotation template. A/B/C/D share an initial draft and evidence pack:
+Dry run estimates calls/costs. Execution exports JSON, CSV, Markdown and annotation templates. A/B/C/D share an initial draft and evidence pack:
 
 | Variant | Behavior |
 |---|---|
@@ -148,11 +505,11 @@ The first command estimates logical calls and cost bounds. Execution creates a d
 | C | Structural and semantic gate |
 | D | Semantic gate plus at most one fully rechecked repair |
 
-Use `--dataset PATH --split development` or `--split test` for an operator-selected domain dataset. Arbitrary filesystem paths are accepted only by the CLI. The HTTP evaluation action accepts the bundled mock demo. Live studies require actual source/gold data, selected profiles and a positive evaluation budget.
+CLI datasets use `--dataset PATH --split development|test`; HTTP accepts only the bundled mock demo. Live studies need source/gold data and a positive evaluation budget.
 
-The evaluation code reports fixed denominators, missing reviews, operational failures, Wilson intervals, source-family paired comparisons, repair outcomes and usage accounting. Apply independent, hash-bound human answer annotations with `eval-review`. Follow [docs/evaluation.md](docs/evaluation.md) for dataset creation, source-family splits, the gold-label rubric, mutation review and qualification. [docs/experiments.md](docs/experiments.md) covers predeclared repeatability and four-concurrent-request load studies. Paired replay time is not used as a live latency claim.
+Use `eval-review` for hash-bound human annotations. [Evaluation](docs/evaluation.md) covers metrics, splits and qualification; [experiments](docs/experiments.md) covers independent load/repeatability studies.
 
-The target experiment remains the approved 140 answerable, 40 missing-evidence and 20 conflict held-out questions, with 200 supported controlled claims and 200 reviewed mutations. No artificial human labels or successful live benchmark results are supplied.
+Planned held-out study: 140 answerable, 40 missing-evidence and 20 conflict questions, plus 200 supported claims and 200 reviewed mutations. Live results are not supplied.
 
 ## Tests, recovery and operations
 
@@ -163,11 +520,11 @@ task test:offline
 task lint
 ```
 
-Engineering verification uses `task check` and `task test`. Database integration tests require an explicitly selected disposable PostgreSQL target in `RAG_TEST_DSN`; native concurrency and restore tests require `RAG_TEST_NATIVE_ADMIN_DSN` and matching PostgreSQL client tools. These tests create isolated test schemas or disposable databases under that authorization. Missing prerequisites remain skips, so retain pytest results and, when needed, produce a JUnit report with `.venv/bin/pytest apps/evidence-lab/tests --junitxml=artifacts/pytest.xml`. A passing offline suite does not establish native recovery or model quality.
+Full checks require dedicated `RAG_TEST_DSN`; native restore also needs `RAG_TEST_NATIVE_ADMIN_DSN` and PostgreSQL client tools. Missing prerequisites are skips. Export JUnit with `task app:test -- --junitxml=artifacts/pytest.xml`.
 
-Git versioning records source history; no generated source manifest or dedicated fault-artifact runner is included. Qualification still requires an externally collected, complete fault-study artifact matching the reviewed evaluation and current implementation. pytest/JUnit results support engineering checks but are not directly a qualification artifact. Historical studies from prior code are retained as historical evidence and cannot qualify the current implementation.
+Engineering test results do not qualify model release. Qualification requires current reviewed evaluation, external fault evidence and independent studies.
 
-After the actual held-out review, externally collected fault study and independent experiments are complete, assess them together:
+Assess completed qualification evidence:
 
 ```bash
 task app:cli -- qualify --config configs/private.yaml artifacts/reviewed-evaluation/report.json \
@@ -177,34 +534,28 @@ task app:cli -- qualify --config configs/private.yaml artifacts/reviewed-evaluat
   --policy-id heldout-policy-v1 --output policies/heldout-policy-v1.json
 ```
 
-Use the actual reviewed evaluation, externally collected fault-study and experiment artifact paths. A failed qualification writes the unmet requirements and exits nonzero. Only a passing artifact can enable live `verification.mode: gated` with matching `policy_id` and `policy_path`. Changing code, verification profiles, prompts, packing rules or measured runtime limits invalidates the match. Rotating a key does not. `task app:cli -- experiments -- --help` shows the repeatability/load commands; each execution command defaults to a dry run and requires `--execute` to submit work.
+Only a passing artifact enables live gated release with matching `policy_id`/`policy_path`. Code, profile, prompt or runtime changes invalidate it; key rotation does not. Study help: `task app:cli -- experiments -- --help`.
 
-The tests cover malformed and reordered embeddings, duplicate/foreign verdicts, native Clef protocol opt-in, timeouts/retries/cancellation, exact evidence/answer/round binding, one repair, private traces, source snapshots, version activation, quotas and durable ledgers. Integration tests require an explicitly selected disposable PostgreSQL test environment. Native multi-session concurrency and pg_dump/restore are separate required checks; they are not inferred from mock tests.
+`/health/live` and `/health/ready` make no inference calls. `/api/status` exposes redacted mode, limits, policy and budget state.
 
-Health endpoints `/health/live` and `/health/ready` perform no inference. `/api/status` reports selected profile names, mode, policy state, limits and budget accounting without keys. Stage timing includes queue time; the query deadline is measured from acceptance. Cleanup uses configured retention and preserves immutable sources referenced by retained runs.
-
-Native backup and empty-target restore helpers are included:
+Backup and empty-target restore:
 
 ```bash
 task backup CONFIG=configs/private.yaml -- --output artifacts/backup.dump
 task restore CONFIG=configs/private-restore.yaml -- --input artifacts/backup.dump
 ```
 
-Install matching PostgreSQL `pg_dump`/`pg_restore` clients on the operator host. The restore configuration must point to a new empty database with pgvector available. The helper refuses existing user objects and never runs `--clean`; it does not invoke models or re-embed sources. Back up private configuration separately from the database. A source deletion purges affected retained evidence/traces and cancels dependent jobs, so export required audit material before deliberately deleting a source.
-
-`task app:cli -- --help` lists the eighteen operator commands for migration, upload, query, retrieval, worker, smoke, evaluation, trace and retention. Task commands default to `configs/mock.yaml`; select another file with `CONFIG=configs/private.yaml`. Forward detailed CLI options after Task’s `--`, as in `task app:cli CONFIG=configs/private.yaml -- smoke --execute`. The application also accepts `--config PATH` before or after its subcommand.
+Use matching `pg_dump`/`pg_restore` clients and an empty restore target with pgvector. Back up private YAML separately. Export audit material before deleting sources, which purges dependent evidence/traces.
 
 ## Workspace tasks and structure
 
-The workspace contains two runnable applications: `apps/evidence-lab/` holds the Python API and worker, while `apps/dashboard/` holds the TypeScript dashboard. Root `pyproject.toml` defines a virtual uv workspace with the Python app; one `uv.lock` and root `.venv` serve Python development. Root `pnpm-workspace.yaml` and `pnpm-lock.yaml` cover the `@evidence-lab/dashboard` package and shared Biome tooling. The dashboard package pins its TypeScript compiler. Task coordinates both stacks through the root and application Taskfiles; `tooling/` holds shared operational helpers.
+One root `.venv`/`uv.lock` serves Python; pnpm manages the Vue package and Biome. Task coordinates both apps.
 
-The dashboard uses Vue 3 single-file components with TypeScript and Vite. Edit views in `apps/dashboard/src/views/`, reusable components in `src/components/`, workspace actions in `src/composables/`, validated HTTP access in `src/api/`, and styles in `src/assets/`. The root Vue component is `src/App.vue`; `public/` contains the favicon. `task dashboard:build` checks Vue templates and compiles hashed assets into the ignored `apps/dashboard/dist/` directory. FastAPI directly serves that build at `/` and `/static`; edit the TypeScript/public sources instead of generated output. `task dashboard:serve` starts the API with the built dashboard, as does `task app:serve`. API startup, CLI and application test tasks ensure the dashboard is built.
+Edit Vue views, components, composables, API/types and styles under `apps/dashboard/src/`; never edit generated `dist/`.
 
-Docker builds the dashboard in a separate stage and copies its output to `/app/apps/dashboard/dist/`. The Python wheel contains the backend and migrations; browser assets remain a separate build output. `task build` builds both frontend assets and backend distributions. Serving an installed wheel requires the built `apps/dashboard/dist/` directory and the repository root as the working directory, which the Task wrappers use.
+The wheel contains backend/migrations; dashboard assets are separate. Wheel serving requires `apps/dashboard/dist/` and the repository root as working directory.
 
-The dashboard retains the existing HTTP contracts and handwritten TypeScript types. There are no shared library consumers or cross-language generated schemas requiring `packages/`, `proto/` or `gen/` directories yet. Task is the single runner; a separate Turborepo runner would add coordination without serving this two-app structure.
-
-Run all tasks from the repository root so configuration, fixture and artifact paths remain rooted here:
+Run from the repository root:
 
 ```bash
 task setup         # install locked uv/pnpm dependencies and build the dashboard
@@ -218,7 +569,89 @@ task build         # build dashboard assets, then the Python distribution
 task clean         # remove generated development/build caches
 ```
 
-`task --list` lists the available wrappers. Run `task dashboard:typecheck`, `task dashboard:lint`, `task dashboard:test` or `task dashboard:build` for frontend-only work; `task dashboard:serve` runs the dashboard with the API. `task test:offline` selects tests that do not require integration or native PostgreSQL. Full test execution must retain prerequisite skips honestly; a skipped native suite does not establish native concurrency or recovery behavior. Compose remains rooted at `compose.yaml`; `task compose:down` removes containers while preserving the named database volume. `RAG_CONFIG=./configs/private.yaml task compose:up` selects a private mounted YAML, and direct Compose commands remain supported for project-specific options.
+### Complete command reference
+
+Use `CONFIG` for native tasks and `RAG_CONFIG` for Compose. Forward CLI options after `--`:
+
+```bash
+task dev CONFIG=configs/mock.yaml -- --dashboard-port 5174
+task app:worker CONFIG=configs/private.yaml -- --once
+task app:cli CONFIG=configs/private.yaml -- config-check
+task app:test -- --junitxml=artifacts/pytest.xml
+```
+
+| Task | Behavior |
+|---|---|
+| `task`, `task --list` | List available tasks |
+| `task setup` | Install locked Python/frontend dependencies; build dashboard |
+| `task dev` | Prepare default mock DB; supervise API, worker and Vue hot reload |
+| `task lock` | Update uv and pnpm dependency locks deliberately |
+| `task lint` | Ruff for backend/tooling, Vue/TypeScript type checking and Biome |
+| `task format` | Format Python and frontend/shared tooling sources |
+| `task typecheck` | Dashboard Vue/TypeScript checks |
+| `task test` | Backend and dashboard tests; missing DB prerequisites produce skips |
+| `task test:offline` | Backend tests excluding integration/native markers, plus dashboard tests |
+| `task check` | Lint then full tests, sequentially |
+| `task build` | Dashboard assets and backend wheel/source distribution |
+| `task clean` | Remove generated build/test caches; preserve dependencies and runtime data |
+| `task app:cli -- COMMAND [ARGS]` | Build dashboard and run an operator command |
+| `task app:serve` | Build dashboard and start FastAPI; no worker or DB bootstrap |
+| `task app:worker` | Process durable jobs; accepts `--once` and `--concurrency N` |
+| `task app:migrate` | Apply migrations and initialize the default corpus |
+| `task app:seed` | Ingest bundled demo sources; run jobs locally with `--wait` |
+| `task app:lint` | Ruff backend source/test checks |
+| `task app:test` | Backend tests, with dashboard build dependency |
+| `task app:test:offline` | Backend tests excluding DB integration/native markers |
+| `task app:build` | Build dashboard dependency and Python distributions into root `dist/` |
+| `task dashboard:dev` | Standalone Vite hot reload; API must already be running |
+| `task dashboard:serve` | Build dashboard and run FastAPI on one origin |
+| `task dashboard:typecheck` | Check Vue templates and TypeScript |
+| `task dashboard:lint` | Biome lint and formatting checks |
+| `task dashboard:test` | Vitest dashboard behavior tests |
+| `task dashboard:build` | Type-check and compile into `apps/dashboard/dist/` |
+| `task compose:db` | Start only Compose PostgreSQL; no migrations |
+| `task compose:up` | Build/start Compose DB, migration job, API and worker |
+| `task compose:seed` | Seed using the running Compose API container's configuration |
+| `task compose:stop` | Stop stack processes, preserving containers and volumes |
+| `task compose:down` | Remove stack containers/network, preserving volumes |
+| `task backup -- --output PATH` | Native PostgreSQL backup using selected `CONFIG` |
+| `task restore -- --input PATH` | Restore to the selected empty PostgreSQL target |
+
+CLI: `evidence-lab` or `.venv/bin/python -m evidence_lab`. Options: `task app:cli -- COMMAND --help`.
+
+| CLI command | Purpose and main arguments |
+|---|---|
+| `config-check` | Validate selected YAML and print redacted settings |
+| `migrate` | Apply PostgreSQL migrations |
+| `serve` | Start API/compiled dashboard; optional `--host`, `--port` |
+| `worker` | Process jobs; optional `--once`, `--concurrency` |
+| `seed` | Enqueue synthetic demo documents; `--wait` processes them locally |
+| `ingest PATH` | Upload a local source; `--corpus`, `--document-id`, `--wait` |
+| `query QUESTION` | Enqueue question; `--corpus`, `--wait` |
+| `retrieve QUESTION` | Preview hybrid evidence; `--corpus` |
+| `smoke` | Plan endpoint checks; `--execute` makes budgeted calls |
+| `evaluate` | Plan/execute study; `--dataset`, `--split`, `--annotations`, `--output`, `--execute` |
+| `eval-export JOB_ID` | Export stored evaluation; `--output` |
+| `eval-review REPORT` | Apply human review without inference; required `--annotations`, optional `--output` |
+| `qualify REPORT` | Assess reviewed evaluation plus required fault/load/repeatability artifacts and policy ID |
+| `experiments` | Delegate study arguments; `experiments -- --help` lists study commands |
+| `inspect ID` | Read job; `--run` selects query run and `--trace` includes private operator diagnostics |
+| `cleanup` | Apply configured retention; preserve source references needed by retained runs |
+| `policy-fingerprint` | Print current semantic release-policy identity |
+| `offline-tests` | Run backend offline contract tests; root `task test:offline` also runs dashboard tests |
+
+### Project skills and agent roles
+
+Conventions: [AGENTS.md](AGENTS.md). Skills: `.agents/skills/`. Roles: `.agents/agents/`, linked through `.codex/agents`.
+
+| Skill | Agent role | Scope |
+|---|---|---|
+| [evidence-lab-development](.agents/skills/evidence-lab-development/SKILL.md) | `evidence_backend` | Python/backend, contracts and workspace changes |
+| [evidence-lab-dashboard](.agents/skills/evidence-lab-dashboard/SKILL.md) | `evidence_dashboard` | Vue/TypeScript dashboard |
+| [evidence-lab-verification](.agents/skills/evidence-lab-verification/SKILL.md) | `evidence_verifier` | Independent scoped engineering checks |
+| [evidence-lab-security-review](.agents/skills/evidence-lab-security-review/SKILL.md) | `evidence_security_reviewer` | Explicitly requested security reviews with concrete findings |
+
+Roles inherit session settings; parallel delegation requires approval. Coordinate shared contracts/build outputs.
 
 ## Repository map
 
@@ -230,16 +663,16 @@ task clean         # remove generated development/build caches
 | `apps/evidence-lab/src/evidence_lab/ingestion.py`, `retrieval.py` | Extraction, stable chunks, embedding cache, exact hybrid retrieval |
 | `apps/evidence-lab/src/evidence_lab/engine.py`, `policy.py` | Frozen evidence, release decisions, repair and semantic identity |
 | `apps/evidence-lab/src/evidence_lab/api.py`, `worker.py` | HTTP API and durable execution |
-| `apps/dashboard/src/`, `apps/dashboard/public/` | TypeScript dashboard and editable HTML/CSS/favicon |
+| `apps/dashboard/src/`, `apps/dashboard/index.html`, `apps/dashboard/public/` | Vue/TypeScript dashboard, HTML entrypoint, CSS and favicon |
 | `apps/dashboard/dist/` | Generated dashboard build served directly by FastAPI |
 | `apps/evidence-lab/src/evidence_lab/evaluation.py`, `experiments.py` | Paired evaluation, independent studies and qualification evidence |
 | `apps/evidence-lab/tests/` | Contract, integration and native PostgreSQL verification |
-| `tooling/` | Alembic configuration and backup/restore scripts |
+| `tooling/` | Alembic/TypeScript tooling and development, backup, restore and cleanup scripts |
 | `data/`, `configs/`, `docs/` | Shared fixtures, operator configuration and documentation |
 | `pyproject.toml`, `uv.lock` | Python workspace, shared development tools and dependency lock |
 | `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `biome.json` | Frontend workspace, shared tooling and dependency lock |
 | `Taskfile.yml`, application Taskfiles | Task orchestration for both stacks |
 
-This is a bounded PoC, not a production rollout or a validated domain model. Stored documents may themselves be inaccurate or incomplete. Its empirical purpose is to determine whether a selected hosted verifier improves useful, supported answers under the measured policy, latency and cost constraints.
+This PoC has not established production readiness or live model quality.
 
-For dashboard hot reload with its API and worker, run `task dev`. Individual services remain available through `task app:serve`, `task app:worker` and `task dashboard:dev`. Open the Vite URL printed by the latter; its `/api` and `/health` requests proxy to the API on localhost port 8000. Use `task dashboard:serve` for the built dashboard served by FastAPI. See [dashboard development](apps/dashboard/README.md) for the component structure and test commands.
+See [dashboard development](apps/dashboard/README.md) for component conventions and focused frontend commands.
