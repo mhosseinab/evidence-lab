@@ -4,7 +4,7 @@ Document-grounded question answering built on **LangGraph**, standard **LangChai
 
 The default demo uses deterministic `fixture_only` answers and makes no inference requests. No models or tokenizers are downloaded or hosted.
 
-See the [documentation index](docs/README.md), [approved design](docs/implementation-plan.md) and [Cloudflare Clef activation](#cloudflare-clef-verifier).
+See the [documentation index](docs/README.md) and [Cloudflare Clef activation](#cloudflare-clef-verifier).
 
 ## Names and workspace layout
 
