@@ -574,6 +574,8 @@ task lint
 
 Full checks require dedicated `EVIDENCE_LAB_TEST_DSN`; native restore also needs `EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN` and PostgreSQL client tools. Missing prerequisites are skips. Export JUnit with `task app:test -- --junitxml=artifacts/pytest.xml`.
 
+[GitHub Actions CI](.github/workflows/ci.yml) runs `task setup`, `task check` and `task build` on pull requests, pushes to `main` and manual runs. It uses a disposable PostgreSQL 17/pgvector service and matching native clients, rejects skipped Python tests, and retains JUnit results and build artifacts for seven days. No model credentials are needed.
+
 Engineering test results do not qualify model release. Qualification requires current reviewed evaluation, external fault evidence and independent studies.
 
 Assess completed qualification evidence:

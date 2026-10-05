@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, native tests and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      EVIDENCE_LAB_TEST_DSN: postgresql://evidence:evidence@127.0.0.1:5432/evidence_test
+      EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN: postgresql://evidence:evidence@127.0.0.1:5432/evidence_test
+      PYTEST_ADDOPTS: --junitxml=artifacts/pytest.xml
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.2-pg17-bookworm@sha256:feb68f4f15446397d8cac7f4fe48fe4586de83160d1fc48b46283312d1a33966
+        env:
+          POSTGRES_USER: evidence
+          POSTGRES_PASSWORD: evidence
+          POSTGRES_DB: evidence_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U evidence -d evidence_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python and uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: '0.12.17'
+          python-version: '3.12.14'
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            **/pyproject.toml
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.21.0'
+      - name: Install workspace pnpm
+        run: npm install --global "$(node -p 'require("./package.json").packageManager')"
+      - name: Set up Task
+        uses: arduino/setup-task@c0bc642852239c2689f73f4ea6459c29405f3c52 # v3.0.0
+        with:
+          version: '3.53.1'
+          repo-token: ${{ github.token }}
+      - name: Install PostgreSQL 17 clients
+        # Match the service version for native pg_dump/pg_restore tests.
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl --fail --silent --show-error --location \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            --output /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' \
+            | sudo tee /etc/apt/sources.list.d/evidence-lab-pgdg.list
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client-17
+          echo '/usr/lib/postgresql/17/bin' >> "$GITHUB_PATH"
+      - name: Install locked workspace dependencies
+        run: task setup
+      - name: Check dependency consistency
+        run: |
+          uv lock --check
+          uv pip check
+      - name: Lint and test both apps
+        run: task check
+      - name: Require complete test coverage
+        run: |
+          .venv/bin/python - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("artifacts/pytest.xml").getroot()
+          suites = list(root.iter("testsuite"))
+          tests = sum(int(suite.get("tests", "0")) for suite in suites)
+          skipped = sum(int(suite.get("skipped", "0")) for suite in suites)
+          if not tests or skipped:
+              raise SystemExit(f"Expected a complete suite: tests={tests}, skipped={skipped}")
+          PY
+      - name: Build distributions and dashboard
+        run: task build
+      - name: Upload test results and builds
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: evidence-lab-ci
+          path: |
+            artifacts/pytest.xml
+            dist/*.whl
+            dist/*.tar.gz
+            apps/dashboard/dist/
+          retention-days: 7
+          if-no-files-found: warn
