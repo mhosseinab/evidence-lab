@@ -4,7 +4,7 @@ Document-grounded question answering built on **LangGraph**, standard **LangChai
 
 The default demo uses deterministic `fixture_only` answers and makes no inference requests. No models or tokenizers are downloaded or hosted.
 
-See the [approved design](docs/implementation-plan.md), [verification results](docs/verification-report.md) and [Cloudflare Clef activation](#cloudflare-clef-verifier).
+See the [documentation index](docs/README.md), [approved design](docs/implementation-plan.md) and [Cloudflare Clef activation](#cloudflare-clef-verifier).
 
 ## Names and workspace layout
 
@@ -21,7 +21,7 @@ Names: CLI/distribution `evidence-lab`, Python package `evidence_lab`, frontend 
 ├── tooling/                    # Development, backup/restore and cleanup helpers
 ├── configs/                    # Mock/Compose samples and private live template
 ├── data/                       # Synthetic fixture documents and datasets
-├── docs/                       # Contracts, evaluation, experiments and evidence
+├── docs/                       # Contracts, evaluation and experiment guides
 ├── .agents/{skills,agents}/    # Project workflows and agent role definitions
 ├── .codex/agents               # Link to canonical project agent definitions
 ├── Taskfile.yml                # Root Task runner; app Taskfiles live under apps/
@@ -202,11 +202,13 @@ flowchart LR
   Policy --> Gate["Live gated release"]
 ```
 
-Fixtures remain unqualified. See [evaluation](docs/evaluation.md), [experiments](docs/experiments.md) and [verification results](docs/verification-report.md).
+Fixtures remain unqualified. See [evaluation](docs/evaluation.md), [experiments](docs/experiments.md) and [test commands](#tests-recovery-and-operations).
 
 ## LangGraph showcase
 
-The query graph invokes a corpus-scoped retrieval tool, a structured LangChain chat model and a native verifier runnable. The dashboard shows stage completion, repair executions and timings. Provider adapters retain exact endpoint contracts, bounded retries and PostgreSQL spending reservations.
+The query graph invokes a corpus-scoped retrieval tool, a structured LangChain chat model and a scoped verification tool (native Clef or the configured chat verifier). The dashboard shows stage completion, repair executions and timings. Provider adapters retain exact endpoint contracts, bounded retries and PostgreSQL spending reservations.
+
+OpenAI-compatible calls use `ChatOpenAI` and `OpenAIEmbeddings` through a single-use HTTP guard that reserves spending in PostgreSQL before sending. Native Clef retains its adapter. Prompts, strict schemas and structured-output composition also use LangChain built-ins. See [provider integrations](apps/evidence-lab/src/evidence_lab/providers/README.md) for the reuse map and custom wire/accounting boundaries.
 
 **Memory:** each conversation belongs to one corpus. Follow-ups receive a bounded snapshot of previously released answers; prior dialogue is context, never evidence. “New conversation” clears the thread selection. Each query retrieves fresh evidence. Source deletion clears copied dialogue and cancels pending affected work.
 

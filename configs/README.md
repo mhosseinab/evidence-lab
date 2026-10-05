@@ -64,6 +64,8 @@ Rates were checked on 6 October 2026. The sample uses conservative application i
 
 Choose exactly one credential source per active profile: direct `api_key`, `api_key_env`, or `api_key_file`. Relative secret files resolve from the YAML directory. Compose must explicitly mount secret files or forward selected environment variables. Private YAML and `configs/secrets/` are ignored by Git; example files must contain placeholders only.
 
+OpenAI-compatible profiles use guarded `ChatOpenAI` / `OpenAIEmbeddings` calls; native Clef keeps its own adapter. Full endpoint URLs, configured authentication and pricing fields remain authoritative; no additional SDK environment variables are required. SDK retries and automatic embedding tokenization are disabled. See the [transport approach](../apps/evidence-lab/src/evidence_lab/providers/README.md).
+
 Live calls require positive total and matching phase caps. Every attempt reserves cost, attempts and concurrency in PostgreSQL before transport. Unknown usage retains conservative reservations; the ledger is not a provider invoice. Mock mode ignores model credentials and makes no model calls; explicitly enabled LangSmith tracing resolves its own key and exports metadata.
 
 ## Decoding and verification

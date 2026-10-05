@@ -233,19 +233,41 @@ class CallExecutor:
             failure: ProviderError | None = None
             decoded: tuple[T] | None = None
             async with self._slots(name, ctx):
-                call_id = await self._reserve(name, profile, estimated_cost, ctx, mock=False)
+                sdk_request = profile.protocol != "cloudflare_clef"
+                call_id = None if sdk_request else await self._reserve(name, profile, estimated_cost, ctx, mock=False)
                 started = time.monotonic()
                 status = "provider_unavailable"
                 usage = None
                 actual_cost = None
+
+                async def send(actual_payload: dict) -> tuple[Any, str | None]:
+                    nonlocal call_id, estimate_tokens, estimated_cost, usage, actual_cost, decoded, retry_after
+                    # Authorize the actual SDK request, not merely a model invocation.
+                    estimate_tokens = check_payload(profile, actual_payload, embedding_batch=embedding_batch)
+                    estimated_cost = _cost(profile, estimate_tokens, output_reservation(profile))
+                    if estimated_cost is None:
+                        raise ProviderError("budget_exhausted", "A conservative call-cost estimate is unavailable")
+                    if sdk_request:
+                        call_id = await self._reserve(name, profile, estimated_cost, ctx, mock=False)
+                    data, retry_after = await self._http(profile, actual_payload, min(timeout, ctx.remaining()))
+                    usage = _usage(data, profile.protocol)
+                    if usage is not None:
+                        actual_cost = _cost(profile, usage.get("input_tokens"), usage.get("output_tokens"))
+                    # Validate raw data before the SDK can normalize/drop fields.
+                    decoded = (decoder(data),)
+                    ctx.remaining()
+                    return data, retry_after
+
                 try:
                     timeout = min(profile.timeout_seconds, ctx.remaining())
-                    async with asyncio.timeout(timeout):
-                        data, retry_after = await self._http(profile, payload, timeout)
-                        usage = _usage(data, profile.protocol)
-                        if usage is not None:
-                            actual_cost = _cost(profile, usage.get("input_tokens"), usage.get("output_tokens"))
-                        decoded = (decoder(data),)
+                    # DB admission is bounded by the job deadline; the profile
+                    # timeout applies to HTTP, not the preceding reservation.
+                    async with asyncio.timeout(ctx.remaining() if sdk_request else timeout):
+                        if profile.protocol == "cloudflare_clef":
+                            await send(payload)
+                        else:
+                            from .sdk import request_with_sdk
+                            await request_with_sdk(profile, payload, timeout, send)
                         ctx.remaining()  # A late response can never be published.
                     status = "ok"
                 except asyncio.CancelledError:

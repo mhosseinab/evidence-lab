@@ -7,7 +7,11 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from evidence_lab.domain import Draft, EvidencePack, GLOBAL_IDS
+from langchain_core.messages import convert_to_openai_messages
+from langchain_core.prompts import ChatPromptTemplate
+from pydantic import ConfigDict, Field, create_model
+
+from evidence_lab.domain import CheckResult, Draft, EvidencePack, GLOBAL_IDS
 
 
 def compact_json(value: Any) -> str:
@@ -50,48 +54,46 @@ Block checks use kind block_support, support_status supported|not_supported and 
 null. Global checks use kind global, support_status null and check_status pass|fail. Set reason
 null on supported/pass checks. Every field in the schema must be present."""
 
-CHECK_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "checks": {
-            "type": "array", "minItems": 4, "maxItems": 11,
-            "items": {
-                "type": "object", "additionalProperties": False,
-                "properties": {
-                    "id": {"type": "string"},
-                    "kind": {"type": "string", "enum": ["block_support", "global"]},
-                    "support_status": {"type": ["string", "null"], "enum": ["supported", "not_supported", None]},
-                    "check_status": {"type": ["string", "null"], "enum": ["pass", "fail", None]},
-                    "reason": {"type": ["string", "null"], "enum": ["contradicted", "insufficient_evidence", "conflicting_evidence", "not_provided", None]},
-                },
-                "required": ["id", "kind", "support_status", "check_status", "reason"],
-            },
-        },
-    },
-    "required": ["checks"],
+# Derive the wire labels from the domain model; scores belong only to native Clef.
+_CHAT_CHECK_FIELDS: dict[str, Any] = {
+    name: (CheckResult.model_fields[name].annotation, ...)
+    for name in ("id", "kind", "support_status", "check_status", "reason")
 }
+ChatCheck = create_model(
+    "ChatCheck", __config__=ConfigDict(extra="forbid", strict=True),
+    **_CHAT_CHECK_FIELDS,
+)
+ChatVerification = create_model(
+    "ChatVerification", __config__=ConfigDict(extra="forbid", strict=True),
+    checks=(list[ChatCheck], Field(min_length=4, max_length=11)),
+)
+# Values are formatted once, so braces in untrusted data are never templates.
+_CHAT_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", "{instructions}"), ("human", "{data}"),
+])
 
 
-def generation_messages(question: str, evidence: EvidencePack, repair: dict | None, *, max_blocks: int, max_answer_bytes: int) -> list[dict[str, str]]:
+def _messages(instructions: str, data: dict[str, Any]) -> list[dict[str, Any]]:
+    messages = _CHAT_PROMPT.format_messages(instructions=instructions, data=compact_json(data))
+    wire = convert_to_openai_messages(messages)
+    if not isinstance(wire, list):
+        raise TypeError("The provider prompt must produce a message list")
+    return wire
+
+
+def generation_messages(question: str, evidence: EvidencePack, repair: dict | None, *, max_blocks: int, max_answer_bytes: int) -> list[dict[str, Any]]:
     instructions = GENERATION_INSTRUCTIONS + f"\nConfigured limits: at most {max_blocks} blocks; the complete compact JSON answer must fit {max_answer_bytes} UTF-8 bytes."
     data: dict[str, Any] = {"question": question, "evidence": evidence.model_dump(mode="json")}
     if repair is not None:
         data["repair"] = repair
-    return [
-        {"role": "system", "content": instructions},
-        {"role": "user", "content": compact_json(data)},
-    ]
+    return _messages(instructions, data)
 
 
-def verification_messages(question: str, draft: Draft, evidence: EvidencePack) -> list[dict[str, str]]:
+def verification_messages(question: str, draft: Draft, evidence: EvidencePack) -> list[dict[str, Any]]:
     data = {
         "question": question,
         "answer": draft.model_dump(mode="json"),
         "evidence": evidence.model_dump(mode="json"),
         "expected_check_ids": [b.block_id for b in draft.blocks] + list(GLOBAL_IDS),
     }
-    return [
-        {"role": "system", "content": VERIFICATION_INSTRUCTIONS},
-        {"role": "user", "content": compact_json(data)},
-    ]
+    return _messages(VERIFICATION_INSTRUCTIONS, data)

@@ -1,11 +1,11 @@
-"""Read-only tools whose scope is bound by the trusted graph invocation."""
+"""Scoped tools whose evidence and ledger context are bound by the workflow."""
 from __future__ import annotations
 
 from langchain_core.tools import StructuredTool
 from langsmith import tracing_context
 from pydantic import BaseModel, ConfigDict, Field
 
-from evidence_lab.domain import EvidencePack, ProviderError
+from evidence_lab.domain import CallContext, Draft, EvidencePack, ProviderError
 
 
 class PrivateStructuredTool(StructuredTool):
@@ -54,4 +54,33 @@ def source_preview_tool(evidence: EvidencePack):
         name="preview_evidence_source",
         description="Read an immutable source excerpt by its retrieved evidence ID.",
         args_schema=SourcePreviewInput,
+    )
+
+
+class VerificationInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    question: str = Field(min_length=1, pattern=r"\S")
+    draft: Draft
+
+
+def verification_tool(hub, evidence: EvidencePack, context: CallContext, round_id: str = "initial"):
+    """Expose native Clef or the configured verifier without replacing its protocol.
+
+    Tool arguments cannot supply evidence, profiles, budgets or verification round.
+    Standard ToolCall invocation returns a summary and the full typed artifact;
+    only the application policy decides whether an answer can be released.
+    """
+    snapshot = evidence.model_copy(deep=True)
+
+    async def verify(question: str, draft: Draft):
+        result = await hub.verify(question, draft.model_copy(deep=True), snapshot, context, round_id=round_id)
+        return result.model_dump(mode="json", exclude={"raw"}), result
+
+    return PrivateStructuredTool.from_function(
+        coroutine=verify,
+        name="verify_frozen_evidence",
+        description="Verify an exact cited draft against the current frozen evidence pack. "
+                    "Returns verification checks, not permission to release an answer.",
+        args_schema=VerificationInput,
+        response_format="content_and_artifact",
     )

@@ -20,7 +20,8 @@ demo establishes plumbing behavior, not semantic model quality.
 `graph.py` defines the LangGraph retrieval, generation, structural checks,
 verification, bounded repair and release workflow. `integrations/` provides
 LangChain model, embedding and corpus-bound tool interfaces through the existing
-provider budget and attempt ledger. PostgreSQL stores bounded conversation
+provider budget and attempt ledger. Verification is a scoped StructuredTool
+whose typed artifact feeds the release policy; native Clef reuses its adapter. PostgreSQL stores bounded conversation
 snapshots containing released answers; interrupted jobs restart rather than
 resume graph checkpoints. Optional `langsmith_trace.py` exports stage metadata
 without prompts, answers, evidence or conversation content.
@@ -33,3 +34,8 @@ and `configs/README.md`.
 Basedpyright. Root `task lint`, `task check` and `task typecheck` include it.
 The repository's `pyproject.toml` binds checking to Python 3.12 and the root
 `.venv`, using standard mode without per-rule diagnostic suppression.
+
+OpenAI-compatible transport uses `ChatOpenAI` and `OpenAIEmbeddings` behind a
+single-use reservation guard. Native Clef retains its adapter. See
+[provider integrations](src/evidence_lab/providers/README.md) for request flow,
+budget enforcement, strict response handling and SDK settings.

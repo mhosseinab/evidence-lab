@@ -1,2 +1,0 @@
-# Preserve captured verification transcripts, including command spacing and final newlines.
-docs/build-evidence/**/*.log.txt whitespace=-blank-at-eol,-blank-at-eof

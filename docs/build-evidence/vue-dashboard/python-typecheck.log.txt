@@ -1,9 +1,0 @@
-Command: basedpyright --pythonpath .venv/bin/python --outputjson apps/evidence-lab/tests/test_api.py apps/evidence-lab/tests/test_evaluation.py
-{
-  "filesAnalyzed": 2,
-  "errorCount": 0,
-  "warningCount": 803,
-  "informationCount": 0,
-  "timeInSec": 1.605
-}
-Errors: none

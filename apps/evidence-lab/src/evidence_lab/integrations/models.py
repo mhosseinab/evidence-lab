@@ -12,6 +12,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableLambda
 from langsmith import tracing_context
 from pydantic import Field
@@ -64,14 +65,10 @@ class LedgerChatModel(BaseChatModel):
         """Expose the enforced domain schema without a second provider request."""
         if schema is not Draft or include_raw or kwargs:
             raise ValueError("This provider enforces the Draft schema; request with_structured_output(Draft)")
-        async def generate(input):
-            message = await self.ainvoke(input)
-            content = message.content
-            if not isinstance(content, str):
-                raise ProviderError("invalid_response", "Structured draft generation requires a JSON text response")
-            return Draft.model_validate_json(content)
-
-        return PrivateRunnable(generate, name="generate_structured_draft")
+        # The hub already strictly validates the wire response. This standard
+        # parser sees only its canonical Draft JSON, never untrusted raw output.
+        chain = self | PydanticOutputParser(pydantic_object=Draft)
+        return PrivateRunnable(chain.ainvoke, name="generate_structured_draft")
 
 
 class LedgerEmbeddings(Embeddings):
@@ -92,11 +89,3 @@ class LedgerEmbeddings(Embeddings):
 
     async def aembed_query(self, text: str) -> list[float]:
         return (await self.aembed_documents([text]))[0]
-
-
-def verifier_runnable(hub, evidence: EvidencePack, context: CallContext, round_id: str = "initial"):
-    """Keep native Clef checks as structured verification rather than chat text."""
-    async def verify(request: dict):
-        return await hub.verify(request["question"], request["draft"], evidence, context, round_id=round_id)
-
-    return PrivateRunnable(verify, name="verify_frozen_evidence")

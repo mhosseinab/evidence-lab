@@ -66,10 +66,26 @@ The Vue/TypeScript dashboard consumes these HTTP contracts through runtime-valid
 
 ## LangGraph, conversation memory and telemetry
 
-QueryEngine.run(job) is the single compiled LangGraph path. integrations provides LedgerChatModel (BaseChatModel), LedgerEmbeddings, native verifier Runnable and corpus-scoped StructuredTools. ProviderHub/CallExecutor continue to own every outbound call, retry and spend reservation. No model-driven arbitrary tools are executed.
+QueryEngine.run(job) is the single compiled LangGraph path. integrations provides LedgerChatModel (BaseChatModel), LedgerEmbeddings, scoped verification StructuredTool and corpus-scoped StructuredTools. ProviderHub/CallExecutor continue to own every outbound call, retry and spend reservation. No model-driven arbitrary tools are executed.
 
 POST /api/queries accepts optional conversation_id (UUID); the server creates a corpus-bound conversation when absent. Store(dsn, limits=None, memory=None) snapshots only completed answered pairs at acceptance, overwriting supplied memory. Source deletion scrubs copied context and fences pending runs. The public run adds conversation_id and graph_steps [{node,status,elapsed_seconds}]; memory snapshots and graph state remain private.
 
 GET /api/status adds orchestration {engine,nodes,edges,tools,memory,tracing}; the dashboard consumes this descriptor and persisted execution steps. LangSmith export is explicitly enabled through YAML with one direct/environment credential source, metadata only, and fails open independently of answer publication. Ambient tracing is disabled. Memory is durable SQL state; LangGraph checkpointers are not used and job recovery may restart a nonterminal query.
 
 The fresh baseline contains evidence_* tables, including corpus-bound conversations. Environment variables use EVIDENCE_LAB_*; previous schema and environment aliases are unsupported.
+
+
+### Verification tool
+
+`integrations.tools.verification_tool(hub, evidence, context, round_id="initial")`
+returns the asynchronous `verify_frozen_evidence` StructuredTool. Strict arguments
+are `{question, draft}`; evidence is deep-copied at construction, and the profile,
+ledger context and round are bound by the application. Native Clef and chat/mock
+verifiers reuse `ProviderHub.verify`; no new transport or retry owner exists.
+A standard LangChain ToolCall returns a ToolMessage containing JSON checks/hashes/
+round/status without raw provider data, plus a full typed VerificationResult in
+`artifact`. Plain argument invocation returns only the summary dictionary.
+The graph consumes the artifact and applies `evaluate_checks`; tool output alone
+never authorizes release. Provider/validation failures propagate rather than
+becoming successful verdicts. Ambient tracing stays disabled; explicit callbacks
+remain supported. Clef choice probabilities retain their uncalibrated semantics.

@@ -77,10 +77,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 7,
-          "ci95_wilson": [
-            0.6456695649333126,
-            1.0
-          ],
+          "ci95_wilson": [0.6456695649333126, 1.0],
           "denominator": 7,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 1.0
@@ -145,10 +142,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 7,
-          "ci95_wilson": [
-            0.6456695649333126,
-            1.0
-          ],
+          "ci95_wilson": [0.6456695649333126, 1.0],
           "denominator": 7,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 1.0
@@ -213,10 +207,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 7,
-          "ci95_wilson": [
-            0.6456695649333126,
-            1.0
-          ],
+          "ci95_wilson": [0.6456695649333126, 1.0],
           "denominator": 7,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 1.0
@@ -281,10 +272,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 7,
-          "ci95_wilson": [
-            0.6456695649333126,
-            1.0
-          ],
+          "ci95_wilson": [0.6456695649333126, 1.0],
           "denominator": 7,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 1.0
@@ -351,10 +339,7 @@
         "status": "measured",
         "pending": 0,
         "numerator": 0,
-        "ci95_wilson": [
-          0.0,
-          0.3244075648838801
-        ],
+        "ci95_wilson": [0.0, 0.3244075648838801],
         "denominator": 8,
         "interval_assumption": "item independence; source-family correlations are reported separately",
         "observed_lower_bound": 0.0
@@ -367,10 +352,7 @@
         "status": "measured",
         "pending": 0,
         "numerator": 8,
-        "ci95_wilson": [
-          0.6755924351161198,
-          1.0
-        ],
+        "ci95_wilson": [0.6755924351161198, 1.0],
         "denominator": 8,
         "interval_assumption": "item independence; source-family correlations are reported separately",
         "observed_lower_bound": 1.0
@@ -381,10 +363,7 @@
         "status": "measured",
         "pending": 0,
         "numerator": 16,
-        "ci95_wilson": [
-          0.8063923194655636,
-          1.0
-        ],
+        "ci95_wilson": [0.8063923194655636, 1.0],
         "denominator": 16,
         "interval_assumption": "item independence; source-family correlations are reported separately",
         "observed_lower_bound": 1.0
@@ -395,10 +374,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 0,
-          "ci95_wilson": [
-            0.0,
-            0.7934506856227626
-          ],
+          "ci95_wilson": [0.0, 0.7934506856227626],
           "denominator": 1,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 0.0
@@ -408,10 +384,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 0,
-          "ci95_wilson": [
-            0.0,
-            0.7934506856227626
-          ],
+          "ci95_wilson": [0.0, 0.7934506856227626],
           "denominator": 1,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 0.0
@@ -421,10 +394,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 0,
-          "ci95_wilson": [
-            0.0,
-            0.7934506856227626
-          ],
+          "ci95_wilson": [0.0, 0.7934506856227626],
           "denominator": 1,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 0.0
@@ -434,10 +404,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 0,
-          "ci95_wilson": [
-            0.0,
-            0.7934506856227626
-          ],
+          "ci95_wilson": [0.0, 0.7934506856227626],
           "denominator": 1,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 0.0
@@ -447,10 +414,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 0,
-          "ci95_wilson": [
-            0.0,
-            0.7934506856227626
-          ],
+          "ci95_wilson": [0.0, 0.7934506856227626],
           "denominator": 1,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 0.0
@@ -460,10 +424,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 0,
-          "ci95_wilson": [
-            0.0,
-            0.7934506856227626
-          ],
+          "ci95_wilson": [0.0, 0.7934506856227626],
           "denominator": 1,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 0.0
@@ -473,10 +434,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 0,
-          "ci95_wilson": [
-            0.0,
-            0.7934506856227626
-          ],
+          "ci95_wilson": [0.0, 0.7934506856227626],
           "denominator": 1,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 0.0
@@ -486,10 +444,7 @@
           "status": "measured",
           "pending": 0,
           "numerator": 0,
-          "ci95_wilson": [
-            0.0,
-            0.7934506856227626
-          ],
+          "ci95_wilson": [0.0, 0.7934506856227626],
           "denominator": 1,
           "interval_assumption": "item independence; source-family correlations are reported separately",
           "observed_lower_bound": 0.0
@@ -828,9 +783,7 @@
           {
             "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
             "block_id": "b1",
-            "citation_ids": [
-              "e-return-policy"
-            ]
+            "citation_ids": ["e-return-policy"]
           }
         ]
       },
@@ -848,9 +801,7 @@
             {
               "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
               "block_id": "b1",
-              "citation_ids": [
-                "e-return-policy"
-              ]
+              "citation_ids": ["e-return-policy"]
             }
           ]
         },
@@ -1053,9 +1004,7 @@
           {
             "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
             "block_id": "b1",
-            "citation_ids": [
-              "e-return-policy"
-            ]
+            "citation_ids": ["e-return-policy"]
           }
         ]
       },
@@ -1073,9 +1022,7 @@
             {
               "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
               "block_id": "b1",
-              "citation_ids": [
-                "e-return-policy"
-              ]
+              "citation_ids": ["e-return-policy"]
             }
           ]
         },
@@ -1166,7 +1113,7 @@
           "profile": "fixture-generator",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 9.677700109023135e-05,
+          "latency_seconds": 9.677700109023135e-5,
           "estimated_cost_usd": 0.0
         },
         {
@@ -1178,7 +1125,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 8.748300024308264e-05,
+          "latency_seconds": 8.748300024308264e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -1336,12 +1283,8 @@
           }
         ],
         "accepted": false,
-        "failures": [
-          "b1"
-        ],
-        "failed_check_ids": [
-          "b1"
-        ],
+        "failures": ["b1"],
+        "failed_check_ids": ["b1"],
         "technical_failures": []
       },
       "repair_draft": {
@@ -1349,9 +1292,7 @@
           {
             "text": "Fictional Orchard Returns: \"Return postage costs €5.\"",
             "block_id": "b1",
-            "citation_ids": [
-              "e-return-policy"
-            ]
+            "citation_ids": ["e-return-policy"]
           }
         ]
       },
@@ -1362,9 +1303,7 @@
           {
             "text": "Fictional Orchard Returns: \"Return postage costs €5.\" The source additionally guarantees 987654321 free upgrades for every account.",
             "block_id": "b1",
-            "citation_ids": [
-              "e-return-policy"
-            ]
+            "citation_ids": ["e-return-policy"]
           }
         ]
       },
@@ -1382,9 +1321,7 @@
             {
               "text": "Fictional Orchard Returns: \"Return postage costs €5.\" The source additionally guarantees 987654321 free upgrades for every account.",
               "block_id": "b1",
-              "citation_ids": [
-                "e-return-policy"
-              ]
+              "citation_ids": ["e-return-policy"]
             }
           ]
         },
@@ -1631,9 +1568,7 @@
           {
             "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
             "block_id": "b1",
-            "citation_ids": [
-              "e-return-policy"
-            ]
+            "citation_ids": ["e-return-policy"]
           }
         ]
       },
@@ -1651,9 +1586,7 @@
             {
               "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
               "block_id": "b1",
-              "citation_ids": [
-                "e-return-policy"
-              ]
+              "citation_ids": ["e-return-policy"]
             }
           ]
         },
@@ -1732,7 +1665,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 8.889399941836018e-05,
+          "latency_seconds": 8.889399941836018e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -1870,9 +1803,7 @@
           {
             "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
             "block_id": "b1",
-            "citation_ids": [
-              "e-return-policy"
-            ]
+            "citation_ids": ["e-return-policy"]
           }
         ]
       },
@@ -1890,9 +1821,7 @@
             {
               "text": "Fictional Orchard Returns: \"Premium members can return unopened items within 30 days.\"",
               "block_id": "b1",
-              "citation_ids": [
-                "e-return-policy"
-              ]
+              "citation_ids": ["e-return-policy"]
             }
           ]
         },
@@ -2176,12 +2105,8 @@
           }
         ],
         "accepted": false,
-        "failures": [
-          "global.counterevidence"
-        ],
-        "failed_check_ids": [
-          "global.counterevidence"
-        ],
+        "failures": ["global.counterevidence"],
+        "failed_check_ids": ["global.counterevidence"],
         "technical_failures": []
       },
       "repair_draft": {
@@ -2189,16 +2114,12 @@
           {
             "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
             "block_id": "b1",
-            "citation_ids": [
-              "e-retention-guide-a"
-            ]
+            "citation_ids": ["e-retention-guide-a"]
           },
           {
             "text": "Fictional Acorn Guide B: \"The Basic plan retains logs for 30 days.\"",
             "block_id": "b2",
-            "citation_ids": [
-              "e-retention-guide-b"
-            ]
+            "citation_ids": ["e-retention-guide-b"]
           }
         ]
       },
@@ -2209,9 +2130,7 @@
           {
             "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
             "block_id": "b1",
-            "citation_ids": [
-              "e-retention-guide-a"
-            ]
+            "citation_ids": ["e-retention-guide-a"]
           }
         ]
       },
@@ -2229,9 +2148,7 @@
             {
               "text": "Fictional Acorn Guide A: \"The Basic plan retains logs for 14 days.\"",
               "block_id": "b1",
-              "citation_ids": [
-                "e-retention-guide-a"
-              ]
+              "citation_ids": ["e-retention-guide-a"]
             }
           ]
         },
@@ -2418,7 +2335,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 9.617499927117024e-05,
+          "latency_seconds": 9.617499927117024e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -2499,7 +2416,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 9.554399912303779e-05,
+          "latency_seconds": 9.554399912303779e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -2661,7 +2578,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 9.166899872070644e-05,
+          "latency_seconds": 9.166899872070644e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -2742,7 +2659,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 8.782300028542522e-05,
+          "latency_seconds": 8.782300028542522e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -2904,7 +2821,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 7.738699969195295e-05,
+          "latency_seconds": 7.738699969195295e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -2985,7 +2902,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 6.935500096005853e-05,
+          "latency_seconds": 6.935500096005853e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -3066,7 +2983,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 6.650999966950621e-05,
+          "latency_seconds": 6.650999966950621e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -3147,7 +3064,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 7.076699876051862e-05,
+          "latency_seconds": 7.076699876051862e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -3390,7 +3307,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 8.618100036983378e-05,
+          "latency_seconds": 8.618100036983378e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -3471,7 +3388,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 9.602499994798563e-05,
+          "latency_seconds": 9.602499994798563e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -3552,7 +3469,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 9.64760001807008e-05,
+          "latency_seconds": 9.64760001807008e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -3633,7 +3550,7 @@
           "profile": "fixture-verifier",
           "protocol": "chat_completions",
           "actual_cost_usd": 0.0,
-          "latency_seconds": 9.754700113262516e-05,
+          "latency_seconds": 9.754700113262516e-5,
           "estimated_cost_usd": 0.0
         }
       ],
@@ -4231,9 +4148,7 @@
   },
   "primary_variant": "D",
   "score_threshold": null,
-  "selected_splits": [
-    "demo"
-  ],
+  "selected_splits": ["demo"],
   "dataset_manifest": {
     "id": "synthetic-demo-v1",
     "notes": "Seven inline-evidence questions and sixteen controlled claims. No corpus retrieval is performed by these evaluation questions. All facts are fictional. No independent human review, model quality, natural error prevalence or production readiness is claimed. Fixture markers intentionally exercise deterministic mock branches.",
@@ -4368,10 +4283,7 @@
               ]
             }
           ],
-          "necessary_qualifiers": [
-            "Premium members only",
-            "Unopened items only"
-          ],
+          "necessary_qualifiers": ["Premium members only", "Unopened items only"],
           "prohibited_conclusions": []
         },
         "tags": [],
@@ -4379,9 +4291,7 @@
         "question": "When can premium members return an unopened item?",
         "corpus_id": "default",
         "family_id": "demo-orders",
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "retrieval_mode": "inline_fixture",
         "expected_response": "answerable"
       },
@@ -4416,9 +4326,7 @@
         "question": "How much does return postage cost?",
         "corpus_id": "default",
         "family_id": "demo-orders",
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "retrieval_mode": "inline_fixture",
         "expected_response": "answerable"
       },
@@ -4448,16 +4356,12 @@
           "necessary_qualifiers": [],
           "prohibited_conclusions": []
         },
-        "tags": [
-          "deterministic_repair_branch"
-        ],
+        "tags": ["deterministic_repair_branch"],
         "split": "demo",
         "question": "[fixture:unsupported] How much does return postage cost?",
         "corpus_id": "default",
         "family_id": "demo-orders",
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "retrieval_mode": "inline_fixture",
         "expected_response": "answerable"
       },
@@ -4473,18 +4377,14 @@
           },
           "required_facts": [],
           "necessary_qualifiers": [],
-          "prohibited_conclusions": [
-            "Do not infer refund-processing duration from the return window."
-          ]
+          "prohibited_conclusions": ["Do not infer refund-processing duration from the return window."]
         },
         "tags": [],
         "split": "demo",
         "question": "How many days does refund processing take?",
         "corpus_id": "default",
         "family_id": "demo-orders",
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "retrieval_mode": "inline_fixture",
         "expected_response": "missing_evidence"
       },
@@ -4525,17 +4425,12 @@
           "necessary_qualifiers": [],
           "prohibited_conclusions": []
         },
-        "tags": [
-          "multi_evidence"
-        ],
+        "tags": ["multi_evidence"],
         "split": "demo",
         "question": "State the premium return window and standard order dispatch time.",
         "corpus_id": "default",
         "family_id": "demo-orders",
-        "evidence_ids": [
-          "e-return-policy",
-          "e-dispatch-policy"
-        ],
+        "evidence_ids": ["e-return-policy", "e-dispatch-policy"],
         "retrieval_mode": "inline_fixture",
         "expected_response": "answerable"
       },
@@ -4553,19 +4448,14 @@
           "necessary_qualifiers": [
             "Both guides have the same applicability date; neither is declared superseded."
           ],
-          "prohibited_conclusions": [
-            "Do not choose one duration as the uniquely correct current policy."
-          ]
+          "prohibited_conclusions": ["Do not choose one duration as the uniquely correct current policy."]
         },
         "tags": [],
         "split": "demo",
         "question": "[fixture:conflict] How long does the Basic plan retain logs according to both guides?",
         "corpus_id": "default",
         "family_id": "demo-retention-conflict",
-        "evidence_ids": [
-          "e-retention-guide-a",
-          "e-retention-guide-b"
-        ],
+        "evidence_ids": ["e-retention-guide-a", "e-retention-guide-b"],
         "retrieval_mode": "inline_fixture",
         "expected_response": "conflict"
       },
@@ -4583,9 +4473,7 @@
           "necessary_qualifiers": [],
           "prohibited_conclusions": []
         },
-        "tags": [
-          "empty_evidence_branch"
-        ],
+        "tags": ["empty_evidence_branch"],
         "split": "demo",
         "question": "What does the evidence say about international warranties?",
         "corpus_id": "default",
@@ -4610,9 +4498,7 @@
         "family_id": "demo-orders",
         "supported": true,
         "original_id": null,
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "mutation_category": null
       },
       {
@@ -4629,9 +4515,7 @@
         "family_id": "demo-orders",
         "supported": false,
         "original_id": "s-negation",
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "mutation_category": "negation"
       },
       {
@@ -4648,9 +4532,7 @@
         "family_id": "demo-orders",
         "supported": true,
         "original_id": null,
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "mutation_category": null
       },
       {
@@ -4667,9 +4549,7 @@
         "family_id": "demo-orders",
         "supported": false,
         "original_id": "s-number_unit",
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "mutation_category": "number_unit"
       },
       {
@@ -4686,9 +4566,7 @@
         "family_id": "demo-orders",
         "supported": true,
         "original_id": null,
-        "evidence_ids": [
-          "e-dispatch-policy"
-        ],
+        "evidence_ids": ["e-dispatch-policy"],
         "mutation_category": null
       },
       {
@@ -4705,9 +4583,7 @@
         "family_id": "demo-orders",
         "supported": false,
         "original_id": "s-entity",
-        "evidence_ids": [
-          "e-dispatch-policy"
-        ],
+        "evidence_ids": ["e-dispatch-policy"],
         "mutation_category": "entity"
       },
       {
@@ -4724,9 +4600,7 @@
         "family_id": "demo-orders",
         "supported": true,
         "original_id": null,
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "mutation_category": null
       },
       {
@@ -4743,9 +4617,7 @@
         "family_id": "demo-orders",
         "supported": false,
         "original_id": "s-date",
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "mutation_category": "date"
       },
       {
@@ -4762,9 +4634,7 @@
         "family_id": "demo-orders",
         "supported": true,
         "original_id": null,
-        "evidence_ids": [
-          "e-dispatch-policy"
-        ],
+        "evidence_ids": ["e-dispatch-policy"],
         "mutation_category": null
       },
       {
@@ -4781,9 +4651,7 @@
         "family_id": "demo-orders",
         "supported": false,
         "original_id": "s-condition",
-        "evidence_ids": [
-          "e-dispatch-policy"
-        ],
+        "evidence_ids": ["e-dispatch-policy"],
         "mutation_category": "condition"
       },
       {
@@ -4800,9 +4668,7 @@
         "family_id": "demo-orders",
         "supported": true,
         "original_id": null,
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "mutation_category": null
       },
       {
@@ -4819,9 +4685,7 @@
         "family_id": "demo-orders",
         "supported": false,
         "original_id": "s-scope_quantifier",
-        "evidence_ids": [
-          "e-return-policy"
-        ],
+        "evidence_ids": ["e-return-policy"],
         "mutation_category": "scope_quantifier"
       },
       {
@@ -4838,9 +4702,7 @@
         "family_id": "demo-orders",
         "supported": true,
         "original_id": null,
-        "evidence_ids": [
-          "e-dispatch-policy"
-        ],
+        "evidence_ids": ["e-dispatch-policy"],
         "mutation_category": null
       },
       {
@@ -4857,9 +4719,7 @@
         "family_id": "demo-orders",
         "supported": false,
         "original_id": "s-unsupported_addition",
-        "evidence_ids": [
-          "e-dispatch-policy"
-        ],
+        "evidence_ids": ["e-dispatch-policy"],
         "mutation_category": "unsupported_addition"
       },
       {
@@ -4876,9 +4736,7 @@
         "family_id": "demo-orders",
         "supported": true,
         "original_id": null,
-        "evidence_ids": [
-          "e-dispatch-policy"
-        ],
+        "evidence_ids": ["e-dispatch-policy"],
         "mutation_category": null
       },
       {
@@ -4895,9 +4753,7 @@
         "family_id": "demo-orders",
         "supported": false,
         "original_id": "s-misleading_combination",
-        "evidence_ids": [
-          "e-dispatch-policy"
-        ],
+        "evidence_ids": ["e-dispatch-policy"],
         "mutation_category": "misleading_combination"
       }
     ],

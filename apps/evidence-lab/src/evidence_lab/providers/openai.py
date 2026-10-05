@@ -7,27 +7,30 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from pydantic import ValidationError
+from langchain_core.utils.function_calling import convert_to_openai_function
+from pydantic import BaseModel, ValidationError
 
 from evidence_lab.domain import CheckResult, Draft, EvidencePack, GLOBAL_IDS, ProviderError, VerificationResult, stable_hash, strict_json
-from .prompts import CHECK_SCHEMA, compact_json, generation_messages, verification_messages
+from .prompts import ChatVerification, compact_json, generation_messages, verification_messages
 
 
 def _invalid(message: str = "Provider response does not satisfy the configured contract", *, retryable: bool = False) -> ProviderError:
     return ProviderError("invalid_response", message, retryable=retryable)
 
 
-def chat_payload(profile: Any, messages: list[dict[str, str]], schema: dict, name: str) -> dict:
+def chat_payload(profile: Any, messages: list[dict[str, Any]], schema: type[BaseModel], name: str) -> dict:
     capabilities = profile.capabilities
+    # LangChain dereferences Pydantic definitions and applies strict object rules.
+    wire_schema = convert_to_openai_function(schema, strict=True)["parameters"]
     if capabilities.structured_output != "json_schema":
         messages = [dict(message) for message in messages]
-        messages[0]["content"] += "\nRequired JSON schema: " + compact_json(schema)
+        messages[0]["content"] += "\nRequired JSON schema: " + compact_json(wire_schema)
     body: dict[str, Any] = {"model": profile.model, "messages": messages, "stream": False}
     body[capabilities.output_limit_parameter] = profile.max_output_tokens
     if capabilities.temperature:
         body["temperature"] = 0
     if capabilities.structured_output == "json_schema":
-        body["response_format"] = {"type": "json_schema", "json_schema": {"name": name, "strict": True, "schema": schema}}
+        body["response_format"] = {"type": "json_schema", "json_schema": {"name": name, "strict": True, "schema": wire_schema}}
     elif capabilities.structured_output == "json_object":
         body["response_format"] = {"type": "json_object"}
     return body
@@ -35,11 +38,11 @@ def chat_payload(profile: Any, messages: list[dict[str, str]], schema: dict, nam
 
 def generation_payload(profile: Any, question: str, evidence: EvidencePack, repair: dict | None, *, max_blocks: int, max_answer_bytes: int) -> dict:
     messages = generation_messages(question, evidence, repair, max_blocks=max_blocks, max_answer_bytes=max_answer_bytes)
-    return chat_payload(profile, messages, Draft.model_json_schema(), "grounded_answer")
+    return chat_payload(profile, messages, Draft, "grounded_answer")
 
 
 def verification_payload(profile: Any, question: str, draft: Draft, evidence: EvidencePack) -> dict:
-    return chat_payload(profile, verification_messages(question, draft, evidence), CHECK_SCHEMA, "grounding_checks")
+    return chat_payload(profile, verification_messages(question, draft, evidence), ChatVerification, "grounding_checks")
 
 
 def embedding_payload(profile: Any, texts: list[str]) -> dict:

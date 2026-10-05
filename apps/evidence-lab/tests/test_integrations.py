@@ -3,6 +3,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -12,8 +13,8 @@ from pydantic import ValidationError
 
 from evidence_lab.config import load_config
 from evidence_lab.domain import CallContext, Draft, EvidenceItem, EvidencePack, ProviderError
-from evidence_lab.integrations.models import LedgerChatModel, LedgerEmbeddings, verifier_runnable
-from evidence_lab.integrations.tools import retrieval_tool, source_preview_tool
+from evidence_lab.integrations.models import LedgerChatModel, LedgerEmbeddings
+from evidence_lab.integrations.tools import retrieval_tool, source_preview_tool, verification_tool
 from evidence_lab.providers import ProviderHub
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -52,9 +53,11 @@ async def test_chat_and_embeddings_use_existing_call_accounting(pack, context):
         vector = await embeddings.aembed_query("widget")
         assert len(vector) == 64
         assert context.attempts_used == 3
-        result = await verifier_runnable(hub, pack, context, "repair").ainvoke(
-            {"question": "What does the widget cost?", "draft": draft}
-        )
+        tool = verification_tool(hub, pack, context, "repair")
+        message = await tool.ainvoke({"type": "tool_call", "id": "verify-repair", "name": tool.name,
+                                    "args": {"question": "What does the widget cost?",
+                                             "draft": draft.model_dump(mode="json")}})
+        result = message.artifact
         assert result.round_id == "repair"
         assert context.attempts_used == 4
     finally:
@@ -145,3 +148,117 @@ async def test_model_and_tools_suppress_ambient_content_tracing(pack, context, m
                           context=context, retrieve=retrieve)
     await tool.ainvoke({"question": "question"})
     assert observed == [False, False]
+
+
+async def test_structured_chain_forwards_runnable_callbacks_without_extra_calls(pack, context):
+    tags_seen = []
+
+    class Observer(BaseCallbackHandler):
+        def on_chat_model_start(self, serialized, messages, *, tags=None, **kwargs):
+            tags_seen.append(tags)
+
+    hub = ProviderHub(load_config(ROOT / "configs/mock.yaml"))
+    try:
+        model = LedgerChatModel(hub=hub, evidence=pack, context=context)
+        result = await model.with_structured_output(Draft).ainvoke(
+            "What does the widget cost?",
+            config={"tags": ["provider-audit"], "callbacks": [Observer()]},
+        )
+        assert isinstance(result, Draft)
+        assert tags_seen and "provider-audit" in tags_seen[0]
+        assert context.attempts_used == 1
+    finally:
+        await hub.aclose()
+
+
+async def test_native_clef_tool_returns_summary_and_typed_artifact(monkeypatch):
+    import json
+
+    import httpx
+    from langchain_core.messages import ToolMessage
+    from langchain_core.utils.function_calling import convert_to_openai_tool
+    from test_providers import Ledger, clef_result, configuration, context, draft, evidence
+
+    monkeypatch.setenv("LANGSMITH_TRACING", "true")
+    ledger = Ledger()
+    pack = evidence()
+    frozen_hash = pack.content_hash
+    original_text = pack.items[0].text
+    answer = draft()
+    ctx = context()
+    calls, callbacks = [], []
+
+    class Observer(BaseCallbackHandler):
+        def on_tool_start(self, serialized, input_str, *, tags=None, **kwargs):
+            callbacks.append(tags)
+
+    def handler(request):
+        calls.append(request)
+        body = json.loads(request.content)
+        assert "questions" in body and "messages" not in body
+        assert body["state"]["evidence"]["items"][0]["text"] == original_text
+        assert ledger.rows[0]["status"] == "reserved"
+        assert get_tracing_context()["enabled"] is False
+        return httpx.Response(200, json=clef_result())
+
+    config = configuration(native=True)
+    hub = ProviderHub(config, store=ledger, client=httpx.MockTransport(handler))
+    try:
+        tool = verification_tool(hub, pack, ctx, "repair")
+        schema = convert_to_openai_tool(tool)
+        assert set(schema["function"]["parameters"]["properties"]) == {"question", "draft"}
+        pack.items[0].text = "Changed after the tool was bound"
+        message = await tool.ainvoke(
+            {"type": "tool_call", "id": "clef-1", "name": tool.name,
+             "args": {"question": "Price?", "draft": answer.model_dump(mode="json")}},
+            config={"tags": ["clef-tool"], "callbacks": [Observer()]},
+        )
+        assert isinstance(message, ToolMessage)
+        assert isinstance(message.content, str)
+        summary = json.loads(message.content)
+        result = message.artifact
+        assert result.answer_hash == answer.content_hash and result.evidence_hash == frozen_hash
+        assert result.round_id == summary["round_id"] == "repair"
+        assert result.raw["schema"] == "cloudflare-clef-choice-v1"
+        assert "raw" not in summary and "native_answers" not in message.content
+        assert callbacks and "clef-tool" in callbacks[0]
+        assert len(calls) == len(ledger.rows) == ctx.attempts_used == 1
+        assert str(calls[0].url) == config.role_profile("verifier").endpoint
+    finally:
+        await hub.aclose()
+
+
+@pytest.mark.parametrize("extra", ["evidence", "context", "round_id", "profile", "budget"])
+async def test_verification_tool_rejects_scope_overrides_before_spending(pack, context, extra):
+    calls = []
+
+    async def verify(*args, **kwargs):
+        calls.append(1)
+        raise AssertionError("Invalid tool input must fail before verification")
+
+    tool = verification_tool(SimpleNamespace(verify=verify), pack, context)
+    answer = Draft.model_validate({"blocks": [{"block_id": "b1", "text": "seven dollars",
+                                             "citation_ids": ["e1"]}]})
+    with pytest.raises(ValidationError):
+        await tool.ainvoke({"question": "Price?", "draft": answer.model_dump(mode="json"), extra: {}})
+    for bad_question in ("", "   ", 123):
+        with pytest.raises(ValidationError):
+            await tool.ainvoke({"question": bad_question, "draft": answer.model_dump(mode="json")})
+    with pytest.raises(ValidationError):
+        await tool.ainvoke({"question": "Price?", "draft": {"blocks": []}})
+    assert calls == [] and context.attempts_used == 0
+
+
+async def test_verification_tool_propagates_budget_failure_without_retry(pack, context):
+    calls = []
+
+    async def verify(*args, **kwargs):
+        calls.append(1)
+        raise ProviderError("budget_exhausted", "Budget exhausted")
+
+    tool = verification_tool(SimpleNamespace(verify=verify), pack, context)
+    answer = Draft.model_validate({"blocks": [{"block_id": "b1", "text": "seven dollars",
+                                             "citation_ids": ["e1"]}]})
+    with pytest.raises(ProviderError, match="Budget exhausted"):
+        await tool.ainvoke({"question": "Price?", "draft": answer.model_dump(mode="json")})
+    assert calls == [1]

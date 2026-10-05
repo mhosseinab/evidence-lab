@@ -17,7 +17,5 @@
       "digest": "sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6",
       "source": "https://hub.docker.com/v2/repositories/library/node/tags/24.21.0-bookworm-slim"
     }
-  ],
-  "native_container_execution_verified": true,
-  "note": "Native PostgreSQL/pgvector tests, isolated Vue dashboard Compose stack startup, hashed asset serving and multipart HTTP uploads passed. Browser multipart transport limitation is documented in verification-report.md. Existing deployment preserved."
+  ]
 }

@@ -7,10 +7,10 @@ from datetime import datetime, timezone
 
 from langsmith import tracing_context
 
-from evidence_lab.domain import CallContext, Draft, ProviderError
+from evidence_lab.domain import CallContext, Draft, ProviderError, VerificationResult
 from evidence_lab.graph import compile_query_graph
-from evidence_lab.integrations.models import LedgerChatModel, verifier_runnable
-from evidence_lab.integrations.tools import retrieval_tool
+from evidence_lab.integrations.models import LedgerChatModel
+from evidence_lab.integrations.tools import retrieval_tool, verification_tool
 from evidence_lab.langsmith_trace import export_trace
 from evidence_lab.memory import question_with_context
 from evidence_lab.policy import evaluate_checks, policy_state, structural_check
@@ -107,9 +107,15 @@ class QueryEngine:
             update(status=stage)
             round_id = "initial" if state["round_number"] == 0 else "repair"
             stamp = time.monotonic()
-            verifier = verifier_runnable(self.hub, state["evidence"], ctx, round_id)
+            verifier = verification_tool(self.hub, state["evidence"], ctx, round_id)
             async with asyncio.timeout(ctx.remaining()):
-                verification = await verifier.ainvoke({"question": question, "draft": state["draft"]})
+                message = await verifier.ainvoke({
+                    "type": "tool_call", "id": f"verify-{round_id}", "name": verifier.name,
+                    "args": {"question": question, "draft": state["draft"].model_dump(mode="json")},
+                })
+                verification = message.artifact
+                if not isinstance(verification, VerificationResult):
+                    raise ProviderError("invalid_response", "Verification tool did not return its typed result")
             timings[f"verification_{round_id}_seconds"] = time.monotonic() - stamp
             verdict = evaluate_checks(state["draft"], state["evidence"], verification,
                                       self.config.verification.score_threshold, expected_round_id=round_id)

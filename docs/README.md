@@ -1,0 +1,17 @@
+# Evidence Lab documentation
+
+Start with the [project README](../README.md) for setup, Task commands, architecture
+charts, configuration variables and Cloudflare Clef activation.
+
+| Guide | Purpose |
+|---|---|
+| [Contracts](contracts.md) | Provider, storage, HTTP and LangChain integration boundaries |
+| [Evaluation](evaluation.md) | Paired studies, human review and policy qualification |
+| [Experiments](experiments.md) | Repeatability and API load measurement commands |
+| [Approved plan](implementation-plan.md) | Original design and evaluation requirements; current behavior is documented in the guides above |
+| [Container pins](container-images.json) | Recorded image digests and their sources |
+| [Provider integrations](../apps/evidence-lab/src/evidence_lab/providers/README.md) | Guarded OpenAI SDK transport and the Clef verification tool |
+| [Configurations](../configs/README.md) | Sample selection, credentials and Clef activation |
+
+Generated logs, screenshots and historical fixture runs are not documentation.
+Keep operator study outputs outside this directory; Git retains source history.

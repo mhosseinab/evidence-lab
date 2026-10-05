@@ -61,9 +61,7 @@ describe("validated API boundary", () => {
     parsePayload({ version: "0.1.0", mode: "mock", profiles: { generator: { model: "fixture" } } });
     parsePayload({ result: { status: "needs_review", pages: 2, errors: ["OCR is not enabled"] } });
     parsePayload({ version: { pages: [{ page: 1, text: "Source", errors: ["Review image"] }] } });
-    const report: unknown = JSON.parse(
-      readFileSync("../../docs/build-evidence/cli-demo/report.json", "utf8"),
-    );
+    const report: unknown = JSON.parse(readFileSync("tests/fixtures/evaluation-report.json", "utf8"));
     parsePayload({ id: "evaluation", status: "succeeded", result: report });
   });
 

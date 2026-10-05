@@ -1,4 +1,0 @@
-task: Task "dashboard:build" is up to date
-task: [dev] exec .venv/bin/python tooling/scripts/dev.py --config '/tmp/evidence-lab-dev-prereq.yaml' --dashboard-port 5178
-The development database needs PostgreSQL/pgvector migrations. Run task app:migrate CONFIG=/tmp/evidence-lab-dev-prereq.yaml before task dev.
-task: Failed to run task "dev": exit status 1

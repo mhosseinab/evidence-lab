@@ -20,6 +20,51 @@ ROOT = Path(__file__).resolve().parents[3]
 SECRET = "secret-provider-test-value"
 
 
+def test_prompt_templates_keep_untrusted_braces_literal():
+    from evidence_lab.providers.prompts import (
+        VERIFICATION_INSTRUCTIONS, generation_messages, verification_messages,
+    )
+    question = "{instructions} {data} {{do not substitute}}"
+    pack = evidence()
+    pack.items[0].text = question
+    repair = {"failed_checks": ["b1"], "original_draft": draft().model_dump(mode="json")}
+    generated = generation_messages(question, pack, repair, max_blocks=8, max_answer_bytes=8000)
+    verified = verification_messages(question, draft(), pack)
+    for messages in (generated, verified):
+        assert [message["role"] for message in messages] == ["system", "user"]
+        data = json.loads(messages[1]["content"])
+        assert data["question"] == question
+        assert data["evidence"] == pack.model_dump(mode="json")
+    assert json.loads(generated[1]["content"])["repair"] == repair
+    assert verified[0]["content"] == VERIFICATION_INSTRUCTIONS
+
+
+async def test_builtin_schema_conversion_preserves_strict_nested_domain_contracts():
+    hub = ProviderHub(configuration())
+    generation = hub._generation_payload(hub.config.role_profile("generator"), "Price?", evidence(), None)
+    verification = hub._verification_payload(hub.config.role_profile("verifier"), "Price?", draft(), evidence())
+
+    def check_schema(value):
+        if isinstance(value, dict):
+            assert "$ref" not in value and "$defs" not in value
+            if value.get("type") == "object":
+                assert value["additionalProperties"] is False
+                assert set(value["required"]) == set(value["properties"])
+            for child in value.values():
+                check_schema(child)
+        elif isinstance(value, list):
+            for child in value:
+                check_schema(child)
+
+    for payload in (generation, verification):
+        schema = payload["response_format"]["json_schema"]
+        assert schema["strict"] is True
+        check_schema(schema["schema"])
+    check = verification["response_format"]["json_schema"]["schema"]["properties"]["checks"]["items"]
+    assert set(check["properties"]) == {"id", "kind", "support_status", "check_status", "reason"}
+    await hub.aclose()
+
+
 class Ledger:
     def __init__(self):
         self.rows = []
