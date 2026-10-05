@@ -1,0 +1,50 @@
+task: Task "dashboard:build" is up to date
+task: [app:test:offline] .venv/bin/pytest apps/rag-poc/tests -m 'not integration and not native_postgres' 
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/geek/workspace/rag-poc
+configfile: pyproject.toml
+plugins: asyncio-1.4.0, anyio-4.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 363 items / 33 deselected / 330 selected
+
+apps/rag-poc/tests/test_api.py .......................                   [  6%]
+apps/rag-poc/tests/test_config.py ...................................... [ 18%]
+.................                                                        [ 23%]
+apps/rag-poc/tests/test_engine.py ............................           [ 32%]
+apps/rag-poc/tests/test_evaluation.py ................................   [ 41%]
+apps/rag-poc/tests/test_experiments.py ...........................       [ 50%]
+apps/rag-poc/tests/test_ingestion.py .........................           [ 57%]
+apps/rag-poc/tests/test_providers.py ................................... [ 68%]
+..................................................                       [ 83%]
+apps/rag-poc/tests/test_retrieval.py ...................                 [ 89%]
+apps/rag-poc/tests/test_storage.py .........                             [ 91%]
+apps/rag-poc/tests/test_upload_body_limit.py ..                          [ 92%]
+apps/rag-poc/tests/test_verification.py ...............                  [ 96%]
+apps/rag-poc/tests/test_worker.py ..........                             [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /home/geek/workspace/rag-poc/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================ 330 passed, 33 deselected, 1 warning in 5.30s =================
+task: [dashboard:test] pnpm --filter @rag-poc/dashboard run test
+$ pnpm run build && node --test tests/*.test.mjs
+$ node scripts/build.mjs
+✔ API attaches transient operator token and rejects malformed response (22.27479ms)
+✔ API handles unreadable responses and access failures (1.914768ms)
+✔ answer guard keeps drafts and pending, failed, shadow answers private (3.049288ms)
+✔ released answer renders untrusted text literally (1.501387ms)
+✔ payload validation rejects malformed answer blocks and nested evidence (0.887254ms)
+✔ payload validation accepts current API version and ingestion summaries (0.924483ms)
+✔ payload validation accepts the recorded fixture evaluation report (2.00255ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74.094082

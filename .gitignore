@@ -15,3 +15,5 @@ configs/secrets/
 artifacts/
 *.log
 node_modules/
+.task/
+.playwright-mcp/

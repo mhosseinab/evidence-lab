@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools==84.0.0", "wheel==0.48.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evidence-lab"
+version = "0.1.0"
+description = "Provider-agnostic document retrieval and evidence-gated answers"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.142.2", "uvicorn==0.54.0", "pydantic==2.13.5",
+  "httpx==0.28.1", "PyYAML==6.0.3", "psycopg[binary]==3.3.6",
+  "alembic==1.20.0", "SQLAlchemy==2.1.3", "pypdf==6.19.0", "python-multipart==0.0.32",
+  "numpy==2.5.3",
+]
+
+[project.scripts]
+evidence-lab = "evidence_lab.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+evidence_lab = ["migrations/*.py", "migrations/versions/*.py"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["**/__pycache__/*", "**/*.pyc", "**/*.pyo"]

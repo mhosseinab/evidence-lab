@@ -2,19 +2,19 @@
 
 These commands produce separate, predeclared measurements for verifier repeatability and real API/worker latency. They do not qualify a policy. The paired A/B/C/D evaluation and human review remain in [evaluation.md](evaluation.md).
 
-Run commands from the project root. The examples use the module CLI so the placement of global options is explicit:
+Run commands from the repository root after `task setup`. The examples use the application task and its forwarded experiment CLI:
 
 ```bash
-.venv/bin/python -m rag_poc.experiments --help
+task app:cli -- experiments -- --help
 ```
 
-`--config PATH` and optional `--verifier-profile NAME` come **before** the experiment subcommand. The application CLI also forwards these commands:
+`CONFIG=PATH` selects the application configuration; optional `--verifier-profile NAME` comes **before** the experiment subcommand, after the forwarding separator. For example:
 
 ```bash
-.venv/bin/rag-poc --config configs/mock.yaml experiments -- --help
+task app:cli CONFIG=configs/private.yaml -- experiments -- --help
 ```
 
-The `--` separates forwarded experiment options from the outer application parser. For example, put `--verifier-profile NAME` after that separator and before `prepare-repeatability` or `run-repeatability`.
+Task’s first `--` forwards arguments to the application; the second `--`, after `experiments`, forwards options to the experiment parser. For example, put `--verifier-profile NAME` after that separator and before `prepare-repeatability` or `run-repeatability`.
 
 | Command | Work performed |
 | --- | --- |
@@ -67,21 +67,19 @@ repeat_question_args=(
   --question-id HELDOUT_019 --question-id HELDOUT_020
 )
 
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   prepare-repeatability \
   data/operator-dataset.json artifacts/reviewed-evaluation/report.json \
   "${repeat_question_args[@]}" \
   --output artifacts/repeatability/selected-verifier.plan.json
 ```
 
-To select another already configured candidate, insert `--verifier-profile CANDIDATE_PROFILE_NAME` immediately after the global `--config` option. Use that same selection when executing its plan, and choose separate output filenames. Do not change generation or evidence to make the candidate's inputs easier to fit.
+To select another already configured candidate, insert `--verifier-profile CANDIDATE_PROFILE_NAME` after `experiments --` and before the experiment subcommand. Use that same selection when executing its plan, and choose separate output filenames. Do not change generation or evidence to make the candidate's inputs easier to fit.
 
 ### Inspect the estimate, then execute explicitly
 
 ```bash
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   run-repeatability data/operator-dataset.json \
   artifacts/repeatability/selected-verifier.plan.json
 ```
@@ -91,8 +89,7 @@ This validates the plan and prints the sixty logical verifier requests, allowed 
 The next command makes the configured verifier calls:
 
 ```bash
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   run-repeatability data/operator-dataset.json \
   artifacts/repeatability/selected-verifier.plan.json \
   --execute --output artifacts/repeatability/selected-verifier.report.json
@@ -109,11 +106,11 @@ Load execution submits ordinary HTTP queries to the running application and poll
 Start the API and worker against the same private configuration in separate terminals:
 
 ```bash
-.venv/bin/rag-poc --config configs/private.yaml serve
+task app:serve CONFIG=configs/private.yaml
 ```
 
 ```bash
-.venv/bin/rag-poc --config configs/private.yaml worker
+task app:worker CONFIG=configs/private.yaml
 ```
 
 Use `verification.mode: shadow` during prequalification. A terminal `shadow` result means the candidate pipeline completed without releasing the answer. It counts as pipeline completion for latency measurement, while the artifact remains unqualified. The operator token, if configured, is read from the configuration and sent as the authorization header; it is not an extra command-line secret.
@@ -134,8 +131,7 @@ load_question_args=(
   --question-id HELDOUT_003 --question-id HELDOUT_004
 )
 
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   prepare-load data/operator-dataset.json \
   --evaluation-id EVALUATION_ID_FROM_REVIEWED_REPORT \
   "${load_question_args[@]}" \
@@ -143,8 +139,7 @@ load_question_args=(
   --cache-procedure 'REPLACE with the actual cold-cache preparation and uncontrolled layers' \
   --output artifacts/load/cold.plan.json
 
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   run-load data/operator-dataset.json artifacts/load/cold.plan.json \
   --base-url http://127.0.0.1:8000
 ```
@@ -154,8 +149,7 @@ Four questions are the minimum scheduling example, not a precise p95 sample. Pre
 After inspecting the estimate, execute the campaign:
 
 ```bash
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   run-load data/operator-dataset.json artifacts/load/cold.plan.json \
   --base-url http://127.0.0.1:8000 \
   --execute --output artifacts/load/cold.report.json
@@ -164,8 +158,7 @@ After inspecting the estimate, execute the campaign:
 Prepare the warm plan after performing the predeclared warmup, while retaining the same dataset, configuration, selected profile and implementation:
 
 ```bash
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   prepare-load data/operator-dataset.json \
   --evaluation-id EVALUATION_ID_FROM_REVIEWED_REPORT \
   "${load_question_args[@]}" \
@@ -173,13 +166,11 @@ Prepare the warm plan after performing the predeclared warmup, while retaining t
   --cache-procedure 'REPLACE with the actual warmup, its completion time and uncontrolled layers' \
   --output artifacts/load/warm.plan.json
 
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   run-load data/operator-dataset.json artifacts/load/warm.plan.json \
   --base-url http://127.0.0.1:8000
 
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   run-load data/operator-dataset.json artifacts/load/warm.plan.json \
   --base-url http://127.0.0.1:8000 \
   --execute --output artifacts/load/warm.report.json
@@ -200,8 +191,7 @@ The report identifies whether content repair was attempted from actual run timin
 Merge the saved cold and warm artifacts without new inference:
 
 ```bash
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/private.yaml \
+task app:cli CONFIG=configs/private.yaml -- experiments -- \
   merge-load artifacts/load/cold.report.json artifacts/load/warm.report.json \
   --output artifacts/load/combined-load.json
 ```
@@ -224,24 +214,21 @@ Each stratum includes its count, failures and timing distribution. Percentiles u
 For a mock repeatability walkthrough, first create the demo evaluation report as described in [evaluation.md](evaluation.md). Then use real bundled IDs and explicitly label the plan as fixture-only:
 
 ```bash
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/mock.yaml \
+task app:cli -- experiments -- \
   prepare-repeatability data/demo/dataset.json artifacts/demo-evaluation/report.json \
   --question-id q-return-window --question-id q-repair \
   --fixture-only --output artifacts/demo-repeatability.plan.json
 
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/mock.yaml \
+task app:cli -- experiments -- \
   run-repeatability data/demo/dataset.json artifacts/demo-repeatability.plan.json
 
-.venv/bin/python -m rag_poc.experiments \
-  --config configs/mock.yaml \
+task app:cli -- experiments -- \
   run-repeatability data/demo/dataset.json artifacts/demo-repeatability.plan.json \
   --execute --output artifacts/demo-repeatability.report.json
 ```
 
-Explicit fixture-only repeatability plans allow fewer than twenty questions so plumbing can be demonstrated. The bundled synthetic dataset runs only in mock mode, uses deterministic fixtures, and every result remains `fixture_only` and `quality_qualified:false`. Mock load still requires a running API/worker and at least four distinct questions; pass `--fixture-only` when preparing its load plan. Inline evidence in the demo evaluation does not automatically populate the application corpus: run `.venv/bin/rag-poc --config configs/mock.yaml seed --wait` before an API-load walkthrough.
+Explicit fixture-only repeatability plans allow fewer than twenty questions so plumbing can be demonstrated. The bundled synthetic dataset runs only in mock mode, uses deterministic fixtures, and every result remains `fixture_only` and `quality_qualified:false`. Mock load still requires a running API/worker and at least four distinct questions; pass `--fixture-only` when preparing its load plan. Inline evidence in the demo evaluation does not automatically populate the application corpus: run `task app:cli -- --config configs/mock.yaml seed --wait` before an API-load walkthrough.
 
-Import real experiment artifacts only through the separate `qualify` command, together with the reviewed paired evaluation and fault-suite artifact. See [evaluation.md](evaluation.md#qualification-is-an-evidence-check) for the full command and required gates. These experiment commands never set a policy to qualified, never retune on held-out results, and never convert mock outcomes into hosted-model evidence.
+Import real experiment artifacts only through the separate `qualify` command, together with the reviewed paired evaluation and an externally collected fault-study artifact matching the current implementation. No dedicated fault-artifact runner is included; historical artifacts from prior code do not qualify the current implementation. See [evaluation.md](evaluation.md#qualification-is-an-evidence-check) for the full command and required gates. These experiment commands never set a policy to qualified, never retune on held-out results, and never convert mock outcomes into hosted-model evidence.
 
 Execution returns exit code `0` for a complete artifact, `1` for an executed incomplete artifact, and `2` for a configuration/input/output contract error. Preparation and dry-run success return `0`. Preserve incomplete artifacts and inspect their explicit failures; a successful process exit alone does not establish model quality or policy eligibility.

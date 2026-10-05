@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evidence Lab Security Review"
+  short_description: "Evidence-based security review for Evidence Lab"
+  default_prompt: "Use $evidence-lab-security-review to review the requested Evidence Lab scope and report actionable findings."

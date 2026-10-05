@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evidence Lab Verification"
+  short_description: "Evidence Lab tests and engineering evidence"
+  default_prompt: "Use $evidence-lab-verification to handle this Evidence Lab task within its requested scope."

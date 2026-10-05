@@ -1,4 +1,4 @@
-# Grounded RAG PoC
+# Evidence Lab
 
 An end-to-end, document-grounded question-answering application with a bounded verification gate. It accepts documents, stores immutable sources, retrieves evidence, creates a cited draft, verifies that exact draft and either releases it, repairs it once, or abstains. The application and PostgreSQL run on your infrastructure. Real inference uses your configured external endpoints.
 
@@ -8,16 +8,16 @@ The approved design is in [docs/implementation-plan.md](docs/implementation-plan
 
 ## Start the complete demo
 
-Requirements: Docker with Compose. Run these commands from this directory:
+Requirements: Task and Docker with Compose. Run these commands from the repository root:
 
 ```bash
-docker compose up --build -d
-docker compose exec api rag-poc seed --config /app/configs/runtime.yaml --wait
+task compose:up
+task compose:seed
 ```
 
 Open **http://127.0.0.1:8000**. The Documents view shows each uploaded source and processing state. The Ask view displays the released answer, immutable citations and retrieved evidence. The Evaluations view runs the bundled synthetic A/B/C/D comparison and exports its raw result.
 
-The Compose stack contains PostgreSQL/pgvector, a migration job, an API and a worker. The PostgreSQL and HTTP ports bind to localhost. The demo database credentials are `rag:rag`; they are local sample values. Images are pinned by digest in `Dockerfile` and `compose.yaml`, with their registry metadata in `docs/container-images.json`.
+The Compose stack contains PostgreSQL/pgvector, a migration job, an API and a worker. The PostgreSQL and HTTP ports bind to localhost. The demo database credentials are `rag:rag`; they are local sample values. Images are pinned by digest in `apps/evidence-lab/Dockerfile` and `compose.yaml`, with their registry metadata in `docs/container-images.json`.
 
 For a small, explicit walkthrough, upload a text file containing:
 
@@ -28,26 +28,24 @@ Refund requests require the order identifier.
 
 Ask `What is the Atlas refund period in days?`. Open the citation to inspect the exact source version. In mock mode, adding `[fixture:unsupported]` to the question deliberately inserts an unsupported initial claim; the worker rejects it, repairs once and verifies the entire replacement. Inspect the separately labeled operator trace to see both rounds. `[fixture:conflict]` exercises persistent rejection and abstention. These markers are fixture controls, not features of live models.
 
-Stop processes with `docker compose stop`. This preserves the database volume. The source, vectors, job records, traces and evaluation reports are stored in PostgreSQL.
+Stop processes with `task compose:stop`. This preserves the database volume. The source, vectors, job records, traces and evaluation reports are stored in PostgreSQL.
 
-## Local Python development
+## Local development
 
-Use Python 3.12 or newer and a PostgreSQL server with pgvector installed. The local configuration defaults to `postgresql://rag:rag@localhost:5432/rag`. You can run just the database from Compose:
+Install Python 3.12 or newer, [uv](https://docs.astral.sh/uv/), [Task](https://taskfile.dev/), Node.js 24 or newer and [pnpm](https://pnpm.io/), and use a PostgreSQL server with pgvector installed. The local configuration defaults to `postgresql://rag:rag@localhost:5432/rag`. You can run just the database from Compose:
 
 ```bash
-docker compose up -d db
-python -m venv .venv
-.venv/bin/python -m pip install -r requirements.lock
-.venv/bin/python -m pip install --no-deps -e .
-.venv/bin/rag-poc migrate --config configs/mock.yaml
-.venv/bin/rag-poc seed --config configs/mock.yaml --wait
+task setup
+task compose:db
+task app:migrate
+task app:seed
 ```
 
 Start the API and worker in separate terminals:
 
 ```bash
-.venv/bin/rag-poc serve --config configs/mock.yaml
-.venv/bin/rag-poc worker --config configs/mock.yaml
+task dashboard:serve
+task app:worker
 ```
 
 The worker processes up to four jobs concurrently by default. A persistent reservation ledger enforces the configured outbound concurrency across worker processes. PostgreSQL leases fence every worker publication, and a restart cannot reset remote attempt or cost accounting. The `--once` worker option processes at most one job for debugging.
@@ -58,7 +56,7 @@ Copy `configs/live.example.yaml` to `configs/private.yaml`. Supply complete valu
 
 ```bash
 cp configs/live.example.yaml configs/private.yaml
-.venv/bin/rag-poc config-check --config configs/private.yaml
+task app:cli -- config-check --config configs/private.yaml
 ```
 
 **Endpoints and API keys come from this YAML file.** Direct `api_key` values are supported. A profile can instead explicitly select one `api_key_env` or `api_key_file` reference; these are optional. Only the private file contains actual keys. Configuration output, run provenance and errors redact credentials and the database DSN.
@@ -84,8 +82,8 @@ All live calls require known prices and **positive total and phase budgets**. Th
 Run a minimal contract smoke check only after configuring the desired endpoints and smoke budget:
 
 ```bash
-.venv/bin/rag-poc smoke --config configs/private.yaml
-.venv/bin/rag-poc smoke --config configs/private.yaml --execute
+task app:cli -- smoke --config configs/private.yaml
+task app:cli -- smoke --config configs/private.yaml --execute
 ```
 
 The first command is a dry run. The second sends one embedding request, one draft request and one batch verification request, subject to retries and budgets. A smoke pass establishes basic endpoint compatibility, not domain quality.
@@ -103,10 +101,19 @@ Mock and live embeddings have different space identities. Changing endpoint/mode
 To run a private configuration in Compose:
 
 ```bash
-RAG_CONFIG=./configs/private.yaml docker compose up --build -d
+RAG_CONFIG=./configs/private.yaml task compose:up
 ```
 
-For a separate live Compose project, stop the demo processes to free the local ports and use `docker compose -p grounded-rag-live ...`. Keep endpoint and credential changes in the mounted private YAML. Restart the API and worker after configuration changes. Optional `runtime.operator_token` protects all `/api/` operations; the UI has an operator-token entry dialog.
+For a separate live Compose project, stop the demo processes to free the local ports and use `docker compose -p evidence-lab-live ...`. Keep endpoint and credential changes in the mounted private YAML. Restart the API and worker after configuration changes. Optional `runtime.operator_token` protects all `/api/` operations; the UI has an operator-token entry dialog.
+
+Compose defaults to project `evidence-lab` and application image `evidence-lab:local`. An existing `grounded-rag-poc` deployment and its volume are preserved; renaming the source does not move stored data. Stop its processes before starting another stack on the same localhost ports. To deliberately retain that deployment's Compose project and named volume, run the new configuration with the original project name:
+
+```bash
+docker compose -p grounded-rag-poc stop
+docker compose -p grounded-rag-poc up --build -d
+```
+
+Keep database credentials, configuration DSNs, `rag_*` table names and the existing `RAG_CONFIG`/`RAG_TEST_*` environment names unchanged unless separately migrating those persisted contracts. There is no automatic data migration between Compose projects.
 
 The container runs as UID `10001`; the mounted YAML must be readable by that user. Direct `api_key` values work with the supplied mount. If you select `api_key_file`, add a read-only mount for that file at its configured container path. If you select `api_key_env`, explicitly forward the named variable to the API and worker in Compose.
 
@@ -128,8 +135,8 @@ The current ingestion scope is English UTF-8 text, Markdown and readable PDFs, w
 The bundled fixture dataset contains synthetic examples with deliberately controlled behavior. Its metrics stay **unqualified**, and natural answer-quality fields remain pending human review. Inline fixture evidence does not measure retrieval quality. The ordinary seeded documents separately exercise the retrieval pipeline.
 
 ```bash
-.venv/bin/rag-poc evaluate --config configs/mock.yaml
-.venv/bin/rag-poc evaluate --config configs/mock.yaml --execute --output artifacts/demo
+task app:cli -- evaluate --config configs/mock.yaml
+task app:cli -- evaluate --config configs/mock.yaml --execute --output artifacts/demo
 ```
 
 The first command estimates logical calls and cost bounds. Execution creates a durable evaluation job, preserves every case, and exports JSON, per-question and controlled-case CSVs, a Markdown report and a human annotation template. A/B/C/D share an initial draft and evidence pack:
@@ -152,23 +159,25 @@ The target experiment remains the approved 140 answerable, 40 missing-evidence a
 Run the offline contract suite without inference:
 
 ```bash
-.venv/bin/rag-poc offline-tests --config configs/mock.yaml
-.venv/bin/ruff check src tests scripts
+task test:offline
+task lint
 ```
 
-Create a machine-readable fault artifact with `rag-poc verify --config configs/mock.yaml --output artifacts/verification`. For a qualifying native run, explicitly provide a test administrator connection in `RAG_TEST_NATIVE_ADMIN_DSN` and add `--native --report PATH/TO/REVIEWED_REPORT.json`. The runner creates a uniquely named disposable database; it never selects the application database as a test target. It also needs native PostgreSQL client tools for the restore test. Missing prerequisites remain recorded as skipped checks, and `--native` exits nonzero when its required checks are incomplete.
+Engineering verification uses `task check` and `task test`. Database integration tests require an explicitly selected disposable PostgreSQL target in `RAG_TEST_DSN`; native concurrency and restore tests require `RAG_TEST_NATIVE_ADMIN_DSN` and matching PostgreSQL client tools. These tests create isolated test schemas or disposable databases under that authorization. Missing prerequisites remain skips, so retain pytest results and, when needed, produce a JUnit report with `.venv/bin/pytest apps/evidence-lab/tests --junitxml=artifacts/pytest.xml`. A passing offline suite does not establish native recovery or model quality.
 
-After the actual held-out review, fault suite and independent experiments are complete, assess them together:
+Git versioning records source history; no generated source manifest or dedicated fault-artifact runner is included. Qualification still requires an externally collected, complete fault-study artifact matching the reviewed evaluation and current implementation. pytest/JUnit results support engineering checks but are not directly a qualification artifact. Historical studies from prior code are retained as historical evidence and cannot qualify the current implementation.
+
+After the actual held-out review, externally collected fault study and independent experiments are complete, assess them together:
 
 ```bash
-.venv/bin/rag-poc qualify --config configs/private.yaml artifacts/reviewed-evaluation/report.json \
-  --fault-artifact artifacts/fault-suite.json \
+task app:cli -- qualify --config configs/private.yaml artifacts/reviewed-evaluation/report.json \
+  --fault-artifact artifacts/externally-collected-fault-study.json \
   --load-artifact artifacts/live-load.json \
   --repeatability-artifact artifacts/repeatability.json \
   --policy-id heldout-policy-v1 --output policies/heldout-policy-v1.json
 ```
 
-Use the actual artifact paths returned by each command. A failed qualification writes the unmet requirements and exits nonzero. Only a passing artifact can enable live `verification.mode: gated` with matching `policy_id` and `policy_path`. Changing code, verification profiles, prompts, packing rules or measured runtime limits invalidates the match. Rotating a key does not. `rag-poc experiments -- --help` shows the repeatability/load commands; each execution command defaults to a dry run and requires `--execute` to submit work.
+Use the actual reviewed evaluation, externally collected fault-study and experiment artifact paths. A failed qualification writes the unmet requirements and exits nonzero. Only a passing artifact can enable live `verification.mode: gated` with matching `policy_id` and `policy_path`. Changing code, verification profiles, prompts, packing rules or measured runtime limits invalidates the match. Rotating a key does not. `task app:cli -- experiments -- --help` shows the repeatability/load commands; each execution command defaults to a dry run and requires `--execute` to submit work.
 
 The tests cover malformed and reordered embeddings, duplicate/foreign verdicts, native Clef protocol opt-in, timeouts/retries/cancellation, exact evidence/answer/round binding, one repair, private traces, source snapshots, version activation, quotas and durable ledgers. Integration tests require an explicitly selected disposable PostgreSQL test environment. Native multi-session concurrency and pg_dump/restore are separate required checks; they are not inferred from mock tests.
 
@@ -177,25 +186,60 @@ Health endpoints `/health/live` and `/health/ready` perform no inference. `/api/
 Native backup and empty-target restore helpers are included:
 
 ```bash
-.venv/bin/python scripts/backup.py --config configs/private.yaml --output artifacts/backup.dump
-.venv/bin/python scripts/restore.py --config configs/private-restore.yaml --input artifacts/backup.dump
+task backup CONFIG=configs/private.yaml -- --output artifacts/backup.dump
+task restore CONFIG=configs/private-restore.yaml -- --input artifacts/backup.dump
 ```
 
 Install matching PostgreSQL `pg_dump`/`pg_restore` clients on the operator host. The restore configuration must point to a new empty database with pgvector available. The helper refuses existing user objects and never runs `--clean`; it does not invoke models or re-embed sources. Back up private configuration separately from the database. A source deletion purges affected retained evidence/traces and cancels dependent jobs, so export required audit material before deliberately deleting a source.
 
-`rag-poc --help` lists migration, upload, query, retrieval, worker, smoke, evaluation, trace and retention commands. Every command accepts `--config PATH` before or after its subcommand.
+`task app:cli -- --help` lists the eighteen operator commands for migration, upload, query, retrieval, worker, smoke, evaluation, trace and retention. Task commands default to `configs/mock.yaml`; select another file with `CONFIG=configs/private.yaml`. Forward detailed CLI options after Task’s `--`, as in `task app:cli CONFIG=configs/private.yaml -- smoke --execute`. The application also accepts `--config PATH` before or after its subcommand.
+
+## Workspace tasks and structure
+
+The workspace contains two runnable applications: `apps/evidence-lab/` holds the Python API and worker, while `apps/dashboard/` holds the TypeScript dashboard. Root `pyproject.toml` defines a virtual uv workspace with the Python app; one `uv.lock` and root `.venv` serve Python development. Root `pnpm-workspace.yaml` and `pnpm-lock.yaml` cover the `@evidence-lab/dashboard` package and shared Biome tooling. The dashboard package pins its TypeScript compiler. Task coordinates both stacks through the root and application Taskfiles; `tooling/` holds shared operational helpers.
+
+The dashboard uses Vue 3 single-file components with TypeScript and Vite. Edit views in `apps/dashboard/src/views/`, reusable components in `src/components/`, workspace actions in `src/composables/`, validated HTTP access in `src/api/`, and styles in `src/assets/`. The root Vue component is `src/App.vue`; `public/` contains the favicon. `task dashboard:build` checks Vue templates and compiles hashed assets into the ignored `apps/dashboard/dist/` directory. FastAPI directly serves that build at `/` and `/static`; edit the TypeScript/public sources instead of generated output. `task dashboard:serve` starts the API with the built dashboard, as does `task app:serve`. API startup, CLI and application test tasks ensure the dashboard is built.
+
+Docker builds the dashboard in a separate stage and copies its output to `/app/apps/dashboard/dist/`. The Python wheel contains the backend and migrations; browser assets remain a separate build output. `task build` builds both frontend assets and backend distributions. Serving an installed wheel requires the built `apps/dashboard/dist/` directory and the repository root as the working directory, which the Task wrappers use.
+
+The dashboard retains the existing HTTP contracts and handwritten TypeScript types. There are no shared library consumers or cross-language generated schemas requiring `packages/`, `proto/` or `gen/` directories yet. Task is the single runner; a separate Turborepo runner would add coordination without serving this two-app structure.
+
+Run all tasks from the repository root so configuration, fixture and artifact paths remain rooted here:
+
+```bash
+task setup         # install locked uv/pnpm dependencies and build the dashboard
+task lock          # deliberately update workspace dependency locks
+task lint          # Ruff, dashboard type checking and Biome lint
+task format        # format Python with Ruff and frontend sources with Biome
+task test          # Python and frontend tests; integration prerequisites apply
+task check         # lint, then the complete test suite
+task typecheck     # check dashboard TypeScript types
+task build         # build dashboard assets, then the Python distribution
+task clean         # remove generated development/build caches
+```
+
+`task --list` lists the available wrappers. Run `task dashboard:typecheck`, `task dashboard:lint`, `task dashboard:test` or `task dashboard:build` for frontend-only work; `task dashboard:serve` runs the dashboard with the API. `task test:offline` selects tests that do not require integration or native PostgreSQL. Full test execution must retain prerequisite skips honestly; a skipped native suite does not establish native concurrency or recovery behavior. Compose remains rooted at `compose.yaml`; `task compose:down` removes containers while preserving the named database volume. `RAG_CONFIG=./configs/private.yaml task compose:up` selects a private mounted YAML, and direct Compose commands remain supported for project-specific options.
 
 ## Repository map
 
 | Path | Contents |
 |---|---|
-| `src/rag_poc/config.py` | Strict YAML schema, active-profile validation and redaction |
-| `src/rag_poc/providers/` | OpenAI-compatible/native adapters, transport and fixture mode |
-| `src/rag_poc/storage.py`, `migrations/` | PostgreSQL, vectors, immutable versions, leases and cost reservations |
-| `src/rag_poc/ingestion.py`, `retrieval.py` | Extraction, stable chunks, embedding cache, exact hybrid retrieval |
-| `src/rag_poc/engine.py`, `policy.py` | Frozen evidence, release decisions, repair and semantic identity |
-| `src/rag_poc/api.py`, `worker.py`, `static/` | HTTP API, durable execution and operator UI |
-| `src/rag_poc/evaluation.py`, `experiments.py`, `verification.py` | Paired evaluation, independent studies and qualification evidence |
-| `data/`, `tests/`, `scripts/` | Fixtures, review inputs, focused verification and recovery helpers |
+| `apps/evidence-lab/src/evidence_lab/config.py` | Strict YAML schema, active-profile validation and redaction |
+| `apps/evidence-lab/src/evidence_lab/providers/` | OpenAI-compatible/native adapters, transport and fixture mode |
+| `apps/evidence-lab/src/evidence_lab/storage.py`, `apps/evidence-lab/src/evidence_lab/migrations/` | PostgreSQL, vectors, immutable versions, leases and cost reservations |
+| `apps/evidence-lab/src/evidence_lab/ingestion.py`, `retrieval.py` | Extraction, stable chunks, embedding cache, exact hybrid retrieval |
+| `apps/evidence-lab/src/evidence_lab/engine.py`, `policy.py` | Frozen evidence, release decisions, repair and semantic identity |
+| `apps/evidence-lab/src/evidence_lab/api.py`, `worker.py` | HTTP API and durable execution |
+| `apps/dashboard/src/`, `apps/dashboard/public/` | TypeScript dashboard and editable HTML/CSS/favicon |
+| `apps/dashboard/dist/` | Generated dashboard build served directly by FastAPI |
+| `apps/evidence-lab/src/evidence_lab/evaluation.py`, `experiments.py` | Paired evaluation, independent studies and qualification evidence |
+| `apps/evidence-lab/tests/` | Contract, integration and native PostgreSQL verification |
+| `tooling/` | Alembic configuration and backup/restore scripts |
+| `data/`, `configs/`, `docs/` | Shared fixtures, operator configuration and documentation |
+| `pyproject.toml`, `uv.lock` | Python workspace, shared development tools and dependency lock |
+| `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `biome.json` | Frontend workspace, shared tooling and dependency lock |
+| `Taskfile.yml`, application Taskfiles | Task orchestration for both stacks |
 
 This is a bounded PoC, not a production rollout or a validated domain model. Stored documents may themselves be inaccurate or incomplete. Its empirical purpose is to determine whether a selected hosted verifier improves useful, supported answers under the measured policy, latency and cost constraints.
+
+For dashboard hot reload, run `task app:serve` and `task dashboard:dev` in separate terminals. Open the Vite URL printed by the latter; its `/api` and `/health` requests proxy to the API on localhost port 8000. Use `task dashboard:serve` for the built dashboard served by FastAPI. See [dashboard development](apps/dashboard/README.md) for the component structure and test commands.

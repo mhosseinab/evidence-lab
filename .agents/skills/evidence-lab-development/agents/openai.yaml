@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evidence Lab Development"
+  short_description: "Evidence Lab backend and workspace workflow"
+  default_prompt: "Use $evidence-lab-development to handle this Evidence Lab task within its requested scope."

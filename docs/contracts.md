@@ -1,12 +1,12 @@
 # Shared implementation interfaces
 
-Domain models in `rag_poc.domain` are authoritative. Use JSON-safe dictionaries at persistence boundaries. All IDs are strings. Times returned by Store must be JSON serializable ISO timestamps or epoch values.
+Domain models in `apps/evidence-lab/src/evidence_lab/domain.py` (imported as `evidence_lab.domain`) are authoritative. The application is the `apps/evidence-lab` member of the root uv workspace; run commands from the repository root after `task setup`. Use JSON-safe dictionaries at persistence boundaries. All IDs are strings. Times returned by Store must be JSON serializable ISO timestamps or epoch values.
 
 ## Configuration and providers
 
-`rag_poc.config.load_config(path) -> AppConfig`; Pydantic object with runtime, database, ingestion, retrieval, verification, budgets, profiles, roles, evaluation settings from plan. `config.safe_dict()` returns redacted config; `config.fingerprint()` returns sanitized hash. Database DSN is configurable, default `postgresql://rag:rag@localhost:5432/rag` (local sample only). Mock config must be complete and runnable; provider profiles still describe real contracts, runtime.mode=mock selects deterministic fixtures without HTTP/model downloads.
+`evidence_lab.config.load_config(path) -> AppConfig`; Pydantic object with runtime, database, ingestion, retrieval, verification, budgets, profiles, roles, evaluation settings from plan. `config.safe_dict()` returns redacted config; `config.fingerprint()` returns sanitized hash. Database DSN is configurable, default `postgresql://rag:rag@localhost:5432/rag` (local sample only). Mock config must be complete and runnable; provider profiles still describe real contracts, runtime.mode=mock selects deterministic fixtures without HTTP/model downloads.
 
-`rag_poc.providers.ProviderHub(config, store=None, client=None)` provides async methods:
+`evidence_lab.providers.ProviderHub(config, store=None, client=None)` provides async methods:
 
 * `embed(texts: list[str], ctx: CallContext) -> list[list[float]]`
 * `generate(question: str, evidence: EvidencePack, ctx: CallContext, repair: dict | None = None) -> Draft`
@@ -18,7 +18,7 @@ Use ProviderError with a safe status/message. Missing/foreign/duplicate check ID
 
 ## Store
 
-`rag_poc.storage.Store(dsn: str, limits: dict | None = None)` uses sync psycopg connections, short transactions. Public methods:
+`evidence_lab.storage.Store(dsn: str, limits: dict | None = None)` uses sync psycopg connections, short transactions. Public methods:
 
 * `migrate()` and `health() -> bool`
 * `ensure_corpus(corpus_id: str, space: dict) -> dict` where space has id, dimensions, model, fingerprint. Never silently switch an existing active space.
@@ -45,19 +45,21 @@ Budget ledger must not reset at worker restart. Expired active reservations rele
 
 ## Ingestion and retrieval
 
-`rag_poc.ingestion.extract_document(raw,name,media_type,config) -> dict` with pages, chunks, state and errors. `async ingest_job(job,store,hub,config) -> dict` handles staged resumable batches; passes job as lease; returns status/IDs. Strictly no OCR/model downloads. Preserve text and stable coordinates. Pipeline identity part of idempotency.
+`evidence_lab.ingestion.extract_document(raw,name,media_type,config) -> dict` with pages, chunks, state and errors. `async ingest_job(job,store,hub,config) -> dict` handles staged resumable batches; passes job as lease; returns status/IDs. Strictly no OCR/model downloads. Preserve text and stable coordinates. Pipeline identity part of idempotency.
 
-`rag_poc.retrieval.fuse_candidates(dense,lexical,k=60) -> list[EvidenceItem]`; deterministic ties and overlap deduplication.
+`evidence_lab.retrieval.fuse_candidates(dense,lexical,k=60) -> list[EvidenceItem]`; deterministic ties and overlap deduplication.
 `async retrieve_evidence(question,corpus_id,store,hub,config,ctx) -> EvidencePack`; pin space before query embedding, snapshot recheck, pack to shared context budget without silently truncating after generation. `space_manifest(config) -> dict` supplies id/dimensions/model/fingerprint for corpus creation. Coordinate exact config attributes with provider owner.
 
 ## Gate and orchestration owned by root
 
-`rag_poc.policy.structural_check(draft,evidence)`; `evaluate_checks(draft,evidence,result,threshold=None) -> dict` with accepted, failures; policy manifest binds semantic profile/settings. `rag_poc.engine.QueryEngine(store,hub,config).run(job)` executes question, stores trace, at most one repair, terminal result. Public API strips unverified drafts/raw traces.
+`evidence_lab.policy.structural_check(draft,evidence)`; `evaluate_checks(draft,evidence,result,threshold=None) -> dict` with accepted, failures; policy manifest binds semantic profile/settings. `evidence_lab.engine.QueryEngine(store,hub,config).run(job)` executes question, stores trace, at most one repair, terminal result. Public API strips unverified drafts/raw traces.
 
 ## Evaluation
 
-Module `rag_poc.evaluation` owns schemas, paired A/B/C/D runner, controlled verifier challenges, metrics with explicit denominators, intervals and honest qualification. Store evaluation runs as durable jobs (`kind=evaluation`) with result in job result; root worker calls `async run_evaluation(job,store,hub,config) -> dict`. Provide helper pure metric APIs and CLI-compatible `async evaluate_dataset(path,store,hub,config,...)` if useful; coordinate with root. Dataset CLI path supplied by operator only, API must choose an allowlisted bundled dataset, never arbitrary server paths. Bundle small explicitly synthetic fixture corpus/question set, human review templates and mutation generator. Do not fabricate 300 human-reviewed cases or pass a mock study as model qualification.
+Module `evidence_lab.evaluation` owns schemas, paired A/B/C/D runner, controlled verifier challenges, metrics with explicit denominators, intervals and honest qualification. Store evaluation runs as durable jobs (`kind=evaluation`) with result in job result; root worker calls `async run_evaluation(job,store,hub,config) -> dict`. Provide helper pure metric APIs and CLI-compatible `async evaluate_dataset(path,store,hub,config,...)` if useful; coordinate with root. Dataset CLI path supplied by operator only, API must choose an allowlisted bundled dataset, never arbitrary server paths. Bundle small explicitly synthetic fixture corpus/question set, human review templates and mutation generator. Do not fabricate 300 human-reviewed cases or pass a mock study as model qualification.
 
 ## HTTP/UI
 
 API routes from plan plus GET /api/status, GET /api/documents, GET /api/runs, GET /api/evaluations, POST /api/jobs/{id}/cancel, GET /api/runs/{id}/trace. Document upload uses multipart `file`, `corpus_id=default`, optional document_id. Query POST JSON `{question,corpus_id:"default"}`. Source preview `/api/source-versions/{id}`; download original at `/api/source-versions/{id}/download`. Evaluation POST JSON `{dataset:"demo"}`. Use JSON errors `{detail: safe string, code:...}`. Upload/query/eval mutations return202 with IDs; polling terminal statuses. GET /api/status exposes mode, policy state, corpus counts, redacted profile names/model IDs, budget summaries, no secrets. Auth optional operator token in config; default bind localhost. UI uses safe textContent, no unsanitized innerHTML for uploaded/model text.
+
+The Vue/TypeScript dashboard consumes these HTTP contracts through runtime-validated helpers in `apps/dashboard/src/api/` and types in `src/types/`. Components use Vue interpolation for untrusted text; answer views preserve the release gate and never render private drafts. Views live in `src/views/`, shared components in `src/components/`, state/actions in `src/composables/`, and CSS in `src/assets/`; `task dashboard:build` creates `apps/dashboard/dist/`, which FastAPI serves directly at `/` and `/static` from the repository root. `task dashboard:serve` starts this combined API/dashboard service. Run `task dashboard:typecheck` and `task dashboard:test` when changing dashboard request/response handling. Generated static files are build outputs, not contract sources.

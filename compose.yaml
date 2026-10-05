@@ -1,8 +1,10 @@
-name: grounded-rag-poc
+name: evidence-lab
 
 x-app: &app
-  image: grounded-rag-poc:local
-  build: .
+  image: evidence-lab:local
+  build:
+    context: .
+    dockerfile: apps/evidence-lab/Dockerfile
   init: true
   volumes:
     - ${RAG_CONFIG:-./configs/mock.compose.yaml}:/app/configs/runtime.yaml:ro
@@ -31,7 +33,7 @@ services:
 
   migrate:
     <<: *app
-    command: ["rag-poc", "migrate", "--config", "/app/configs/runtime.yaml"]
+    command: ["evidence-lab", "migrate", "--config", "/app/configs/runtime.yaml"]
     depends_on:
       db:
         condition: service_healthy
@@ -39,7 +41,7 @@ services:
 
   api:
     <<: *app
-    command: ["rag-poc", "serve", "--config", "/app/configs/runtime.yaml", "--host", "0.0.0.0"]
+    command: ["evidence-lab", "serve", "--config", "/app/configs/runtime.yaml", "--host", "0.0.0.0"]
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -54,7 +56,7 @@ services:
 
   worker:
     <<: *app
-    command: ["rag-poc", "worker", "--config", "/app/configs/runtime.yaml"]
+    command: ["evidence-lab", "worker", "--config", "/app/configs/runtime.yaml"]
     depends_on:
       migrate:
         condition: service_completed_successfully

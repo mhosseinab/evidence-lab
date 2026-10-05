@@ -1,0 +1,2188 @@
+{
+  "schema_version": 1,
+  "kind": "fault_suite",
+  "artifact_id": "12ae3969-1832-43d3-9915-1a044f245c99",
+  "generated_at": "2026-10-05T20:45:24.770893+00:00",
+  "evaluation_id": null,
+  "dataset_hash": null,
+  "semantic_fingerprint": "5b9d042f731f8c749423e19e52d6827a9fff7e3527121a80f9b43ab9b27df05d",
+  "implementation_fingerprint": "a8ecbf20552707919e193d4f3df9ab6f5bc190490db3747df1cb80312266e18e",
+  "source_revision": "639b062396e22706c229317a90f204332f58bc9a",
+  "source_manifest": {
+    "Taskfile.yml": "1812b558c6ff8d6ea2a70719dac321afeb1e9c2905e170aca30a1d59fb082817",
+    "apps/dashboard/Taskfile.yml": "aa9ee23d27d8b8b95cba56bd2fd828e4abc1faa67ad4aab81b5d57a6efaac3c3",
+    "apps/dashboard/package.json": "ebd50e456456181e5e7d809f61171a146724474af8118a602fa73c591d12a561",
+    "apps/dashboard/public/favicon.svg": "ee024ff7d0df9206b57f241a2943ec282d8338c4ce36a27a5579f7f577de3476",
+    "apps/dashboard/public/index.html": "b4b0053e4017e78b430878ead2d9693144b6c15ebeca4dd1016970bab3cd8f6b",
+    "apps/dashboard/public/styles.css": "f7af1e328fd3d44b5904107b383597674dccb6e8d6e4b93f74a888822313114d",
+    "apps/dashboard/scripts/build.mjs": "3fa7f31c2c04328e95ef8a80201645eccc1ed7f2706667c61d2c821bbcc1d4d9",
+    "apps/dashboard/src/app.ts": "a88876950ab58bed075c12cef0f37f8d5e264959c27473695197302558d6ddf2",
+    "apps/dashboard/tests/dashboard.test.mjs": "a297cb9b0118d3c68ae785297b9afb3953697d4dbcb8f4ef269338551351ef41",
+    "apps/dashboard/tsconfig.json": "4d6e001bbd55485916ad75ada9925e83bb22822f2e733cce9318b3b090b518e6",
+    "apps/rag-poc/Taskfile.yml": "39606c65df3bf62d565a0f6060978a6c6f46ace4fe8843baf9543b91e519b96d",
+    "apps/rag-poc/pyproject.toml": "d2ebdadc9c654974de68c456a5176338a71aa8b9f4261822861f69b1490fb298",
+    "apps/rag-poc/src/rag_poc/__init__.py": "e1cd5cc31da8692955d23e8c51dd127bd8a1876bc5749c5e3a143721310ef35d",
+    "apps/rag-poc/src/rag_poc/__main__.py": "b8e401e2932d1c8a01e57c69002b14cbcc3dc899497059b4791eae5f5951c372",
+    "apps/rag-poc/src/rag_poc/api.py": "258d92a542901cb18351a0f05d30895b16046f2a58f89d054235ddfd87ed6b04",
+    "apps/rag-poc/src/rag_poc/cli.py": "e657b98142ea85a01f4773b90c2b0cefbbd9910b100e5e608c871030c9dfd33c",
+    "apps/rag-poc/src/rag_poc/config.py": "8ce82d7d8b3633c8cd39ddf55d96c2304edacd4c9a9e7e72e9975b7edd07de2b",
+    "apps/rag-poc/src/rag_poc/domain.py": "3f9814af4468d36ce2a7c8dd799557e118ef485edf4d78f30e998a698df5ec23",
+    "apps/rag-poc/src/rag_poc/engine.py": "6ed926febb3494563ef60d1c4846552eca307d5c97448dbe19f8886adeaf42e7",
+    "apps/rag-poc/src/rag_poc/evaluation.py": "c7b80718a57ef70e8a8b7f8ce9ca56e987713b7b3f5f80473c5d2864413a4d5f",
+    "apps/rag-poc/src/rag_poc/experiments.py": "37e4577f9cd299d36c6f0664d4c5530746f3eff676f66c4ecd8ab279dd284a87",
+    "apps/rag-poc/src/rag_poc/ingestion.py": "6cf815cca3476e254d902464dd91ecfe59e0ba7952e401cc80aac25c6f712a58",
+    "apps/rag-poc/src/rag_poc/migrations/__init__.py": "102980c4b289ff0ab3a922f5f771028a22c6b67643aec6b15e7ced36fdce0882",
+    "apps/rag-poc/src/rag_poc/migrations/env.py": "3a4bf38fb83c7b239508f6e9c122f086e92920ad94139341770a0e761b596799",
+    "apps/rag-poc/src/rag_poc/migrations/versions/0001_initial.py": "a568938950c997b278d8000443f28ab0d9f5cc7bf512bd44cf70c6912e04208c",
+    "apps/rag-poc/src/rag_poc/policy.py": "6424b3a43104a913b5ade7da6e5b6d8fa2606d95abf327ce98b6ea5261321f9e",
+    "apps/rag-poc/src/rag_poc/providers/__init__.py": "a6fcfaacf1921846d1c4232f1014db15e26eea76a970c2851902546542d9de56",
+    "apps/rag-poc/src/rag_poc/providers/clef.py": "9815c2ef26350ae97eafd16629b5dcff95ab0ce7a86ee24c302a242a58a88b68",
+    "apps/rag-poc/src/rag_poc/providers/mock.py": "f6f27d15e5eca10b6bf3085a7d9ef0129f6c36e90fad5d7e194b1f2d7fba68ec",
+    "apps/rag-poc/src/rag_poc/providers/openai.py": "cdca98a5aae8cd13854adc9d333421539dc5eb65194845cde63c4a7295fd1e6c",
+    "apps/rag-poc/src/rag_poc/providers/prompts.py": "a9b899feab50aad135a7b87e917f04f0fbdcf9760ee0ad262c7eba773da2337c",
+    "apps/rag-poc/src/rag_poc/providers/transport.py": "f773dfcbabc431cfb293eb3f4a90d730356b21ced8689906ef0dba152880fc42",
+    "apps/rag-poc/src/rag_poc/retrieval.py": "baeaced0bf8c8f5f0d884355c16e98fd8b3f07e65413817c44d78afeac1555b2",
+    "apps/rag-poc/src/rag_poc/static/app.js": "ab2f8a05309290cc96afcc8de44a35efa0b09d09b3389d806fe6696cd955777a",
+    "apps/rag-poc/src/rag_poc/static/favicon.svg": "ee024ff7d0df9206b57f241a2943ec282d8338c4ce36a27a5579f7f577de3476",
+    "apps/rag-poc/src/rag_poc/static/index.html": "b4b0053e4017e78b430878ead2d9693144b6c15ebeca4dd1016970bab3cd8f6b",
+    "apps/rag-poc/src/rag_poc/static/styles.css": "f7af1e328fd3d44b5904107b383597674dccb6e8d6e4b93f74a888822313114d",
+    "apps/rag-poc/src/rag_poc/storage.py": "b3c80813d38feea1501e36b6ce0bc703460942cdd8809d5dd1908679254b1532",
+    "apps/rag-poc/src/rag_poc/verification.py": "3de49729fbe346bfde7d56fbc305c0c587f7d5beb7273ed075529ebc7337950c",
+    "apps/rag-poc/src/rag_poc/worker.py": "3e42ac71e80c719e8c0af8a68ad09fdf8d8bc70087f601330dfaec8a63c96414",
+    "apps/rag-poc/tests/test_api.py": "b43454b056013cb9af396e5cbdfe0cbacd91e08c61be8021ec47b8e45c9ebe1d",
+    "apps/rag-poc/tests/test_config.py": "b6f39b240529b806db7e214b4247d2b56aa7ec69b504fa5782fe8c5bbac18f01",
+    "apps/rag-poc/tests/test_engine.py": "170d04b3b5b5455337986938f7a958f9c32c48c8ee41ed56cdf4d2ba64dded35",
+    "apps/rag-poc/tests/test_evaluation.py": "bd34f15093ae7bc199fc2e40b88b78cae92648d49e105e4f11dbfb561fa53520",
+    "apps/rag-poc/tests/test_experiments.py": "a4e28240251d2be62e0098b53dcd260148c84386a0db0c241f1683d19aabc7fc",
+    "apps/rag-poc/tests/test_ingestion.py": "417ddff1a7a88b6312f639b101b6db78bb2b544d61ae174e2ce38f2bcac5b9cd",
+    "apps/rag-poc/tests/test_native_restore.py": "b6b6de1e2ae0a35131f7d546866b0f2291c57ee3ef93682a4a0271cb3c746498",
+    "apps/rag-poc/tests/test_providers.py": "ef4fd13fe39950024890fc8af8b6b4f0bec84d931ace595118b375edb2934341",
+    "apps/rag-poc/tests/test_retrieval.py": "cff5f1a938aa76151d57443e9e72111155b947c73fcd5b1b02445622e4cfdf43",
+    "apps/rag-poc/tests/test_storage.py": "8bddd73ef2a49181ba38f40efe4ee7255d21d1dc9d0471f23486686ac66919e9",
+    "apps/rag-poc/tests/test_upload_body_limit.py": "bdae73fb610cfc4f7d4d16f516a6ebe2753b731215fe78fc861e3bc820c71b34",
+    "apps/rag-poc/tests/test_verification.py": "4b28296eda140073ae814271538438ae85f8f92a12efccf55094cf200aa2b3d1",
+    "apps/rag-poc/tests/test_worker.py": "4b8b9de12b136ccb0bdb34346588c6adc5fb00aaf83f849f2b4d48e1265cb7cd",
+    "biome.json": "2855c18fbc1dd29e6b17eb3ed1aca2393165aceabd48f74b8e05227c4d5a2e00",
+    "configs/mock.yaml": "ba2242d371ee34bf56e00c91f3d849fd14824bbaa136798bebc140e2855010d4",
+    "package.json": "a4e07ab6ad67023c335ab7f5ac6ca2ecb40d253edb24aa38166244f3183ed06f",
+    "pnpm-lock.yaml": "9fbd9f13398e475a338f6a77794dc844ee2a1618367ecc953eb39f09df3185d4",
+    "pnpm-workspace.yaml": "125631440485308fe306a7350d3325665d09dc69b6ef9e7843258b1794b98891",
+    "pyproject.toml": "3ff1baeb07337212045b8e89d6d520b1adc91300dc3eb0513703387eddf9235e",
+    "tooling/alembic.ini": "04a2bea3f8baa1a0594fe6d78eebd78b4d943c5028cee19403aa53b200c19752",
+    "tooling/scripts/backup.py": "ad24e606073cbb17e3392f6adc6574aa53fb300551588b1d5a538437c4eda31a",
+    "tooling/scripts/restore.py": "8ce24396f4ab69931a78de0979af04b219ad270b586fae3125aeec79f151eb03",
+    "tooling/scripts/sync_dashboard.py": "f2e95393ccba8cca064111ff4f4328f88397693cb1a7606911436cc1cba4a56a",
+    "tooling/typescript/tsconfig.base.json": "34cadd00ba4ab190d405e4c6205f1758b3d19925b28fdd1d62c1f52bc4b9032b",
+    "uv.lock": "63392db25356e9363427e1c29be792ac29501502b608442f04c3bc744a6e3b2c"
+  },
+  "source_manifest_hash": "098d70dd94a9d96b59cc888f22942ea5611f48289054fe565c96f08bb7b2954f",
+  "source_unchanged": true,
+  "runtime_matches_tested_checkout": true,
+  "runtime_mode": "mock",
+  "native_requested": true,
+  "backend": "native_postgresql",
+  "native_postgres_verified": true,
+  "restore_verified": true,
+  "migration_revision": "0001_initial",
+  "postgres_version": "17.10 (Debian 17.10-1.pgdg12+1)",
+  "pgvector_version": "0.8.2",
+  "complete": true,
+  "qualification_eligible": false,
+  "model_semantics_measured": false,
+  "live_endpoint_performance_measured": false,
+  "qualification_note": "Fixtures validate engineering contracts. This artifact alone cannot qualify a model or live policy.",
+  "summary": {
+    "passed": 363,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0
+  },
+  "checks": {
+    "configuration": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_config.py::test_duplicate_yaml_key_rejected_without_echoing_secret",
+        "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_capabilities]",
+        "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_dimensions]",
+        "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_key]",
+        "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_limit]",
+        "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_model]",
+        "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[placeholder_key]",
+        "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[placeholder_url]",
+        "apps/rag-poc/tests/test_config.py::test_role_errors_are_explicit[foreign_role]",
+        "apps/rag-poc/tests/test_config.py::test_role_errors_are_explicit[missing_profile]",
+        "apps/rag-poc/tests/test_config.py::test_role_errors_are_explicit[wrong_protocol]",
+        "apps/rag-poc/tests/test_config.py::test_unknown_parameters_are_rejected_not_passed_to_remote_api"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "protocol_boundary": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_config.py::test_active_native_protocol_requires_explicit_opt_in",
+        "apps/rag-poc/tests/test_config.py::test_inactive_incomplete_profile_is_not_resolved_or_validated_live",
+        "apps/rag-poc/tests/test_providers.py::test_chat_capabilities_and_no_unsupported_temperature[json_object]",
+        "apps/rag-poc/tests/test_providers.py::test_chat_capabilities_and_no_unsupported_temperature[json_schema]",
+        "apps/rag-poc/tests/test_providers.py::test_chat_capabilities_and_no_unsupported_temperature[text_json]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_exact_route_choice_schema_reason_and_uncalibrated_scores[conflicting_evidence]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_exact_route_choice_schema_reason_and_uncalibrated_scores[contradicted]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_exact_route_choice_schema_reason_and_uncalibrated_scores[insufficient_evidence]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_exact_route_choice_schema_reason_and_uncalibrated_scores[supported]"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "authentication_network": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_providers.py::test_cancelled_context_never_sends_and_inflight_cancel_records_ledger",
+        "apps/rag-poc/tests/test_providers.py::test_network_error_counts_each_attempt_without_leaking_request",
+        "apps/rag-poc/tests/test_providers.py::test_per_call_timeout_and_run_deadline_prevent_late_release",
+        "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[302-1]",
+        "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[400-1]",
+        "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[401-1]",
+        "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[403-1]",
+        "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[429-2]",
+        "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[500-2]",
+        "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[503-2]"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "embeddings": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_providers.py::test_embedding_reorders_indices_and_sends_exact_configured_operation",
+        "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows0]",
+        "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows1]",
+        "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows2]",
+        "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows3]",
+        "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows4]",
+        "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows5]",
+        "apps/rag-poc/tests/test_providers.py::test_nonfinite_embedding_json_is_rejected[-Infinity]",
+        "apps/rag-poc/tests/test_providers.py::test_nonfinite_embedding_json_is_rejected[Infinity]",
+        "apps/rag-poc/tests/test_providers.py::test_nonfinite_embedding_json_is_rejected[NaN]"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "generation": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_providers.py::test_generation_format_retry_is_bounded_and_accounted[content2]",
+        "apps/rag-poc/tests/test_providers.py::test_generation_format_retry_is_bounded_and_accounted[{\"blocks\":[],\"blocks\":[]}]",
+        "apps/rag-poc/tests/test_providers.py::test_generation_format_retry_is_bounded_and_accounted[{]",
+        "apps/rag-poc/tests/test_providers.py::test_refusal_length_and_tool_response_are_not_retried[response0]",
+        "apps/rag-poc/tests/test_providers.py::test_refusal_length_and_tool_response_are_not_retried[response1]",
+        "apps/rag-poc/tests/test_providers.py::test_refusal_length_and_tool_response_are_not_retried[response2]"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "verification_coverage": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_engine.py::test_incomplete_or_ambiguous_checks_are_technical_failures[duplicate]",
+        "apps/rag-poc/tests/test_engine.py::test_incomplete_or_ambiguous_checks_are_technical_failures[foreign]",
+        "apps/rag-poc/tests/test_engine.py::test_incomplete_or_ambiguous_checks_are_technical_failures[missing]",
+        "apps/rag-poc/tests/test_engine.py::test_incomplete_or_ambiguous_checks_are_technical_failures[wrong_kind]",
+        "apps/rag-poc/tests/test_engine.py::test_stale_verification_metadata_never_releases_an_answer[answer_hash]",
+        "apps/rag-poc/tests/test_engine.py::test_stale_verification_metadata_never_releases_an_answer[evidence_hash]",
+        "apps/rag-poc/tests/test_engine.py::test_stale_verification_metadata_never_releases_an_answer[round_id]",
+        "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[duplicate]",
+        "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[foreign]",
+        "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[kind]",
+        "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[missing]",
+        "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[score]",
+        "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[source]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[choice]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[confidence]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[foreign]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[missing]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[model]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[nan]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[sum]",
+        "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[unwrapped]"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "grounding": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_evaluation.py::test_controlled_original_claims_are_checked_without_repair",
+        "apps/rag-poc/tests/test_evaluation.py::test_demo_controlled_fixture_labels_cover_eight_mutation_families",
+        "apps/rag-poc/tests/test_providers.py::test_mock_conflict_requires_second_attributed_source",
+        "apps/rag-poc/tests/test_providers.py::test_mock_quote_support_and_same_evidence_repair_never_use_http"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "repair": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_engine.py::test_initial_round_verdict_cannot_approve_an_unchanged_repair",
+        "apps/rag-poc/tests/test_engine.py::test_second_semantic_failure_abstains_without_a_third_draft",
+        "apps/rag-poc/tests/test_engine.py::test_unsupported_answer_has_one_repair_and_rechecks_unchanged_blocks",
+        "apps/rag-poc/tests/test_engine.py::test_verifier_outage_does_not_trigger_repair_or_semantic_abstention"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "input_budget": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_providers.py::test_every_embedding_input_is_preflighted_before_first_batch",
+        "apps/rag-poc/tests/test_providers.py::test_full_prompt_budget_checks_suffix_without_local_truncation",
+        "apps/rag-poc/tests/test_providers.py::test_native_suffix_evidence_and_all_eleven_checks_are_transmitted",
+        "apps/rag-poc/tests/test_providers.py::test_small_verifier_contract_rejects_shared_evidence_budget",
+        "apps/rag-poc/tests/test_providers.py::test_unknown_citation_and_oversized_answer_fail_before_call",
+        "apps/rag-poc/tests/test_upload_body_limit.py::test_chunked_multipart_returns_safe_http_413",
+        "apps/rag-poc/tests/test_upload_body_limit.py::test_chunked_upload_stops_reading_at_body_limit"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "adversarial_data": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_providers.py::test_hostile_evidence_and_draft_remain_data_without_tools_or_instruction_override[False]",
+        "apps/rag-poc/tests/test_providers.py::test_hostile_evidence_and_draft_remain_data_without_tools_or_instruction_override[True]",
+        "apps/rag-poc/tests/test_providers.py::test_refusal_length_and_tool_response_are_not_retried[response0]",
+        "apps/rag-poc/tests/test_providers.py::test_refusal_length_and_tool_response_are_not_retried[response1]",
+        "apps/rag-poc/tests/test_providers.py::test_refusal_length_and_tool_response_are_not_retried[response2]",
+        "apps/rag-poc/tests/test_providers.py::test_repair_metadata_is_exact_bounded_and_cannot_override_system"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "source_index_state": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_extracted_content_vectors_and_embedding_space_are_immutable",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_failed_new_version_leaves_previous_active_retrieval_available",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_invalid_embedding_batch_rolls_back_every_vector",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_staged_embedding_batches_resume_after_reclaim_without_losing_cache",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_upload_is_idempotent_by_bytes_and_pipeline_with_atomic_job"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "snapshot_lease_races": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_retrieval.py::test_space_change_during_query_embedding_aborts_instead_of_mixing_vectors",
+        "apps/rag-poc/tests/test_storage.py::TestNativeMultiSessionConcurrency::test_competing_reservations_cannot_overrun_global_spend",
+        "apps/rag-poc/tests/test_storage.py::TestNativeMultiSessionConcurrency::test_dense_and_lexical_keep_one_snapshot_during_concurrent_activation",
+        "apps/rag-poc/tests/test_storage.py::TestNativeMultiSessionConcurrency::test_two_workers_cannot_claim_same_job",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_late_source_worker_cannot_write_renew_or_finish_after_reclaim",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_latest_requested_version_wins_even_if_older_embeddings_finish_first",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_query_cancellation_fences_late_publication_events_and_future_calls"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "retrieval": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_ingestion.py::test_postgres_mock_upload_retrieval_update_and_cited_verdict_round_trip",
+        "apps/rag-poc/tests/test_retrieval.py::test_empty_branches_are_valid_and_no_fake_candidates_are_added",
+        "apps/rag-poc/tests/test_retrieval.py::test_identical_text_from_distinct_sources_keeps_both_provenances",
+        "apps/rag-poc/tests/test_retrieval.py::test_overlap_dedupe_keeps_adjacent_chunks_with_substantial_new_content",
+        "apps/rag-poc/tests/test_retrieval.py::test_rrf_counts_once_per_branch_preserves_ranks_and_breaks_ties_by_id",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_dense_and_native_fts_share_active_source_and_corpus_filters"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "trace_retention": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_api.py::test_public_run_and_list_hide_unverified_drafts_while_trace_is_labelled",
+        "apps/rag-poc/tests/test_api.py::test_status_and_health_never_return_config_credentials_or_trigger_inference",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_cleanup_preserves_referenced_old_source_then_removes_it_after_run_retention",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_explicit_source_purge_cancels_holding_query_and_preserves_cost_ledger",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_metadata_credentials_are_redacted_in_settings_events_and_call_records",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_upload_and_document_quotas_fail_without_partial_jobs"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "evaluation_accounting": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_evaluation.py::test_failed_and_abstained_cases_stay_in_fixed_denominators",
+        "apps/rag-poc/tests/test_evaluation.py::test_report_rejects_dropped_rows_and_changed_gold_metadata",
+        "apps/rag-poc/tests/test_evaluation.py::test_restarted_evaluation_is_incomplete_without_replaying_calls",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_mock_ledger_cannot_spend_money_or_reset_attempt_caps",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_profile_concurrency_is_shared_across_store_instances_and_releases_on_completion",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_unknown_cost_and_attempt_caps_survive_store_recreation"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    },
+    "recovery": {
+      "status": "passed",
+      "test_ids": [
+        "apps/rag-poc/tests/test_native_restore.py::test_native_pg_dump_restore_preserves_sources_vectors_and_retrieval",
+        "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_migration_is_repeatable_and_pgvector_schema_is_live",
+        "apps/rag-poc/tests/test_worker.py::test_crash_after_terminal_publication_recovers_without_repeat_inference",
+        "apps/rag-poc/tests/test_worker.py::test_heartbeat_lease_loss_cancels_operation_without_stale_publication"
+      ],
+      "missing_test_ids": [],
+      "scope": "engineering_fixture_contracts"
+    }
+  },
+  "tests": [
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_mock_example_has_usable_fixture_settings_and_disabled_spend",
+      "status": "passed",
+      "duration_seconds": 0.043
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_live_example_deliberately_requires_operator_values",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_mock_mode_does_not_read_key_files_or_environment",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_key]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[placeholder_key]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_limit]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[placeholder_url]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_model]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_dimensions]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_live_rejects_incomplete_active_profiles[missing_capabilities]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_inactive_incomplete_profile_is_not_resolved_or_validated_live",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_explicit_profile_selection_resolves_only_newly_active_reference[env]",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_explicit_profile_selection_resolves_only_newly_active_reference[file]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_profile_selection_never_enables_native_compatibility_implicitly",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_manually_constructed_config_does_not_guess_relative_secret_directory",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_profile_selection_errors_do_not_echo_unknown_values",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_native_protocol_requires_explicit_opt_in",
+      "status": "passed",
+      "duration_seconds": 0.014
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_native_contract_cannot_overstate_provider_capabilities[live-model-unsupported-native-model-body model]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_native_contract_cannot_overstate_provider_capabilities[live-max_input_tokens-65537-65536-token]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_native_contract_cannot_overstate_provider_capabilities[live-max_output_tokens-1200-do not support]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_native_contract_cannot_overstate_provider_capabilities[live-max_questions-10-one batch]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_native_contract_cannot_overstate_provider_capabilities[mock-model-unsupported-native-model-body model]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_native_contract_cannot_overstate_provider_capabilities[mock-max_input_tokens-65537-65536-token]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_native_contract_cannot_overstate_provider_capabilities[mock-max_output_tokens-1200-do not support]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_native_contract_cannot_overstate_provider_capabilities[mock-max_questions-10-one batch]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_role_errors_are_explicit[missing_profile]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_role_errors_are_explicit[wrong_protocol]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_role_errors_are_explicit[foreign_role]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_duplicate_yaml_key_rejected_without_echoing_secret",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_duplicate_yaml_merge_key_is_not_silently_overwritten",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_strict_operational_types_and_limits[remote_concurrency-4]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_strict_operational_types_and_limits[query_deadline_seconds-True]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_strict_operational_types_and_limits[remote_concurrency-0]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_strict_operational_types_and_limits[remote_concurrency-nan]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_unknown_parameters_are_rejected_not_passed_to_remote_api",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_secret_redaction_and_key_rotation_fingerprint",
+      "status": "passed",
+      "duration_seconds": 0.02
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_inactive_url_credentials_and_query_are_redacted",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_urls_reject_ambiguous_or_embedded_auth[?api_key=never-leak]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_urls_reject_ambiguous_or_embedded_auth[#never-leak]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_active_urls_reject_ambiguous_or_embedded_auth[/\\nnever-leak]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_direct_env_and_file_secrets_work_without_environment_requirement",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_missing_active_reference_fails_safely",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_ambiguous_active_key_sources_are_rejected",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_bad_key_header_characters_do_not_escape_in_errors",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_yaml_and_pydantic_failures_do_not_echo_values",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_missing_budget_phases_remain_disabled",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_invalid_budget_cannot_enable_unbounded_spend[negative]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_invalid_budget_cannot_enable_unbounded_spend[nonfinite]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_invalid_budget_cannot_enable_unbounded_spend[unknown_phase]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_date_pricing_and_bounds",
+      "status": "passed",
+      "duration_seconds": 0.013
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_nonzero_live_spend_settings_require_pricing_on_every_active_profile[total]",
+      "status": "passed",
+      "duration_seconds": 0.019
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_nonzero_live_spend_settings_require_pricing_on_every_active_profile[smoke]",
+      "status": "passed",
+      "duration_seconds": 0.018
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_utf8_estimate_includes_payload_serialization_not_character_count",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_no_sqlite_or_in_memory_database_fallback",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_config.py::test_config_rejects_incoherent_chunk_and_answer_budgets",
+      "status": "passed",
+      "duration_seconds": 0.013
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_mock_quote_support_and_same_evidence_repair_never_use_http",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_mock_conflict_requires_second_attributed_source",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_mock_embeddings_are_stable_finite_and_nonzero",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_embedding_reorders_indices_and_sends_exact_configured_operation",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows0]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows1]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows2]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows3]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows4]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_invalid_embedding_vectors_fail_without_retry[rows5]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_nonfinite_embedding_json_is_rejected[NaN]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_nonfinite_embedding_json_is_rejected[Infinity]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_nonfinite_embedding_json_is_rejected[-Infinity]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_every_embedding_input_is_preflighted_before_first_batch",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_capabilities_and_no_unsupported_temperature[json_schema]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_capabilities_and_no_unsupported_temperature[json_object]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_capabilities_and_no_unsupported_temperature[text_json]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_generation_format_retry_is_bounded_and_accounted[{]",
+      "status": "passed",
+      "duration_seconds": 0.107
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_generation_format_retry_is_bounded_and_accounted[{\"blocks\":[],\"blocks\":[]}]",
+      "status": "passed",
+      "duration_seconds": 0.109
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_generation_format_retry_is_bounded_and_accounted[content2]",
+      "status": "passed",
+      "duration_seconds": 0.11
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_retains_decodable_schema_faults_for_variant_b[duplicate_ids]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_retains_decodable_schema_faults_for_variant_b[missing_id]",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_retains_decodable_schema_faults_for_variant_b[foreign_schema]",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_retains_decodable_schema_faults_for_variant_b[wrong_citation_type]",
+      "status": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_valid_candidate_has_same_hash_and_text_as_typed_draft",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_keeps_universal_decoding_and_runtime_bounds[generate-decoded0-over_budget]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_keeps_universal_decoding_and_runtime_bounds[generate-decoded1-over_budget]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_keeps_universal_decoding_and_runtime_bounds[generate-decoded2-invalid_response]",
+      "status": "passed",
+      "duration_seconds": 0.106
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_keeps_universal_decoding_and_runtime_bounds[generate-this is not JSON-invalid_response]",
+      "status": "passed",
+      "duration_seconds": 0.107
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_keeps_universal_decoding_and_runtime_bounds[generate_candidate-decoded0-over_budget]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_keeps_universal_decoding_and_runtime_bounds[generate_candidate-decoded1-over_budget]",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_keeps_universal_decoding_and_runtime_bounds[generate_candidate-decoded2-invalid_response]",
+      "status": "passed",
+      "duration_seconds": 0.107
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_evaluation_candidate_keeps_universal_decoding_and_runtime_bounds[generate_candidate-this is not JSON-invalid_response]",
+      "status": "passed",
+      "duration_seconds": 0.109
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_refusal_length_and_tool_response_are_not_retried[response0]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_refusal_length_and_tool_response_are_not_retried[response1]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_refusal_length_and_tool_response_are_not_retried[response2]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[missing]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[duplicate]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[foreign]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[kind]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[score]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_verdict_coverage_and_score_injection_fail_closed[source]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_chat_verification_preserves_exact_input_and_binds_application_hashes",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_hostile_evidence_and_draft_remain_data_without_tools_or_instruction_override[False]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_hostile_evidence_and_draft_remain_data_without_tools_or_instruction_override[True]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_exact_route_choice_schema_reason_and_uncalibrated_scores[supported]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_exact_route_choice_schema_reason_and_uncalibrated_scores[contradicted]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_exact_route_choice_schema_reason_and_uncalibrated_scores[insufficient_evidence]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_exact_route_choice_schema_reason_and_uncalibrated_scores[conflicting_evidence]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[unwrapped]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[missing]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[foreign]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[choice]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[confidence]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[sum]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[nan]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_clef_malformed_contract_is_not_retried[model]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_duplicate_native_json_key_is_rejected_before_normalization",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[401-1]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[403-1]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[400-1]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[302-1]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[429-2]",
+      "status": "passed",
+      "duration_seconds": 0.107
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[500-2]",
+      "status": "passed",
+      "duration_seconds": 0.11
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_status_retries_are_bounded_and_errors_are_sanitized[503-2]",
+      "status": "passed",
+      "duration_seconds": 0.109
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_network_error_counts_each_attempt_without_leaking_request",
+      "status": "passed",
+      "duration_seconds": 0.109
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_per_call_timeout_and_run_deadline_prevent_late_release",
+      "status": "passed",
+      "duration_seconds": 0.018
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_cancelled_context_never_sends_and_inflight_cancel_records_ledger",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_live_readiness_blocks_before_http[store]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_live_readiness_blocks_before_http[pricing]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_live_readiness_blocks_before_http[total]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_live_readiness_blocks_before_http[phase]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_live_readiness_blocks_before_http[key]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_cumulative_attempt_limit_and_unknown_usage_keep_reservation",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_inconsistent_reported_usage_cannot_refund_reserved_spend[usage0]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_inconsistent_reported_usage_cannot_refund_reserved_spend[usage1]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_inconsistent_reported_usage_cannot_refund_reserved_spend[usage2]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_cross_worker_concurrency_wait_does_not_consume_remote_attempt",
+      "status": "passed",
+      "duration_seconds": 0.057
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_reservation_survives_database_round_trip_plus_valid_http_duration",
+      "status": "passed",
+      "duration_seconds": 0.26
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_full_prompt_budget_checks_suffix_without_local_truncation",
+      "status": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_native_suffix_evidence_and_all_eleven_checks_are_transmitted",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_small_verifier_contract_rejects_shared_evidence_budget",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_disabled_repair_does_not_reserve_an_impossible_unused_repair_prompt",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_unknown_citation_and_oversized_answer_fail_before_call",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_providers.py::test_repair_metadata_is_exact_bounded_and_cannot_override_system",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_chunk_ranges_preserve_negation_units_and_minimal_normalization",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_single_long_token_never_exceeds_chunk_limit_or_loses_characters",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_admission_rejects_type_mismatch[hello-archive.zip-application/zip-unsupported_document]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_admission_rejects_type_mismatch[hello-wrong.pdf-application/pdf-invalid_document]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_admission_rejects_type_mismatch[%PDF-1.3-wrong.txt-text/plain-invalid_document]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_admission_rejects_type_mismatch[-empty.txt-text/plain-invalid_document]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_invalid_encoding_binary_and_whitespace_do_not_activate",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_upload_and_extraction_limits_are_explicit",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_pdf_coverage_distinguishes_blank_ocr_and_partial_pages[kinds0-extracted-page_states0]",
+      "status": "passed",
+      "duration_seconds": 0.002
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_pdf_coverage_distinguishes_blank_ocr_and_partial_pages[kinds1-needs_ocr-page_states1]",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_pdf_coverage_distinguishes_blank_ocr_and_partial_pages[kinds2-needs_review-page_states2]",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_pdf_coverage_distinguishes_blank_ocr_and_partial_pages[kinds3-needs_review-page_states3]",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_pdf_coverage_distinguishes_blank_ocr_and_partial_pages[kinds4-needs_review-page_states4]",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_pdf_coverage_distinguishes_blank_ocr_and_partial_pages[kinds5-needs_review-page_states5]",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_pdf_page_limit_and_corruption_fail_without_partial_activation",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_bad_vectors_are_rejected_before_publication[vectors0]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_bad_vectors_are_rejected_before_publication[vectors1]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_bad_vectors_are_rejected_before_publication[vectors2]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_bad_vectors_are_rejected_before_publication[vectors3]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_bad_vectors_are_rejected_before_publication[vectors4]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_bad_vectors_are_rejected_before_publication[vectors5]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_partial_embedding_failure_resumes_saved_batches_without_reextracting",
+      "status": "passed",
+      "duration_seconds": 0.002
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_lost_lease_after_remote_response_never_publishes_or_activates",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_review_state_makes_no_embedding_calls",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_embedding_batch_size_and_total_input_budget_are_bounded",
+      "status": "passed",
+      "duration_seconds": 0.002
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_ingestion.py::test_postgres_mock_upload_retrieval_update_and_cited_verdict_round_trip",
+      "status": "passed",
+      "duration_seconds": 0.564
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_rrf_counts_once_per_branch_preserves_ranks_and_breaks_ties_by_id",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_empty_branches_are_valid_and_no_fake_candidates_are_added",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_overlap_dedupe_keeps_adjacent_chunks_with_substantial_new_content",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_identical_text_from_distinct_sources_keeps_both_provenances",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_overlapping_text_must_agree_before_deduplication",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_inconsistent_snapshot_or_bad_coordinates_fail_closed",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_invalid_branch_ranks_are_rejected[0]",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_invalid_branch_ranks_are_rejected[-1]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_invalid_branch_ranks_are_rejected[True]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_invalid_branch_ranks_are_rejected[1.2]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_invalid_branch_ranks_are_rejected[1]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_shared_budget_counts_full_json_and_retains_whole_chunks_only",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_no_fitting_chunk_is_over_budget_not_a_false_empty_retrieval",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_evidence_pack_is_an_immutable_content_snapshot_by_value",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_embedding_manifest_ignores_key_rotation_but_binds_semantics_and_mode",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_space_change_during_query_embedding_aborts_instead_of_mixing_vectors",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_snapshot_revision_may_advance_without_embedding_space_change",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_mismatched_embedding_config_fails_before_remote_call",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_retrieval.py::test_retrieval_ablation_packs_share_one_embedding_and_snapshot",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::test_invalid_or_float32_zero_embeddings_are_rejected_before_storage[values0]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::test_invalid_or_float32_zero_embeddings_are_rejected_before_storage[values1]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::test_invalid_or_float32_zero_embeddings_are_rejected_before_storage[values2]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::test_invalid_or_float32_zero_embeddings_are_rejected_before_storage[values3]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::test_invalid_or_float32_zero_embeddings_are_rejected_before_storage[values4]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::test_invalid_or_float32_zero_embeddings_are_rejected_before_storage[values5]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::test_invalid_or_float32_zero_embeddings_are_rejected_before_storage[values6]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::test_invalid_or_float32_zero_embeddings_are_rejected_before_storage[values7]",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::test_finite_nonzero_embedding_is_float32_compatible",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_migration_is_repeatable_and_pgvector_schema_is_live",
+      "status": "passed",
+      "duration_seconds": 0.075
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_upload_is_idempotent_by_bytes_and_pipeline_with_atomic_job",
+      "status": "passed",
+      "duration_seconds": 0.088
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_staged_embedding_batches_resume_after_reclaim_without_losing_cache",
+      "status": "passed",
+      "duration_seconds": 0.171
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_late_source_worker_cannot_write_renew_or_finish_after_reclaim",
+      "status": "passed",
+      "duration_seconds": 0.128
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_latest_requested_version_wins_even_if_older_embeddings_finish_first",
+      "status": "passed",
+      "duration_seconds": 0.16
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_failed_new_version_leaves_previous_active_retrieval_available",
+      "status": "passed",
+      "duration_seconds": 0.141
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_extracted_content_vectors_and_embedding_space_are_immutable",
+      "status": "passed",
+      "duration_seconds": 0.114
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_invalid_embedding_batch_rolls_back_every_vector",
+      "status": "passed",
+      "duration_seconds": 0.085
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_foreign_chunk_and_foreign_lease_cannot_write_other_source",
+      "status": "passed",
+      "duration_seconds": 0.119
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_dense_and_native_fts_share_active_source_and_corpus_filters",
+      "status": "passed",
+      "duration_seconds": 0.308
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_empty_lexical_branch_and_disabled_dense_branch_are_valid",
+      "status": "passed",
+      "duration_seconds": 0.102
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_review_state_never_activates_even_with_complete_vectors",
+      "status": "passed",
+      "duration_seconds": 0.096
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_chunk_coordinates_must_select_the_exact_persisted_page_text",
+      "status": "passed",
+      "duration_seconds": 0.065
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_returned_timestamps_are_json_strings_with_utc_offsets",
+      "status": "passed",
+      "duration_seconds": 0.06
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_answers_need_owned_active_lease_and_terminal_publication_is_immutable",
+      "status": "passed",
+      "duration_seconds": 0.097
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_query_cancellation_fences_late_publication_events_and_future_calls",
+      "status": "passed",
+      "duration_seconds": 0.099
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_cancelled_direct_ingestion_job_cannot_reserve_more_calls",
+      "status": "passed",
+      "duration_seconds": 0.069
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_metadata_credentials_are_redacted_in_settings_events_and_call_records",
+      "status": "passed",
+      "duration_seconds": 0.092
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_upload_and_document_quotas_fail_without_partial_jobs",
+      "status": "passed",
+      "duration_seconds": 0.069
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_global_and_phase_caps_and_disabled_scopes_block_calls",
+      "status": "passed",
+      "duration_seconds": 0.069
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_unknown_cost_and_attempt_caps_survive_store_recreation",
+      "status": "passed",
+      "duration_seconds": 0.076
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_active_global_concurrency_releases_on_completion_and_expiration",
+      "status": "passed",
+      "duration_seconds": 0.091
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_known_charge_cannot_be_rewritten_and_overestimate_is_flagged",
+      "status": "passed",
+      "duration_seconds": 0.072
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_profile_concurrency_is_shared_across_store_instances_and_releases_on_completion",
+      "status": "passed",
+      "duration_seconds": 0.097
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_mock_ledger_cannot_spend_money_or_reset_attempt_caps",
+      "status": "passed",
+      "duration_seconds": 0.058
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_explicit_source_purge_cancels_holding_query_and_preserves_cost_ledger",
+      "status": "passed",
+      "duration_seconds": 0.219
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestPostgresPersistence::test_cleanup_preserves_referenced_old_source_then_removes_it_after_run_retention",
+      "status": "passed",
+      "duration_seconds": 0.26
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestNativeMultiSessionConcurrency::test_two_workers_cannot_claim_same_job",
+      "status": "passed",
+      "duration_seconds": 0.067
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestNativeMultiSessionConcurrency::test_competing_reservations_cannot_overrun_global_spend",
+      "status": "passed",
+      "duration_seconds": 0.05
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_storage.py::TestNativeMultiSessionConcurrency::test_dense_and_lexical_keep_one_snapshot_during_concurrent_activation",
+      "status": "passed",
+      "duration_seconds": 0.181
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_supported_answer_is_published_only_after_complete_verification",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_unsupported_answer_has_one_repair_and_rechecks_unchanged_blocks",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_second_semantic_failure_abstains_without_a_third_draft",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_stale_verification_metadata_never_releases_an_answer[answer_hash]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_stale_verification_metadata_never_releases_an_answer[evidence_hash]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_stale_verification_metadata_never_releases_an_answer[round_id]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_initial_round_verdict_cannot_approve_an_unchanged_repair",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_incomplete_or_ambiguous_checks_are_technical_failures[missing]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_incomplete_or_ambiguous_checks_are_technical_failures[duplicate]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_incomplete_or_ambiguous_checks_are_technical_failures[foreign]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_incomplete_or_ambiguous_checks_are_technical_failures[wrong_kind]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_verifier_outage_does_not_trigger_repair_or_semantic_abstention",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_empty_retrieval_abstains_without_generation",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_query_deadline_includes_time_waiting_in_queue",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_deadline_is_rechecked_before_publishing_a_completed_verdict",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_restart_cannot_reset_existing_outbound_attempt_count",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_worker_that_loses_lease_cannot_publish_terminal_answer",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_shadow_policy_keeps_draft_only_in_operator_diagnostics",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_unknown_citation_fails_before_any_semantic_call",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_scoreless_verdict_does_not_gain_fabricated_confidence",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_repair_profile_change_invalidates_semantic_policy_fingerprint",
+      "status": "passed",
+      "duration_seconds": 0.003
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_repair_byte_bound_change_invalidates_semantic_policy_fingerprint",
+      "status": "passed",
+      "duration_seconds": 0.003
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_nonobject_policy_artifact_is_unqualified_instead_of_crashing[artifact0]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_nonobject_policy_artifact_is_unqualified_instead_of_crashing[None]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_nonobject_policy_artifact_is_unqualified_instead_of_crashing[not an object]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_nonobject_policy_artifact_is_unqualified_instead_of_crashing[12]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_structural_gate_rejects_ambiguous_evidence_ids",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_engine.py::test_public_view_strips_stale_answer_and_diagnostics_during_reprocessing",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_public_run_and_list_hide_unverified_drafts_while_trace_is_labelled",
+      "status": "passed",
+      "duration_seconds": 0.027
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_verified_answer_is_available_without_exposing_internal_trace",
+      "status": "passed",
+      "duration_seconds": 0.011
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_status_and_health_never_return_config_credentials_or_trigger_inference",
+      "status": "passed",
+      "duration_seconds": 0.012
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_operator_token_protects_public_and_trace_endpoints",
+      "status": "passed",
+      "duration_seconds": 0.011
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_cross_site_writes_are_blocked_before_queueing[headers0]",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_cross_site_writes_are_blocked_before_queueing[headers1]",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_same_origin_query_is_queued_with_no_answer",
+      "status": "passed",
+      "duration_seconds": 0.012
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_invalid_query_fields_fail_without_echoing_input[body0]",
+      "status": "passed",
+      "duration_seconds": 0.011
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_invalid_query_fields_fail_without_echoing_input[body1]",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_invalid_query_fields_fail_without_echoing_input[body2]",
+      "status": "passed",
+      "duration_seconds": 0.011
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_invalid_query_fields_fail_without_echoing_input[body3]",
+      "status": "passed",
+      "duration_seconds": 0.011
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_invalid_query_fields_fail_without_echoing_input[body4]",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_invalid_query_fields_fail_without_echoing_input[body5]",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_upload_admission_errors_use_client_error_statuses[archive.zip-archive-application/zip-415]",
+      "status": "passed",
+      "duration_seconds": 0.012
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_upload_admission_errors_use_client_error_statuses[wrong.pdf-plain text-application/pdf-422]",
+      "status": "passed",
+      "duration_seconds": 0.011
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_upload_admission_errors_use_client_error_statuses[empty.txt--text/plain-422]",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_oversized_upload_stops_before_storage",
+      "status": "passed",
+      "duration_seconds": 0.011
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_valid_upload_queues_bytes_with_sanitized_name_and_pipeline_identity",
+      "status": "passed",
+      "duration_seconds": 0.057
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_source_preview_omits_raw_bytes_and_original_download_is_attachment",
+      "status": "passed",
+      "duration_seconds": 0.012
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_evaluations_use_allowlisted_names_and_never_accept_server_paths",
+      "status": "passed",
+      "duration_seconds": 0.013
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_public_job_never_exposes_worker_lease_or_payload",
+      "status": "passed",
+      "duration_seconds": 0.011
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_unknown_resource_has_safe_not_found_response",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_unexpected_storage_exception_is_sanitized",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_api.py::test_http_upload_worker_repair_and_public_answer_with_actual_sql",
+      "status": "passed",
+      "duration_seconds": 0.51
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_wilson_zero_events_are_not_zero_uncertainty",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_bootstrap_resamples_families_with_paired_case_counts",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_dataset_enforces_family_splits_and_exact_mutation_evidence",
+      "status": "passed",
+      "duration_seconds": 0.002
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_paired_variants_generate_once_and_share_bound_input",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_a_keeps_decodable_text_while_b_rejects_schema[missing_citation]",
+      "status": "passed",
+      "duration_seconds": 0.017
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_a_keeps_decodable_text_while_b_rejects_schema[duplicate_block]",
+      "status": "passed",
+      "duration_seconds": 0.018
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_a_keeps_decodable_text_while_b_rejects_schema[extra_key]",
+      "status": "passed",
+      "duration_seconds": 0.016
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_one_repair_uses_only_canonical_feedback_and_reverifies_unchanged_text",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_repair_canonicalization_preserves_colons_in_exact_check_ids",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_technical_verification_failure_never_authorizes_content_repair[missing]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_technical_verification_failure_never_authorizes_content_repair[foreign]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_technical_verification_failure_never_authorizes_content_repair[round]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_technical_verification_failure_never_authorizes_content_repair[hash]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_technical_verification_failure_never_authorizes_content_repair[technical]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_structural_gate_preserves_a_but_blocks_unknown_citations",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_controlled_original_claims_are_checked_without_repair",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_demo_controlled_fixture_labels_cover_eight_mutation_families",
+      "status": "passed",
+      "duration_seconds": 0.015
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_failed_and_abstained_cases_stay_in_fixed_denominators",
+      "status": "passed",
+      "duration_seconds": 0.016
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_report_rejects_dropped_rows_and_changed_gold_metadata",
+      "status": "passed",
+      "duration_seconds": 0.021
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_unreviewed_outputs_are_unknown_not_perfect_answers",
+      "status": "passed",
+      "duration_seconds": 0.014
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_unknown_usage_keeps_reservation_and_controlled_cost_stays_separate",
+      "status": "passed",
+      "duration_seconds": 0.018
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_annotation_packet_is_unfilled_blinded_and_hash_bound",
+      "status": "passed",
+      "duration_seconds": 0.022
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_restarted_evaluation_is_incomplete_without_replaying_calls",
+      "status": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_cancelled_evaluation_retains_all_unattempted_cases",
+      "status": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_budget_exhaustion_retains_remaining_live_study_rows",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_evaluation_api_rejects_paths_and_live_fixture_calls",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_mutation_proposal_never_invents_an_adjudicated_label",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_dry_run_and_exports_preserve_review_and_fixture_limitations",
+      "status": "passed",
+      "duration_seconds": 0.023
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_artifact_bindings_and_missing_native_fault_evidence_fail",
+      "status": "passed",
+      "duration_seconds": 0.014
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_load_qualification_recomputes_queue_inclusive_repair_strata",
+      "status": "passed",
+      "duration_seconds": 0.015
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_fixture_report_cannot_qualify_with_missing_real_artifacts",
+      "status": "passed",
+      "duration_seconds": 0.015
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_evaluation.py::test_positive_qualification_is_reachable_only_with_all_required_inputs",
+      "status": "passed",
+      "duration_seconds": 0.35
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_crash_after_terminal_publication_recovers_without_repeat_inference",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_unknown_job_type_fails_safely_without_inference",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_heartbeat_lease_loss_cancels_operation_without_stale_publication",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_query_technical_terminal_maps_to_failed_job[verification_unavailable]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_query_technical_terminal_maps_to_failed_job[timed_out]",
+      "status": "passed",
+      "duration_seconds": 0.005
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_query_technical_terminal_maps_to_failed_job[failed]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_cancelled_query_is_acknowledged_as_cancelled_without_inference",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_ingestion_review_state_is_preserved_on_job[needs_review]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_ingestion_review_state_is_preserved_on_job[needs_ocr]",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_worker.py::test_unexpected_exception_is_redacted_in_logs_run_and_job",
+      "status": "passed",
+      "duration_seconds": 0.004
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_live_predeclaration_freezes_exact_twenty_heldout_inputs_without_calls",
+      "status": "passed",
+      "duration_seconds": 0.014
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_live_predeclaration_rejects_changed_sample_or_inputs[nineteen]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_live_predeclaration_rejects_changed_sample_or_inputs[duplicate]",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_live_predeclaration_rejects_changed_sample_or_inputs[development]",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_live_predeclaration_rejects_changed_sample_or_inputs[changed_source_hash]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_mock_predeclaration_requires_explicit_fixture_marker",
+      "status": "passed",
+      "duration_seconds": 0.006
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_twenty_by_three_real_mock_hub_calls_use_evaluation_ledger_and_cannot_qualify",
+      "status": "passed",
+      "duration_seconds": 0.028
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_verifier_disagreement_keeps_the_same_answer_evidence_and_threshold",
+      "status": "passed",
+      "duration_seconds": 0.017
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_remote_failures_remain_in_full_predeclared_denominator[budget_exhausted]",
+      "status": "passed",
+      "duration_seconds": 0.013
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_remote_failures_remain_in_full_predeclared_denominator[timeout]",
+      "status": "passed",
+      "duration_seconds": 0.017
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_shared_repeatability_attempt_cap_prevents_new_remote_calls",
+      "status": "passed",
+      "duration_seconds": 0.013
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_missing_initial_input_keeps_three_failed_slots_without_replacement",
+      "status": "passed",
+      "duration_seconds": 0.02
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_execution_rejects_identity_drift_before_calling_verifier[plan_hash]",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_execution_rejects_identity_drift_before_calling_verifier[dataset]",
+      "status": "passed",
+      "duration_seconds": 0.012
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_execution_rejects_identity_drift_before_calling_verifier[config]",
+      "status": "passed",
+      "duration_seconds": 0.012
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_execution_rejects_identity_drift_before_calling_verifier[implementation]",
+      "status": "passed",
+      "duration_seconds": 0.01
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_live_load_requires_declared_cache_snapshot_and_conservative_total_attempt_cap",
+      "status": "passed",
+      "duration_seconds": 0.012
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_four_concurrent_durable_api_journeys_retain_queue_repair_calls_and_shadow_status",
+      "status": "passed",
+      "duration_seconds": 0.222
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_ambiguous_submission_is_not_retried_or_reported_as_known_zero_cost",
+      "status": "passed",
+      "duration_seconds": 0.115
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_incomplete_api_measurements_and_failed_workers_cannot_pass[failed_worker]",
+      "status": "passed",
+      "duration_seconds": 0.116
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_incomplete_api_measurements_and_failed_workers_cannot_pass[missing_queue]",
+      "status": "passed",
+      "duration_seconds": 0.118
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_incomplete_api_measurements_and_failed_workers_cannot_pass[configuration_drift]",
+      "status": "passed",
+      "duration_seconds": 0.118
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_client_deadline_cancels_only_its_known_job_and_keeps_missing_measurements",
+      "status": "passed",
+      "duration_seconds": 0.063
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_merge_preserves_both_cache_campaigns_and_recomputes_all_four_strata",
+      "status": "passed",
+      "duration_seconds": 0.232
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_live_calls_require_matching_budget_phase_before_api_or_hub_access",
+      "status": "passed",
+      "duration_seconds": 0.02
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_cli_run_defaults_to_dry_run_with_no_http_or_store_access",
+      "status": "passed",
+      "duration_seconds": 0.039
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_experiments.py::test_artifact_file_integrity_and_exclusive_save_preserve_earlier_results",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_native_restore.py::test_native_pg_dump_restore_preserves_sources_vectors_and_retrieval",
+      "status": "passed",
+      "duration_seconds": 5.838
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_fault_suite_manifest_includes_every_project_test_file",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_junit_class_and_parameter_identity_and_skip_are_preserved",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_missing_and_skipped_named_coverage_never_count_as_passed",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_short_fixture_password_redaction_preserves_postgres_test_identifiers",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_junit_redaction_handles_xml_escaped_secrets_without_corrupting_the_report",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_child_database_selection_overrides_query_dbname_and_preserves_connection_settings",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_native_requires_explicit_admin_and_never_connects_to_application_database",
+      "status": "passed",
+      "duration_seconds": 0.0
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_pglite_cannot_claim_native_or_restore_even_when_all_fixture_cases_pass",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_native_fault_artifact_cannot_qualify_with_skips_failures_or_missing_coverage[skipped]",
+      "status": "passed",
+      "duration_seconds": 0.009
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_native_fault_artifact_cannot_qualify_with_skips_failures_or_missing_coverage[failure]",
+      "status": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_native_fault_artifact_cannot_qualify_with_skips_failures_or_missing_coverage[error]",
+      "status": "passed",
+      "duration_seconds": 0.008
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_native_fault_artifact_cannot_qualify_with_skips_failures_or_missing_coverage[missing]",
+      "status": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_source_change_during_tests_invalidates_environment_evidence",
+      "status": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_unbound_environment_artifact_cannot_qualify_and_evidence_files_are_hashed",
+      "status": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_verification.py::test_installed_runtime_must_match_the_code_used_by_the_test_subprocess",
+      "status": "passed",
+      "duration_seconds": 0.007
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_upload_body_limit.py::test_chunked_upload_stops_reading_at_body_limit",
+      "status": "passed",
+      "duration_seconds": 0.001
+    },
+    {
+      "node_id": "apps/rag-poc/tests/test_upload_body_limit.py::test_chunked_multipart_returns_safe_http_413",
+      "status": "passed",
+      "duration_seconds": 0.023
+    }
+  ],
+  "suite_files": [
+    "apps/rag-poc/tests/test_config.py",
+    "apps/rag-poc/tests/test_providers.py",
+    "apps/rag-poc/tests/test_ingestion.py",
+    "apps/rag-poc/tests/test_retrieval.py",
+    "apps/rag-poc/tests/test_storage.py",
+    "apps/rag-poc/tests/test_engine.py",
+    "apps/rag-poc/tests/test_api.py",
+    "apps/rag-poc/tests/test_evaluation.py",
+    "apps/rag-poc/tests/test_worker.py",
+    "apps/rag-poc/tests/test_experiments.py",
+    "apps/rag-poc/tests/test_native_restore.py",
+    "apps/rag-poc/tests/test_verification.py",
+    "apps/rag-poc/tests/test_upload_body_limit.py"
+  ],
+  "missing_files": [],
+  "harness_errors": [],
+  "reasons": [
+    "evaluation_report_not_supplied"
+  ],
+  "temporary_database_name": null,
+  "returncode": 0,
+  "duration_seconds": 16.415,
+  "evidence_files": {
+    "junit": {
+      "file": "fault-suite-12ae3969-1832-43d3-9915-1a044f245c99.junit.xml",
+      "sha256": "3a62fccecf41fb1a3b6361740c72c32f61947579742983175c4e5223d10baa6a"
+    },
+    "transcript": {
+      "file": "fault-suite-12ae3969-1832-43d3-9915-1a044f245c99.log.txt",
+      "sha256": "de4130a250a4d66ecf05ccbd8ebc99d75c7aff04e90c6f190e3274798f6167f8"
+    }
+  },
+  "content_hash": "2b50d4efb49f9b5f599b2c7629ea8f0303c6e169d19744607ce5f681a451f4b1"
+}

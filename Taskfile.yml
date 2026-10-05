@@ -1,0 +1,94 @@
+version: '3'
+vars:
+  CONFIG: '{{default "configs/mock.yaml" .CONFIG}}'
+includes:
+  app:
+    taskfile: apps/evidence-lab/Taskfile.yml
+    dir: '{{.ROOT_DIR}}'
+  dashboard:
+    taskfile: apps/dashboard/Taskfile.yml
+    dir: '{{.ROOT_DIR}}'
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+    - task --list
+  setup:
+    desc: Install all workspace members and dev tools into the root .venv
+    cmds:
+    - uv sync --all-packages --locked --group dev
+    - pnpm install --frozen-lockfile
+    - task: dashboard:build
+  lock:
+    desc: Update both language workspace lockfiles
+    cmds:
+    - uv lock
+    - pnpm install --lockfile-only
+  lint:
+    desc: Check Python and strict dashboard TypeScript
+    cmds:
+    - task: app:lint
+    - .venv/bin/ruff check tooling
+    - task: dashboard:typecheck
+    - task: dashboard:lint
+  format:
+    desc: Format Python sources, tests and tooling
+    cmds:
+    - .venv/bin/ruff format apps tooling
+    - pnpm exec biome format --write apps/dashboard tooling/typescript package.json biome.json
+  test:
+    desc: Run every test (native tests require explicit test DSNs)
+    cmds:
+    - task: app:test
+    - task: dashboard:test
+  test:offline:
+    desc: Run tests without PostgreSQL or inference endpoints
+    cmds:
+    - task: app:test:offline
+    - task: dashboard:test
+  check:
+    desc: Run lint and the full test suite sequentially
+    cmds:
+    - task: lint
+    - task: test
+  build:
+    desc: Build the app wheel and source distribution
+    cmds:
+    - task: dashboard:build
+    - task: app:build
+  backup:
+    desc: Native PostgreSQL backup; pass -- --output PATH
+    cmds:
+    - .venv/bin/python tooling/scripts/backup.py --config '{{.CONFIG}}' {{.CLI_ARGS}}
+  restore:
+    desc: Restore into an empty native PostgreSQL database; pass -- --input PATH
+    cmds:
+    - .venv/bin/python tooling/scripts/restore.py --config '{{.CONFIG}}' {{.CLI_ARGS}}
+  compose:up:
+    desc: Build and start the demo stack
+    cmds:
+    - docker compose up --build -d
+  compose:db:
+    desc: Start only PostgreSQL
+    cmds:
+    - docker compose up -d db
+  compose:seed:
+    desc: Seed the Compose demo through ordinary ingestion
+    cmds:
+    - docker compose exec api evidence-lab seed --config /app/configs/runtime.yaml --wait
+  compose:stop:
+    desc: Stop the stack and preserve its volumes
+    cmds:
+    - docker compose stop
+  compose:down:
+    desc: Remove stack containers and network; preserve volumes
+    cmds:
+    - docker compose down
+  clean:
+    desc: Remove generated build and test caches; preserve .venv and runtime data
+    cmds:
+    - .venv/bin/python tooling/scripts/clean.py
+  typecheck:
+    desc: Check dashboard TypeScript
+    cmds:
+    - task: dashboard:typecheck

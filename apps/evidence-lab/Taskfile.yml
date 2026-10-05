@@ -1,0 +1,48 @@
+version: '3'
+tasks:
+  cli:
+    desc: Run an operator command; pass -- COMMAND [ARGS]
+    cmds:
+    - .venv/bin/python -m evidence_lab --config '{{.CONFIG}}' {{.CLI_ARGS}}
+    deps:
+    - :dashboard:build
+  serve:
+    desc: Start the API and compiled TypeScript dashboard
+    cmds:
+    - .venv/bin/python -m evidence_lab serve --config '{{.CONFIG}}' {{.CLI_ARGS}}
+    deps:
+    - :dashboard:build
+  worker:
+    desc: Start the durable worker
+    cmds:
+    - .venv/bin/python -m evidence_lab worker --config '{{.CONFIG}}' {{.CLI_ARGS}}
+  migrate:
+    desc: Apply PostgreSQL migrations
+    cmds:
+    - .venv/bin/python -m evidence_lab migrate --config '{{.CONFIG}}' {{.CLI_ARGS}}
+  seed:
+    desc: Seed and process the deterministic demo documents
+    cmds:
+    - .venv/bin/python -m evidence_lab seed --config '{{.CONFIG}}' --wait {{.CLI_ARGS}}
+  lint:
+    desc: Check Python sources and tests
+    cmds:
+    - .venv/bin/ruff check apps/evidence-lab
+  test:
+    desc: Run all app tests (always rerun; database prerequisites can change)
+    cmds:
+    - .venv/bin/pytest apps/evidence-lab/tests {{.CLI_ARGS}}
+    deps:
+    - :dashboard:build
+  test:offline:
+    desc: Run app tests excluding database integration and native PostgreSQL
+    cmds:
+    - .venv/bin/pytest apps/evidence-lab/tests -m 'not integration and not native_postgres' {{.CLI_ARGS}}
+    deps:
+    - :dashboard:build
+  build:
+    desc: Build the app distribution (uv caches dependency/build downloads)
+    cmds:
+    - uv build --package evidence-lab --out-dir dist
+    deps:
+    - :dashboard:build

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "files": {
+    "includes": [
+      "apps/dashboard/**",
+      "tooling/typescript/**",
+      "package.json",
+      "biome.json",
+      "!!**/dist",
+      "!!**/node_modules"
+    ]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 110
+  },
+  "linter": {
+    "rules": {
+      "preset": "recommended",
+      "suspicious": {
+        "noExplicitAny": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/dashboard/src/assets/**/*.css"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noImportantStyles": "off"
+          },
+          "style": {
+            "noDescendingSpecificity": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/dashboard/src/components/WorkspaceDialogs.vue"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noNoninteractiveTabindex": "off"
+          }
+        }
+      }
+    }
+  ],
+  "html": {
+    "experimentalFullSupportEnabled": true,
+    "formatter": {
+      "enabled": true
+    }
+  }
+}

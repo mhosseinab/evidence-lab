@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <title>Evidence Lab workspace</title>
+  <rect width="32" height="32" rx="8" fill="#122a28" />
+  <path d="M8 9v15M16 13v10M24 16v6" fill="none" stroke="#b7d6be" stroke-width="4" stroke-linecap="round" />
+</svg>

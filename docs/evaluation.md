@@ -6,18 +6,18 @@ The bundled demo is deliberately small: **four fictional documents, seven questi
 
 ## Run the mock demonstration
 
-From the project root, with the virtual environment installed:
+From the repository root after `task setup`:
 
 ```bash
-.venv/bin/python -m rag_poc.evaluation inspect data/demo/dataset.json
-.venv/bin/rag-poc --config configs/mock.yaml evaluate --dataset data/demo/dataset.json
+uv run --locked --package evidence-lab python -m evidence_lab.evaluation inspect data/demo/dataset.json
+task app:cli -- --config configs/mock.yaml evaluate --dataset data/demo/dataset.json
 ```
 
 The second command prints a dry-run estimate. Execution is explicit and uses the configured PostgreSQL database and durable worker job:
 
 ```bash
-.venv/bin/rag-poc --config configs/mock.yaml migrate
-.venv/bin/rag-poc --config configs/mock.yaml evaluate \
+task app:cli -- --config configs/mock.yaml migrate
+task app:cli -- --config configs/mock.yaml evaluate \
   --dataset data/demo/dataset.json --execute --output artifacts/demo-evaluation
 ```
 
@@ -28,8 +28,8 @@ The browser evaluation API accepts exactly `{"dataset":"demo"}` in mock mode. It
 The demo's evaluation questions use inline evidence, so retrieval coverage is `not_measured_inline_fixture`. To exercise ordinary ingestion and retrieval separately:
 
 ```bash
-.venv/bin/rag-poc --config configs/mock.yaml seed --wait
-.venv/bin/rag-poc --config configs/mock.yaml query \
+task app:cli -- --config configs/mock.yaml seed --wait
+task app:cli -- --config configs/mock.yaml query \
   "When can premium members return an unopened item?" --wait
 ```
 
@@ -106,14 +106,14 @@ Set `all_material_facts_reviewed=true` only when the reviewer has audited the wh
 Generate an unfilled, blinded packet:
 
 ```bash
-.venv/bin/python -m rag_poc.evaluation annotation-template \
+uv run --locked --package evidence-lab python -m evidence_lab.evaluation annotation-template \
   artifacts/demo-evaluation/report.json --output artifacts/answer-review-template.json
 ```
 
 Null labels in this packet are deliberate. It is not valid completed gold and cannot silently score as perfect. Fill actual reviews and adjudicate them before applying:
 
 ```bash
-.venv/bin/rag-poc --config configs/mock.yaml eval-review \
+task app:cli -- --config configs/mock.yaml eval-review \
   artifacts/demo-evaluation/report.json \
   --annotations artifacts/answer-reviews.json --output artifacts/reviewed-evaluation
 ```
@@ -123,7 +123,7 @@ Offline scoring does not call models. A single reviewer yields preliminary measu
 ### Propose one controlled mutation
 
 ```bash
-.venv/bin/python -m rag_poc.evaluation propose-mutation \
+uv run --locked --package evidence-lab python -m evidence_lab.evaluation propose-mutation \
   data/demo/dataset.json s-number_unit \
   --old '€5' --new '€50' --category number_unit --id proposed-postage-mutation \
   --output artifacts/proposed-mutation.json
@@ -194,12 +194,12 @@ Repeatability varies verifier execution, not retrieval or generation. The repeat
 
 The artifact import verifies structure, counts, temporal/sample bindings, and hashes. Artifacts are trusted operator records, not cryptographic attestations of human identity or remote execution. Altering or fabricating their provenance invalidates the experiment even if a JSON file can be made to parse.
 
-Use the actual artifact paths printed by the verification and experiment commands; the fault runner returns an `artifact_path` named `fault-suite-<UUID>.json`. Replace the placeholder below. See `docs/experiments.md` for preparing and running the predeclared live campaigns.
+The project does not include a dedicated fault-artifact runner. Collect the required fault-study evidence externally and retain its actual provenance and bindings to the current evaluation and implementation; `task check`, native pytest runs and JUnit reports support engineering checks but do not automatically create this qualification artifact. Git versioning records source history and does not replace runtime or model measurements. Historical artifacts from prior code cannot qualify the current implementation. Replace the fault-artifact placeholder below with the actual externally collected study. See [experiments.md](experiments.md) for preparing and running the predeclared live campaigns.
 
 ```bash
-.venv/bin/rag-poc --config configs/private.yaml qualify \
+task app:cli -- --config configs/private.yaml qualify \
   artifacts/reviewed-evaluation/report.json \
-  --fault-artifact artifacts/verification/fault-suite-REPLACE_WITH_ARTIFACT_ID.json \
+  --fault-artifact artifacts/externally-collected-fault-study.json \
   --load-artifact artifacts/load/combined-load.json \
   --repeatability-artifact artifacts/repeatability/report.json \
   --policy-id reviewed-candidate-v1 --output policies/reviewed-candidate-v1.json
@@ -210,8 +210,8 @@ Only an all-pass result has `qualified:true`. Missing inputs, mock runs, incompl
 ## Tests and module interfaces
 
 ```bash
-.venv/bin/pytest -q tests/test_evaluation.py
-.venv/bin/ruff check src/rag_poc/evaluation.py tests/test_evaluation.py
+.venv/bin/pytest -q apps/evidence-lab/tests/test_evaluation.py
+.venv/bin/ruff check apps/evidence-lab/src/evidence_lab/evaluation.py apps/evidence-lab/tests/test_evaluation.py
 ```
 
 The tests use explicitly named unit-test stores and scripted or mock provider responses. Production uses PostgreSQL. Tests cover paired input sharing, schema versus semantic gates, stale/malformed verification, repair feedback, controlled immutability, missing review, confidence intervals, family grouping, dataset leakage checks, fixed failure denominators, budget/cancel/restart behavior, API path restrictions, and artifact binding.

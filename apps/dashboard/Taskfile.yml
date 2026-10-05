@@ -1,0 +1,43 @@
+version: '3'
+tasks:
+  typecheck:
+    desc: Strictly check dashboard TypeScript
+    cmds:
+    - pnpm --filter @evidence-lab/dashboard run typecheck
+  lint:
+    desc: Check dashboard formatting and lint rules with the root Biome config
+    cmds:
+    - pnpm exec biome check apps/dashboard tooling/typescript package.json biome.json
+  test:
+    desc: Run dashboard behavior tests
+    cmds:
+    - pnpm --filter @evidence-lab/dashboard run test
+  build:
+    desc: Compile the TypeScript dashboard into its own dist directory
+    sources:
+    - apps/dashboard/src/**
+    - apps/dashboard/public/**
+    - apps/dashboard/index.html
+    - apps/dashboard/vite.config.ts
+    - apps/dashboard/package.json
+    - apps/dashboard/tsconfig.json
+    - apps/dashboard/Taskfile.yml
+    - tooling/typescript/**
+    - package.json
+    - pnpm-workspace.yaml
+    - pnpm-lock.yaml
+    generates:
+    - apps/dashboard/dist/assets/*.js
+    - apps/dashboard/dist/index.html
+    - apps/dashboard/dist/assets/*.css
+    - apps/dashboard/dist/favicon.svg
+    cmds:
+    - pnpm --filter @evidence-lab/dashboard run build
+  serve:
+    desc: Build and serve the dashboard with its FastAPI API on one origin
+    cmds:
+    - task: :app:serve
+  dev:
+    desc: Start Vite with hot reload and proxy API requests to localhost port 8000
+    cmds:
+    - pnpm --filter @evidence-lab/dashboard run dev {{.CLI_ARGS}}

@@ -1,0 +1,9 @@
+{
+  "extends": "../../tooling/typescript/tsconfig.base.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": true,
+    "types": ["vite/client", "node"],
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts", "vite.config.ts"]
+}

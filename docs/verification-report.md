@@ -1,112 +1,74 @@
-# Implementation and verification report
+# Evidence Lab Vue migration verification
 
-Build date: **5 October 2026**. Version: **0.1.0**.
+Verified on **5 October 2026**. The dashboard now uses Vue 3 single-file components, TypeScript and Vite, with the existing FastAPI single-origin deployment.
 
-## Result
+## Structure and behavior
 
-The application is implemented and its complete deterministic workflow runs: upload a document, extract and index it, retrieve evidence, generate a cited draft, verify the exact text, perform at most one fully checked repair, and release the result or abstain. The operator UI, durable worker, command-line tools, evaluation runner, repeatability/load tooling and recovery helpers are included.
+`apps/dashboard/src/main.ts` mounts `App.vue`. `views/` contains Ask, Documents and Evaluations; `components/` contains layout, dialogs, answers, evidence, document tables and metric tables. `composables/` owns reactive workspace state, typed context, requests and polling lifecycle. `api/client.ts` validates HTTP responses; `types/api.ts` describes payloads; `utils/` contains presentation and release helpers; `assets/` contains the existing visual styles. The HTML entry is `apps/dashboard/index.html`; `public/` retains the favicon.
 
-**Final automated result: 359 passed, 0 failed, 0 errors, 4 skipped.** A separate installed-package walkthrough passed **11 checks**, and two real-browser suites passed **18 checks** with no browser errors. The skipped cases require native PostgreSQL concurrency or native backup/restore; they remain outstanding.
+The legacy imperative dashboard, public HTML entry and custom compiler/copy script are removed. Vue interpolation renders untrusted source and answer text literally. Answer fields remain hidden for running, failed, shadow, unqualified, cancelled and abstained states. The operator token stays in memory. Each workspace owns its state; disposal aborts HTTP requests, resolves/clears polling timers, revokes download URLs and erases the token. Request generations prevent stale corpus, run, evaluation, source and trace responses replacing newer state. Upload revisions retain the selected document's corpus when the file picker opens. Later document refreshes recover upload notices after polling failures.
 
-No hosted inference was performed. No model weights, tokenizer downloads or model-serving runtime are included. The bundled synthetic evaluation is explicitly unqualified, and its natural answer-quality fields remain pending human review.
+Vite emits content-hashed JavaScript/CSS under `apps/dashboard/dist/assets`. FastAPI serves generated HTML at `/` and assets at `/static`. Startup checks require the HTML, favicon, JavaScript and CSS; implementation identity includes every generated asset so additional Vue chunks cannot escape identity tracking. Task and Docker retain the same workspace build path; no dashboard files are copied into the Python package. `task dashboard:dev` adds Vite hot reload with a local API proxy.
 
-## Implemented scope
+Strict `vue-tsc` checks include templates, component props, source and tests. Vue 3.5.43, Vite 8.3.2, vue-tsc 3.3.12, Vitest 5.0.3, Vue Test Utils 2.5.1 and jsdom 30.1.2 are locked. TypeScript 6.0.3 is pinned because the current vue-tsc release requires compiler APIs not exported by TypeScript 7. Biome 2.5.15 checks Vue markup and scripts with full HTML support enabled. Existing two CSS cascade exceptions remain; one scoped tabindex exception preserves keyboard scrolling of the operator trace.
 
-| Area | Delivered behavior |
+## Observed checks
+
+| Check | Result |
 |---|---|
-| Configuration | Strict YAML; complete endpoints, direct keys or explicit secret references, model roles, capabilities, limits, dated prices and phase budgets; safe validation errors and redacted provenance |
-| Inference | OpenAI-compatible embeddings and chat adapters; optional native Clef adapter behind explicit protocol opt-in; no automatic provider fallback |
-| Persistence | PostgreSQL and pgvector migrations, immutable source versions and chunks, native full-text search, embedding cache, durable jobs, traces and budget reservations |
-| Ingestion | UTF-8 text, Markdown and readable PDFs; bounded extraction, visible OCR/review states, resumable embedding batches, atomic activation, explicit retry |
-| Retrieval | Exact cosine and lexical candidates, rank fusion, overlap handling, corpus filters and a frozen source-version snapshot |
-| Release | Structural checks; every answer block and three global checks; exact answer/evidence/round binding; one repair; explicit technical failure, shadow and abstention states |
-| Operator interface | Upload/update/preview, corpus creation and selection, question history, immutable citations, evidence, separately labeled unverified trace, evaluation and JSON export |
-| Evaluation | Shared-input A/B/C/D comparisons, controlled claims without repair, complete denominators, hash-bound review templates, uncertainty summaries and qualification gates |
-| Independent experiments | Predeclared twenty-question verifier repeatability, three passes per question, four-concurrent-query API load, separate cold/warm and repair/no-repair strata |
-| Operations | CLI, health checks without inference, lease recovery, retention and source purge, native backup/empty-target restore scripts, pinned dependencies and container references |
+| Locked uv/pnpm installation, `uv lock --check`, `uv pip check` | Passed |
+| `task check` with dedicated native PostgreSQL DSNs | **350 Python + 24 Vue/API tests passed; no failures or skips** |
+| `task test:offline` | **317 Python + 24 Vue/API tests passed; 33 database cases deselected** |
+| Ruff, strict Vue/TypeScript and Biome | Passed |
+| Requested Python test cleanup | Both API/evaluation files pass Ruff lint and formatting; their 58 tests passed against fresh native PostgreSQL |
+| `task build` | Dashboard, wheel and source distribution built |
+| Isolated wheel installation | Correct imports, migrations, no legacy static/runner/bytecode; generated hashed assets served correctly |
+| Docker image build | Passed with the Vite build in the Node stage |
+| Isolated Compose startup | Database, migration, API and worker started; migration exited successfully and demo seeding passed |
+| Actual Task and Compose serving | HTML, JavaScript, CSS and favicon match local build bytes; readiness passed for both services |
+| Browser | Four seeded documents, completed question with citation focus/source preview, completed seven-question evaluation with metrics and qualification limitations |
+| Responsive browser check | At 390 px, no page horizontal overflow |
+| Vite hot reload | Task starts development server; HTML/HMR entry and Vue SFC transformation passed |
+| Multipart HTTP upload | Accepted with HTTP 202 through both Task and Compose services |
+| Approved implementation plan | Unchanged; SHA-256 `7492b09e9f4c3abc56940a34644b9d1be3c70028d93bdb6fba775c464ec12b26` |
 
-FactCG and MiniCheck remain deferred. They are not dependencies or locally hosted comparison models.
+Browser navigation, queries, source previews and evaluation produced no console errors before the upload exercise. The browser tool's multipart requests failed with `ERR_ALPN_NEGOTIATION_FAILED` against both services, and the UI displayed an actionable connection error. Direct multipart HTTP requests succeeded against both endpoints; multipart boundary/token handling, revision corpus capture, upload validation and status recovery passed automated tests. End-to-end upload completion through that browser tool remains unverified.
 
-## Test environment and limits of the evidence
+The Python suite emits one upstream Starlette/httpx deprecation warning. Checks used Python 3.12.14, native PostgreSQL 17/pgvector 0.8.2, Task 3.53.1, uv 0.12.17, Node 24.21.0 and pnpm 12.6.0. Existing deployment services/data were preserved. Disposable verification resources and generated outputs were cleaned after evidence capture; installed dependencies remain. Startup/build tasks recreate `dist`.
 
-The final Python suite ran on **Python 3.12.14**, using the pinned `requirements.lock`. SQL integration used **PGlite PostgreSQL 18.3 with pgvector 0.8.1 through a PostgreSQL TCP connection**. This executes PostgreSQL/vector SQL in the temporary test environment; it does not establish native multi-session concurrency or native backup/restore behavior.
+## Project guidance
 
-The delivered deployment uses native **PostgreSQL 17 with pgvector 0.8.2**, as pinned in `compose.yaml`. Docker and native PostgreSQL client/server tools were unavailable in the build environment. Container registry references were checked and recorded in [container-images.json](container-images.json), but a native Compose startup has not been executed. The exact deployment version is therefore an outstanding integration check.
+`AGENTS.md` now describes the Vue structure, coordination and cleanup rules. Four repository-local skills cover development, dashboard work, engineering verification and security review. Four Codex role definitions cover backend, dashboard, verification and security review. Skill validators and TOML/YAML parsing passed; Codex prompt diagnostics confirmed skill discovery. Start a new Codex session to refresh available skills and roles. These files supply workflows and ownership conventions without changing global settings or permissions. Creating the security-review guidance did not perform a security audit.
 
-The Python wheel was built, installed into a separate environment with the pinned dependencies, and exercised without importing the editable checkout. Migration, bundled data discovery and served static assets worked from that installation. All 28 packaged source/static files matched the final checkout byte for byte; no Python bytecode was packaged. See [packaging-checks.json](build-evidence/packaging-checks.json).
+## Evidence and reproduction
 
-Ruff, JavaScript syntax checking and Python dependency compatibility checks passed. The test client emitted an upstream Starlette deprecation warning about its httpx adapter; it did not cause an application or test failure.
+- [Full Task check transcript](build-evidence/vue-dashboard/task-check.log.txt)
+- [Native JUnit results](build-evidence/vue-dashboard/tests.junit.xml)
+- [Offline transcript](build-evidence/vue-dashboard/task-offline.log.txt)
+- [API/evaluation tests after formatting](build-evidence/vue-dashboard/python-focused.log.txt)
+- [Dashboard development structure](../apps/dashboard/README.md)
 
-## Final automated suite
+Historical artifacts retain their original names, paths and hashes; they are not current qualification evidence. Git supplies source history; the removed build manifest and verification runner remain absent.
 
-The fixed verification manifest includes all 13 project test files. It records individual outcomes and maps mandatory behavior to 16 fault areas. Missing or skipped requirements prevent a complete or qualifying fault artifact.
+From the checkout root:
 
-| Test group | Passed | Skipped |
-|---|---:|---:|
-| Configuration | 55 | 0 |
-| Provider contracts and transport | 85 | 0 |
-| Ingestion | 26 | 0 |
-| Retrieval | 19 | 0 |
-| PostgreSQL persistence | 36 | 3 |
-| Answer engine and policy | 28 | 0 |
-| API boundaries and SQL/worker integration | 24 | 0 |
-| Evaluation | 32 | 0 |
-| Worker recovery | 10 | 0 |
-| Repeatability and load experiment contracts | 27 | 0 |
-| Native backup/restore | 0 | 1 |
-| Verification-artifact integrity | 15 | 0 |
-| Streaming upload-body limits | 2 | 0 |
-| **Total** | **359** | **4** |
-
-The four skipped checks cover competing job claims, competing budget reservations, a consistent dense/lexical snapshot during concurrent source activation, and native `pg_dump`/`pg_restore` recovery of sources, vectors, traces and migration revision.
-
-The final artifact is bound to the CLI demo evaluation and the unchanged implementation. Its flags correctly remain `complete: false`, `qualification_eligible: false`, `native_postgres_verified: false` and `restore_verified: false`.
-
-- [Fault-suite JSON](build-evidence/verification/fault-suite-c9056565-6b41-4c49-85b2-995630b9bdf6.json)
-- [JUnit results](build-evidence/verification/fault-suite-c9056565-6b41-4c49-85b2-995630b9bdf6.junit.xml)
-- [Sanitized test transcript](build-evidence/verification/fault-suite-c9056565-6b41-4c49-85b2-995630b9bdf6.log.txt)
-
-## Installed-package and browser workflows
-
-The [installed-package record](build-evidence/cli-checks.json) contains eleven successful checks: configuration, migration, seeding, query release, retrieval, mock endpoint smoke, durable evaluation, evaluation export, API/static-asset serving, migration with an older embedding-space corpus, and creation of a new corpus after the space change.
-
-The last two checks verify an operator transition found during deployment review. Changing the configured embedding space preserves the existing default corpus, lets the application start for inspection, and allows creation of a separate compatible corpus. Existing vectors are never relabeled as belonging to the new space.
-
-The [main browser walkthrough](build-evidence/ui-browser-walkthrough.json) passed ten scenarios against the actual API and worker: empty-corpus abstention, multipart ingestion, inert rendering of uploaded HTML, cited answer release, exact source-version navigation, one repair with complete recheck, persistent rejection, historical source preservation, durable evaluation/export and mobile layout.
-
-The [corpus/retry walkthrough](build-evidence/ui-corpus-retry.json) passed eight further scenarios. It checked corpus-ID validation, empty-corpus isolation, selected-corpus retrieval, filtered history/counts, mismatch guidance and mobile selection. A test-only one-time embedding failure produced a recoverable ingestion error; the browser retried the same durable job, which succeeded on attempt two. The failed notification then changed to Complete.
-
-Both browser reports include final static-file hashes and zero browser errors. Reviewed screenshots are included alongside them: [answer](build-evidence/ui-answer.png), [documents](build-evidence/ui-documents.png), [evaluation](build-evidence/ui-evaluation.png), [recoverable failure](build-evidence/ui-recoverable-failure.png), [successful retry](build-evidence/ui-retry-complete.png) and [mobile corpus selector](build-evidence/ui-corpus-mobile.png).
-
-## Synthetic evaluation result
-
-The final exported demo completed all **seven questions and sixteen controlled cases**. It used deterministic fixtures with **zero remote provider attempts**. Four fictional documents were also seeded through the ordinary ingestion path for the separate retrieval walkthrough.
-
-| Variant | Released fixture answers | Abstentions | Declared questions |
-|---|---:|---:|---:|
-| A: ungated candidate | 6 | 1 | 7 |
-| B: structural checks | 6 | 1 | 7 |
-| C: semantic gate | 4 | 3 | 7 |
-| D: gate plus one repair | 6 | 1 | 7 |
-
-These are fixture workflow outcomes, not model-quality measurements. Eleven distinct answers await human review. Correctness, completeness, natural unsupported-release rates and conflict-handling quality remain unestablished. The inline-evidence questions do not measure retrieval quality.
-
-The complete deliverables are [report.json](build-evidence/cli-demo/report.json), [questions.csv](build-evidence/cli-demo/questions.csv), [controlled.csv](build-evidence/cli-demo/controlled.csv), [summary.md](build-evidence/cli-demo/summary.md) and the deliberately unfilled [answer-review-template.json](build-evidence/cli-demo/answer-review-template.json). Diagnostic drafts in these files are operator review material.
-
-The report and fault artifact share implementation fingerprint:
-
-```text
-9033cf3e02367ba0edb0acbc77065499b092321285e89dd14ac3a717df9ca4df
+```bash
+task setup
+task test:offline
+task lint
+task build
+task dashboard:serve
 ```
 
-## Remaining acceptance work
+For hot reload, run `task app:serve` and `task dashboard:dev` in separate terminals, then open Vite's printed URL. For a container deployment, use `task compose:up` and `task compose:seed`; first follow the README's instructions if existing services occupy the configured ports.
 
-The implementation is ready for the native host and selected endpoints to be exercised. The remaining work depends on resources not supplied for this build:
+For all native tests, set `RAG_TEST_DSN` and `RAG_TEST_NATIVE_ADMIN_DSN` to dedicated PostgreSQL/pgvector test connections and run `task check`. Native restore tests require PostgreSQL client tools. Run `task clean` after checks to remove generated outputs.
 
-1. Start the pinned Compose stack and run the mock seed/query walkthrough on the target host.
-2. Run native verification against an explicitly supplied test administrator DSN, with native PostgreSQL client tools available. The harness creates and removes its own disposable database; use the README command and inspect all four native outcomes.
-3. Fill the private YAML with the embedding, generation and verification endpoints, keys, model IDs, capabilities, prices and positive phase budgets. Start in shadow mode, then run the explicit endpoint smoke command.
-4. Supply the actual corpus and independently reviewed development/held-out gold. Freeze policy and selected profiles, execute the paired study, complete blind answer review, and run the predeclared live repeatability/load experiments.
-5. Run policy qualification with matching evaluation, native fault, load and repeatability artifacts. Enable live gated release only after qualification succeeds.
+No model downloads, hosted inference or paid calls were performed. Mock workflows do not establish model accuracy. Human-reviewed held-out gold, real endpoint performance and a qualified live release policy remain unmeasured; this migration does not establish production readiness.
 
-The build supplies the commands, schemas, review rubric and gate logic for these steps. It supplies no fabricated human labels, hosted benchmark results or qualified live policy. Full setup commands are in [README.md](../README.md); study instructions are in [evaluation.md](evaluation.md) and [experiments.md](experiments.md).
+
+## Python type-diagnostic follow-up — 6 October 2026
+
+Added explicit non-None assertions before indexing worker results and Wilson intervals or comparing the zero-event bound. The API test double's mutable run mapping and evaluation artifact/sample fixtures now have explicit types, resolving the remaining inferred-container errors in these two files.
+
+Basedpyright analyzed both files with the root Python environment: **zero errors**. Its default strict diagnostics still report 803 warnings, mostly unannotated fixture/unknown-type warnings; this change does not claim a warning-free repository. Ruff lint and formatting checks passed, and all **58 tests** in the two files passed against a fresh native PostgreSQL fixture. Temporary tools, database and generated caches were removed after checking.
