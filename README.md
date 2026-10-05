@@ -8,7 +8,7 @@ See the [documentation index](docs/README.md), [approved design](docs/implementa
 
 ## Names and workspace layout
 
-Names: CLI/distribution `evidence-lab`, Python package `evidence_lab`, frontend `@evidence-lab/dashboard`, Compose project `evidence-lab`, image `evidence-lab:local`. The checkout may remain `rag-poc`. Fresh deployments use `evidence_*` tables and `EVIDENCE_LAB_*` environment variables; legacy database/environment compatibility is removed.
+Names: CLI/distribution `evidence-lab`, Python package `evidence_lab`, frontend `@evidence-lab/dashboard`, Compose project `evidence-lab`, image `evidence-lab:local`. The checkout may remain `rag-poc`. Deployments use `evidence_*` tables and `EVIDENCE_LAB_*` environment variables.
 
 ```text
 .
@@ -97,7 +97,10 @@ flowchart LR
   Worker --> Eval["evaluation.py: paired studies"]
   Engine --> Retrieval
   Engine --> Policy["policy.py: structural checks and release gate"]
-  Engine --> Hub["providers: embedding, generation, verification"]
+  Engine --> Models["integrations/models.py: structured generation"]
+  Engine --> VerifyTool["integrations/tools.py: verify_frozen_evidence"]
+  Models --> Hub["providers: embedding, generation, verification"]
+  VerifyTool --> Hub
   Ingestion --> Hub
   Retrieval --> Hub
   Eval --> Hub
@@ -267,7 +270,24 @@ The first command plans calls; `--execute` sends embedding, generation and verif
 
 ## Cloudflare Clef verifier
 
-**Clef is supported through a native `cloudflare_clef` adapter.** It checks answer blocks and global consistency against frozen evidence; your configured chat model still generates answers. See [Cloudflare's Clef reference](https://developers.cloudflare.com/workers-ai/models/clef/).
+**Clef is a LangChain verification tool backed by the native `cloudflare_clef` adapter.** The graph invokes `verify_frozen_evidence` with typed question/draft arguments; frozen evidence, budget context and round are bound by the application. Your configured chat model still generates answers. See [Cloudflare's Clef reference](https://developers.cloudflare.com/workers-ai/models/clef/).
+
+The tool reuses `ProviderHub.verify` and its PostgreSQL reservations, bounded
+retries and strict choice/probability validation. Its `ToolMessage` contains summary
+checks and a full `VerificationResult` artifact with answer/evidence hashes. The
+graph applies the release policy to that artifact; a tool result alone does not
+release an answer. Clef probabilities remain uncalibrated. See the
+[tool example](apps/evidence-lab/src/evidence_lab/providers/README.md#clef-in-the-langchain-toolset).
+
+```mermaid
+flowchart LR
+  Graph[LangGraph verification stage] --> Tool[verify_frozen_evidence]
+  Scope[Frozen evidence + ledger context + round] --> Tool
+  Tool --> Hub[ProviderHub.verify]
+  Hub --> Clef[Budgeted native Clef request]
+  Clef --> Artifact[Validated checks + typed artifact]
+  Artifact --> Gate[Existing release policy]
+```
 
 ### Activate Clef
 
@@ -322,7 +342,7 @@ task app:migrate CONFIG=configs/private.yaml
 task dev CONFIG=configs/private.yaml
 ```
 
-Use a new corpus when switching from fixture embeddings. In `shadow` mode, checked candidates appear only in the operator trace; public answers require a matching qualification artifact and `verification.mode: gated`. Restart API/worker after changing verifier settings. FactCG and MiniCheck remain deferred.
+Use a new corpus when switching from fixture embeddings. In `shadow` mode, checked candidates appear only in the operator trace; public answers require a matching qualification artifact and `verification.mode: gated`. Restart API/worker after changing verifier settings.
 
 ## Move from mock to live storage
 
@@ -336,7 +356,7 @@ EVIDENCE_LAB_CONFIG=./configs/private.yaml task compose:up
 
 Restart API/worker after configuration changes. For a separate project, free the ports and use `docker compose -p evidence-lab-live ...`.
 
-The schema is a fresh baseline; existing legacy databases must be reset before using this version. Compose database credentials and private DSNs must match.
+Compose database credentials and private DSNs must match.
 
 Containers run as UID `10001`; mounted YAML must be readable. Mount `api_key_file` read-only or explicitly forward the selected `api_key_env` variable.
 

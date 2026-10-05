@@ -14,7 +14,7 @@ Domain models in `apps/evidence-lab/src/evidence_lab/domain.py` (imported as `ev
 * `verify(question: str, draft: Draft, evidence: EvidencePack, ctx: CallContext, round_id: str = "initial") -> VerificationResult`
 * `aclose()`
 
-Use ProviderError with a safe status/message. Missing/foreign/duplicate check IDs must fail. Bind hashes and round ID in application code, not by trusting model echoes. Mock generation/verification must be explicitly marked fixture-only, use exact evidence excerpts and deterministic adversarial cases. Do not claim mocked validation proves semantic quality. Native Clef uses actual documented choice/noul schema after checking official docs. All optional protocol settings come from config. No auto fallback. Budget/call hooks below.
+Use ProviderError with a safe status/message. Missing/foreign/duplicate check IDs must fail. Bind hashes and round ID in application code, not by trusting model echoes. Mock generation/verification must be explicitly marked fixture-only, use exact evidence excerpts and deterministic adversarial cases. Do not claim mocked validation proves semantic quality. Native Clef uses its documented choice/probability schema. All optional protocol settings come from config. No auto fallback. Budget/call hooks below.
 
 ## Store
 

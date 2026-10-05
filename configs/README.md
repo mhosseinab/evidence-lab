@@ -72,6 +72,8 @@ Live calls require positive total and matching phase caps. Every attempt reserve
 
 Generation and evaluation share strict JSON decoding and answer-size limits. A format failure may retry once within the two-attempt ceiling; interactive draft-schema failure is terminal. Evaluation retains the shared initial candidate for A–D.
 
+The graph invokes Clef through the scoped `verify_frozen_evidence` LangChain tool, reusing the native adapter and ledger. Its typed artifact feeds the release policy. See the [tool contract and example](../apps/evidence-lab/src/evidence_lab/providers/README.md#clef-in-the-langchain-toolset).
+
 Clef uses native choice distributions for every answer block and three global checks. The application validates coverage and binds verdicts to answer/evidence hashes and round IDs. A semantic rejection may trigger one complete repair against frozen evidence. Malformed responses, timeouts and budget exhaustion remain technical failures. Probability thresholds require a frozen reviewed policy; no automatic fallback or model download is provided.
 
 ## Conversation memory and LangSmith
