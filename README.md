@@ -248,7 +248,7 @@ The first command plans calls; `--execute` sends embedding, generation and verif
 
 ### Activate Clef
 
-1. Copy `configs/live.example.yaml` to `configs/private.yaml` and complete the embedding/generator profiles, including limits and dated prices.
+1. Copy the complete [clef.example.yaml](configs/clef.example.yaml) to `configs/private.yaml` for OpenAI embeddings/generation plus Clef. See [configuration setup](configs/README.md) for the exact substitutions. For other providers, start from `configs/live.example.yaml`.
 2. Get your Cloudflare account ID and a [Workers AI API token](https://developers.cloudflare.com/workers-ai/get-started/rest-api/).
 3. Merge these settings into the private file, replacing the account/token placeholders:
 

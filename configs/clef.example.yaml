@@ -1,0 +1,142 @@
+# Evidence Lab live stack: OpenAI embeddings/generation + native Cloudflare Clef.
+# Copy to configs/private.yaml; replace only the two keys and Cloudflare account ID.
+# This sample intentionally fails validation until placeholders are replaced.
+# Positive caps allow spending after credentials are configured; --execute is explicit
+# for smoke/evaluation, while uploads/questions spend when processed by the worker.
+# Prices checked 2026-10-06; recheck linked provider docs before live use.
+config_version: 1
+runtime:
+  mode: live
+  require_openai_compatible: false
+  remote_concurrency: 4
+  query_deadline_seconds: 120
+  max_remote_attempts_per_query: 10
+  ingestion_deadline_seconds: 1800
+  max_remote_attempts_per_ingestion: 2000
+  host: 127.0.0.1
+  port: 8000
+  worker_lease_seconds: 120
+  poll_seconds: 0.5
+  operator_token: null
+database:
+  # For Compose, change localhost to db in the private copy.
+  dsn: postgresql://rag:rag@localhost:5432/rag
+budgets:
+  total_max_estimated_cost_usd: 5
+  phase_max_estimated_cost_usd:
+    ingestion: 1
+    queries: 1
+    smoke: 0.25
+    evaluation: 2.75
+profiles:
+  embedding_primary:
+    protocol: embeddings
+    endpoint: https://api.openai.com/v1/embeddings
+    api_key: REPLACE_OPENAI_API_KEY
+    # Or replace api_key with api_key_env: OPENAI_API_KEY / api_key_file: secrets/openai.key.
+    auth_header: Authorization
+    auth_prefix: Bearer
+    model: text-embedding-3-small
+    semantic_revision: null  # Provider alias is not a pinned model revision.
+    embedding_space: openai-text-embedding-3-small-1536-v1
+    dimensions: 1536
+    request_dimensions: true
+    batch_size: 16
+    max_input_tokens: 8192
+    max_batch_input_tokens: 8192  # Conservative aggregate batch ceiling.
+    token_counting: conservative_utf8_bytes
+    context_headroom_fraction: 0.15
+    timeout_seconds: 30
+    max_attempts: 2
+    concurrency: 4
+    pricing:
+      input_usd_per_million: 0.02
+      output_usd_per_million: 0
+      checked_on: '2026-10-06'
+  chat_primary:
+    protocol: chat_completions
+    endpoint: https://api.openai.com/v1/chat/completions
+    api_key: REPLACE_OPENAI_API_KEY
+    auth_header: Authorization
+    auth_prefix: Bearer
+    model: gpt-4.1-mini-2025-04-14
+    semantic_revision: gpt-4.1-mini-2025-04-14
+    capabilities:
+      structured_output: json_schema
+      output_limit_parameter: max_completion_tokens
+      temperature: true
+    max_input_tokens: 65536  # Application allowance below provider context limit.
+    max_output_tokens: 1200
+    token_counting: conservative_utf8_bytes
+    context_headroom_fraction: 0.15
+    timeout_seconds: 30
+    max_attempts: 2
+    concurrency: 4
+    pricing:
+      input_usd_per_million: 0.40
+      output_usd_per_million: 1.60
+      checked_on: '2026-10-06'
+  clef_full:
+    protocol: cloudflare_clef
+    endpoint: https://api.cloudflare.com/client/v4/accounts/REPLACE_ACCOUNT_ID/ai/run/@cf/cloudflare/clef
+    api_key: REPLACE_CLOUDFLARE_API_TOKEN
+    # Or replace api_key with api_key_env: CLOUDFLARE_API_TOKEN / api_key_file: secrets/cloudflare.key.
+    auth_header: Authorization
+    auth_prefix: Bearer
+    model: clef  # Native body selector, distinct from the endpoint's model path.
+    semantic_revision: null
+    max_input_tokens: 65536
+    max_questions: 64
+    token_counting: conservative_utf8_bytes
+    context_headroom_fraction: 0.25
+    timeout_seconds: 30
+    max_attempts: 2
+    concurrency: 4
+    # Native Clef does not accept max_output_tokens or chat capabilities.
+    pricing:
+      input_usd_per_million: 0.24
+      output_usd_per_million: 0
+      checked_on: '2026-10-06'
+roles:
+  embeddings: embedding_primary
+  generator: chat_primary
+  verifier: clef_full
+  repair_generator: null  # Reuse chat_primary for the optional repair.
+  evaluation_judge: null
+verification:
+  mode: shadow  # Public answers require a separately qualified gated policy.
+  policy_id: null
+  policy_path: null
+  score_threshold: null  # Choice labels; no uncalibrated probability threshold.
+  max_answer_blocks: 8
+  max_answer_bytes: 8000
+  max_repair_bytes: 16384
+  max_content_repairs: 1
+  evidence_policy: frozen
+ingestion:
+  max_upload_bytes: 20971520
+  max_pdf_pages: 200
+  max_documents: 100
+  max_active_chunks: 10000
+  max_retained_payload_bytes: 5368709120
+  inactive_retention_days: 30
+  failed_staging_retention_days: 7
+  max_extracted_chars: 10000000
+  max_page_extracted_chars: 1000000
+  chunk_target_chars: 1600
+  chunk_max_chars: 2400
+  chunk_overlap_chars: 200
+  embedding_batch_size: 16
+retrieval:
+  dense_candidates: 40
+  lexical_candidates: 40
+  rrf_constant: 60
+  evidence_chunks: 8
+  search_mode: exact
+evaluation:
+  max_remote_attempts: 3000
+  dataset_dir: data
+  allowlisted_datasets:
+    demo: data/demo/dataset.json
+  gold_path: null
+  policy_output_dir: policies
