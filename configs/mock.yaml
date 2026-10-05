@@ -14,7 +14,7 @@ runtime:
   worker_lease_seconds: 120
   poll_seconds: 0.5
 database:
-  dsn: postgresql://rag:rag@localhost:5432/rag
+  dsn: postgresql://evidence:evidence@localhost:5432/evidence_lab
 budgets:
   total_max_estimated_cost_usd: 0
   phase_max_estimated_cost_usd:
@@ -105,3 +105,16 @@ evaluation:
   dataset_dir: data
   allowlisted_datasets:
     demo: data/demo/dataset.json
+
+memory:
+  enabled: true
+  max_turns: 6
+  max_context_bytes: 4000
+langsmith:
+  enabled: false
+  project: evidence-lab
+  api_url: https://api.smith.langchain.com
+  api_key: null
+  api_key_env: null
+  workspace_id: null
+  timeout_seconds: 2

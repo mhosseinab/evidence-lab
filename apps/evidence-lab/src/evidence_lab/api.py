@@ -23,11 +23,12 @@ from evidence_lab.ingestion import admit_document, pipeline_revision
 from evidence_lab.policy import policy_state
 from evidence_lab.retrieval import retrieve_evidence, space_manifest
 from evidence_lab.storage import Store
+from evidence_lab.graph import graph_descriptor
 
 PUBLIC_RUN_FIELDS = (
     "id", "job_id", "corpus_id", "space_id", "question", "status", "answer", "blocks",
     "checks", "evidence", "qualification", "error", "code", "message", "timings",
-    "mode", "config_fingerprint", "created_at", "updated_at", "finished_at",
+    "mode", "config_fingerprint", "created_at", "updated_at", "finished_at", "conversation_id", "graph_steps",
 )
 JOB_FIELDS = ("id", "kind", "status", "created_at", "updated_at", "finished_at", "attempts", "result", "error")
 
@@ -58,6 +59,7 @@ class QueryRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     question: str = Field(min_length=1, max_length=16000)
     corpus_id: str = Field(default="default", pattern=r"^[A-Za-z0-9_-]{1,64}$")
+    conversation_id: str | None = Field(default=None, pattern=r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
 
 class EvaluationRequest(BaseModel):
@@ -83,7 +85,7 @@ def public_job(job: dict) -> dict:
 
 
 def make_store(config) -> Store:
-    return Store(config.database.dsn, limits=config.ingestion.model_dump(mode="json"))
+    return Store(config.database.dsn, limits=config.ingestion.model_dump(mode="json"), memory=config.memory.model_dump())
 
 
 def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
@@ -203,6 +205,11 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
             for role in ("embeddings", "generator", "verifier")
         }
         return {"version": __version__, "mode": config.runtime.mode,
+                "orchestration": {"engine": "langgraph", "nodes": graph_descriptor()["nodes"],
+                                  "edges": [[edge["source"], edge["target"]] for edge in graph_descriptor()["edges"]],
+                                  "tools": ["retrieve_corpus_evidence", "preview_evidence_source"],
+                                  "memory": {"enabled": config.memory.enabled, "max_turns": config.memory.max_turns},
+                                  "tracing": {"provider": "langsmith", "enabled": config.langsmith.enabled, "content": "metadata_only"}},
                 "policy_state": state["state"], "policy": state, "profiles": profiles,
                 "corpus_id": corpus_id, "corpus": corpus,
                 "embedding_space_matches": corpus["space_id"] == space_manifest(config)["id"],
@@ -272,8 +279,10 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
         state = policy_state(config)
         if config.runtime.mode == "live" and config.verification.mode == "gated" and not state["release_allowed"]:
             raise ProviderError("policy_not_ready", state["reason"])
-        return public_run(store.create_run(payload.question, payload.corpus_id,
-                                          {"config_fingerprint": config.fingerprint()}))
+        settings = {"config_fingerprint": config.fingerprint()}
+        if payload.conversation_id is not None:
+            settings["conversation_id"] = payload.conversation_id
+        return public_run(store.create_run(payload.question, payload.corpus_id, settings))
 
     @app.post("/api/retrieval/preview")
     async def retrieval_preview(payload: QueryRequest):

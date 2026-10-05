@@ -45,7 +45,7 @@ Open `http://127.0.0.1:5173/static/`, create a new corpus, then upload documents
 For Compose, change the private DSN hostname to `db`, ensure its YAML is readable by container UID `10001`, and run:
 
 ```bash
-RAG_CONFIG=./configs/private.yaml task compose:up
+EVIDENCE_LAB_CONFIG=./configs/private.yaml task compose:up
 ```
 
 Open the compiled dashboard at `http://127.0.0.1:8000/`. Restart API/worker after changing configuration. Avoid port conflicts with another running stack.
@@ -64,10 +64,29 @@ Rates were checked on 6 October 2026. The sample uses conservative application i
 
 Choose exactly one credential source per active profile: direct `api_key`, `api_key_env`, or `api_key_file`. Relative secret files resolve from the YAML directory. Compose must explicitly mount secret files or forward selected environment variables. Private YAML and `configs/secrets/` are ignored by Git; example files must contain placeholders only.
 
-Live calls require positive total and matching phase caps. Every attempt reserves cost, attempts and concurrency in PostgreSQL before transport. Unknown usage retains conservative reservations; the ledger is not a provider invoice. Mock mode never resolves credentials or makes model calls.
+Live calls require positive total and matching phase caps. Every attempt reserves cost, attempts and concurrency in PostgreSQL before transport. Unknown usage retains conservative reservations; the ledger is not a provider invoice. Mock mode ignores model credentials and makes no model calls; explicitly enabled LangSmith tracing resolves its own key and exports metadata.
 
 ## Decoding and verification
 
 Generation and evaluation share strict JSON decoding and answer-size limits. A format failure may retry once within the two-attempt ceiling; interactive draft-schema failure is terminal. Evaluation retains the shared initial candidate for A–D.
 
 Clef uses native choice distributions for every answer block and three global checks. The application validates coverage and binds verdicts to answer/evidence hashes and round IDs. A semantic rejection may trigger one complete repair against frozen evidence. Malformed responses, timeouts and budget exhaustion remain technical failures. Probability thresholds require a frozen reviewed policy; no automatic fallback or model download is provided.
+
+## Conversation memory and LangSmith
+
+All samples enable six-turn PostgreSQL memory with a 4000-byte context cap. Only released answers enter follow-up context; shadow drafts do not. The dashboard's New conversation action starts a fresh corpus-bound thread.
+
+To enable LangSmith, edit the private copy:
+
+```yaml
+langsmith:
+  enabled: true
+  project: evidence-lab
+  api_url: https://api.smith.langchain.com
+  api_key_env: EVIDENCE_LAB_LANGSMITH_API_KEY
+  timeout_seconds: 2
+```
+
+Set the referenced key in the API and worker environments (or use a direct `api_key`). Compose requires explicitly forwarding it; the root sample does not inherit host secrets. Metadata traces include run IDs, stages and timings only. Raw prompts, source text, drafts and dialogue remain local. Global `LANGSMITH_TRACING` settings do not enable content tracing. Restart after changes.
+
+This version uses a fresh `evidence_*` schema and `EVIDENCE_LAB_*` controls; legacy database/environment compatibility is removed. The local sample DSN is `postgresql://evidence:evidence@localhost:5432/evidence_lab`.

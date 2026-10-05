@@ -23,10 +23,10 @@ COPY docs docs
 COPY README.md ./
 RUN uv sync --locked --all-packages --group dev --no-editable \
     && uv pip check \
-    && useradd --create-home --uid 10001 rag \
+    && useradd --create-home --uid 10001 evidence \
     && mkdir -p /app/artifacts /app/policies \
-    && chown -R rag:rag /app/artifacts /app/policies
+    && chown -R evidence:evidence /app/artifacts /app/policies
 ENV PATH="/app/.venv/bin:$PATH"
-USER rag
+USER evidence
 EXPOSE 8000
 CMD ["evidence-lab", "serve", "--config", "/app/configs/runtime.yaml"]

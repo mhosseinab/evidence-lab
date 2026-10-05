@@ -1,7 +1,7 @@
 """Persistence contracts against PostgreSQL and pgvector, never SQLite/fakes.
 
-Set RAG_TEST_DSN to a test PostgreSQL instance. Native runs create a private
-schema and only clear that schema's tables. RAG_TEST_BACKEND=pglite requires the
+Set EVIDENCE_LAB_TEST_DSN to a test PostgreSQL instance. Native runs create a private
+schema and only clear that schema's tables. EVIDENCE_LAB_TEST_BACKEND=pglite requires the
 runner's fresh ephemeral database because its socket server ignores search_path
 startup options; that branch clears its disposable public schema's RAG tables.
 PGlite exercises SQL/pgvector behavior but skips native multi-session tests.
@@ -25,9 +25,9 @@ from evidence_lab.storage import StorageError, Store, _vector
 
 
 TABLES = (
-    "rag_calls", "rag_run_events", "rag_runs", "rag_jobs", "rag_embedding_cache",
-    "rag_chunk_embeddings", "rag_chunks", "rag_document_versions", "rag_documents",
-    "rag_corpora", "rag_embedding_spaces",
+    "evidence_calls", "evidence_run_events", "evidence_runs", "evidence_jobs", "evidence_embedding_cache",
+    "evidence_chunk_embeddings", "evidence_chunks", "evidence_document_versions", "evidence_documents",
+    "evidence_corpora", "evidence_embedding_spaces",
 )
 SPACE = {"id": "test-space", "dimensions": 3, "model": "fixture", "fingerprint": "fixture-v1"}
 
@@ -50,7 +50,7 @@ def store(storage_dsn):
 def _expire_job(dsn, job):
     with psycopg.connect(dsn) as connection:
         connection.execute(
-            "UPDATE rag_jobs SET lease_until=clock_timestamp()-interval '1 second' WHERE id=%s",
+            "UPDATE evidence_jobs SET lease_until=clock_timestamp()-interval '1 second' WHERE id=%s",
             (job["id"],),
         )
 
@@ -387,7 +387,7 @@ class TestPostgresPersistence:
             store.reserve_call("run-2", "queries", "different-profile", 0.1, limits)
         assert error.value.code == "concurrency_limited" and error.value.retryable
         with psycopg.connect(storage_dsn) as connection:
-            connection.execute("UPDATE rag_calls SET active_until=clock_timestamp()-interval '1 second' WHERE id=%s", (call,))
+            connection.execute("UPDATE evidence_calls SET active_until=clock_timestamp()-interval '1 second' WHERE id=%s", (call,))
         next_call = store.reserve_call("run-2", "queries", "different-profile", 0.1, limits)
         expired = store.get_calls("run-1")[0]
         assert expired["status"] == "expired_unknown" and expired["charged_cost"] == 0.1
@@ -487,7 +487,7 @@ class TestPostgresPersistence:
 class TestNativeMultiSessionConcurrency:
     @pytest.fixture(autouse=True)
     def native_only(self):
-        if os.environ.get("RAG_TEST_BACKEND", "").lower() == "pglite":
+        if os.environ.get("EVIDENCE_LAB_TEST_BACKEND", "").lower() == "pglite":
             pytest.skip("PGlite SQL checks do not establish native multi-session concurrency.")
 
     def test_two_workers_cannot_claim_same_job(self, store, storage_dsn):

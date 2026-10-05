@@ -30,7 +30,7 @@ def prepare_database(config, config_path: str) -> bool:
     default_mock = (
         Path(config_path).resolve() == ROOT / "configs/mock.yaml"
         and config.runtime.mode == "mock"
-        and config.database.dsn == "postgresql://rag:rag@localhost:5432/rag"
+        and config.database.dsn == "postgresql://evidence:evidence@localhost:5432/evidence_lab"
     )
     migration_command = f"task app:migrate CONFIG={shlex.quote(config_path)}"
     if default_mock:

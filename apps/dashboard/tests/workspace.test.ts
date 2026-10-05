@@ -180,3 +180,61 @@ it("recovers an upload notice when a later refresh observes completed ingestion"
   expect(state.uploads[0]?.error).toBe(false);
   expect(state.uploads[0]?.status).toBe("Complete");
 });
+
+it("continues the server conversation, then resets it for new questions and corpora", async () => {
+  vi.useFakeTimers();
+  const fetch = vi.fn((path: string, options?: RequestInit) => {
+    if (path === "/api/queries") {
+      const body = JSON.parse(String(options?.body));
+      return Promise.resolve(
+        response({
+          id: "run",
+          conversation_id: body.conversation_id ?? "server-conversation",
+          status: "answered",
+        }),
+      );
+    }
+    if (path === "/api/runs/run")
+      return Promise.resolve(
+        response({ id: "run", conversation_id: "server-conversation", status: "answered" }),
+      );
+    return Promise.resolve(response({ documents: [], runs: [] }));
+  });
+  vi.stubGlobal("fetch", fetch);
+  const { state, actions } = workspace();
+  await actions.submitQuestion("First question");
+  await vi.advanceTimersByTimeAsync(0);
+  expect(state.conversationId).toBe("server-conversation");
+  await actions.submitQuestion("Follow-up question");
+  await vi.advanceTimersByTimeAsync(0);
+  const submissions = fetch.mock.calls
+    .filter(([path]) => path === "/api/queries")
+    .map(([, options]) => JSON.parse(String(options?.body)));
+  expect(submissions[0]).not.toHaveProperty("conversation_id");
+  expect(submissions[1].conversation_id).toBe("server-conversation");
+  actions.newConversation();
+  expect(state.conversationId).toBeNull();
+  expect(state.run).toBeNull();
+  expect(state.question).toBe("");
+  await actions.submitQuestion("Fresh question");
+  await vi.advanceTimersByTimeAsync(0);
+  const last = fetch.mock.calls.filter(([path]) => path === "/api/queries").at(-1);
+  expect(JSON.parse(String(last?.[1]?.body))).not.toHaveProperty("conversation_id");
+  await actions.selectCorpus("other");
+  expect(state.conversationId).toBeNull();
+});
+
+it("does not restore conversation memory from a submission completed after reset", async () => {
+  const query = deferred<Response>();
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() => query.promise),
+  );
+  const { state, actions } = workspace();
+  const submission = actions.submitQuestion("Old question");
+  actions.newConversation();
+  query.resolve(response({ id: "old", conversation_id: "old-conversation", status: "queued" }));
+  await submission;
+  expect(state.conversationId).toBeNull();
+  expect(state.run).toBeNull();
+});

@@ -13,16 +13,16 @@ from evidence_lab.storage import Store
 
 @contextmanager
 def _isolated_test_schema():
-    base_dsn = os.environ.get("RAG_TEST_DSN")
+    base_dsn = os.environ.get("EVIDENCE_LAB_TEST_DSN")
     if not base_dsn:
-        pytest.skip("Set RAG_TEST_DSN for PostgreSQL/pgvector integration tests.")
-    if os.environ.get("RAG_TEST_BACKEND", "").lower() == "pglite":
+        pytest.skip("Set EVIDENCE_LAB_TEST_DSN for PostgreSQL/pgvector integration tests.")
+    if os.environ.get("EVIDENCE_LAB_TEST_BACKEND", "").lower() == "pglite":
         # This flag is supplied only by the test setup that creates and destroys a
         # fresh in-memory database per invocation. It is not a native fallback.
         Store(base_dsn).migrate()
         yield base_dsn
         return
-    schema = "rag_storage_test_" + uuid.uuid4().hex
+    schema = "evidence_storage_test_" + uuid.uuid4().hex
     with psycopg.connect(base_dsn, autocommit=True) as connection:
         connection.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
     scoped_url = make_url(base_dsn).update_query_dict({"options": f"-csearch_path={schema},public"})
@@ -34,7 +34,7 @@ def _isolated_test_schema():
         Store(scoped_dsn).migrate()
         with psycopg.connect(scoped_dsn) as connection:
             assert connection.execute("SELECT table_schema FROM information_schema.tables "
-                                      "WHERE table_name='rag_jobs' AND table_schema=current_schema()").fetchone(), \
+                                      "WHERE table_name='evidence_jobs' AND table_schema=current_schema()").fetchone(), \
                 "Test jobs must be isolated in the private schema."
         yield scoped_dsn
     finally:

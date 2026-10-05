@@ -74,3 +74,36 @@ describe("validated API boundary", () => {
     ).rejects.toBeInstanceOf(ApiError);
   });
 });
+
+it("validates workflow metadata and rejects unsafe or malformed execution fields", () => {
+  const orchestration = {
+    engine: "langgraph",
+    nodes: ["retrieve", "verify"],
+    edges: [["retrieve", "verify"]],
+    tools: ["search_documents"],
+    memory: { enabled: true, max_turns: 8 },
+    tracing: { provider: "langsmith", enabled: true, content: "metadata_only" },
+  };
+  const payload = parsePayload({
+    orchestration,
+    conversation_id: "conversation",
+    graph_steps: [{ node: "retrieve", status: "completed", elapsed_seconds: 0.2 }],
+  });
+  expect(payload.orchestration?.engine).toBe("langgraph");
+  expect(payload.graph_steps?.[0]?.elapsed_seconds).toBe(0.2);
+  expect(() =>
+    parsePayload({
+      orchestration: { ...orchestration, tracing: { provider: "langsmith", enabled: true, content: "full" } },
+    }),
+  ).toThrow(/workflow metadata/);
+  expect(() => parsePayload({ orchestration: { ...orchestration, edges: [["retrieve"]] } })).toThrow(
+    /workflow metadata/,
+  );
+  expect(() =>
+    parsePayload({ graph_steps: [{ node: "verify", status: "completed", elapsed_seconds: -1 }] }),
+  ).toThrow(/workflow metadata/);
+  expect(() =>
+    parsePayload({ graph_steps: [{ node: "verify", status: "private_draft", elapsed_seconds: 1 }] }),
+  ).toThrow(/workflow metadata/);
+  expect(() => parsePayload({ conversation_id: 1 })).toThrow(/conversation_id/);
+});

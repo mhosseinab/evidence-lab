@@ -63,7 +63,7 @@ class RuntimeConfig(_StrictConfig):
 
 
 class DatabaseConfig(_StrictConfig):
-    dsn: str = Field(default="postgresql://rag:rag@localhost:5432/rag", repr=False)
+    dsn: str = Field(default="postgresql://evidence:evidence@localhost:5432/evidence_lab", repr=False)
 
     @field_validator("dsn")
     @classmethod
@@ -77,6 +77,38 @@ class DatabaseConfig(_StrictConfig):
         if not valid:
             raise _SettingError("database.dsn must be a PostgreSQL connection URL.")
         return value
+
+
+class MemoryConfig(_StrictConfig):
+    enabled: bool = True
+    max_turns: int = Field(default=6, ge=1, le=20)
+    max_context_bytes: int = Field(default=8000, ge=256, le=32000)
+
+
+class LangSmithConfig(_StrictConfig):
+    enabled: bool = False
+    project: str = Field(default="evidence-lab", min_length=1, max_length=96)
+    api_url: str = "https://api.smith.langchain.com"
+    api_key: SecretStr | None = Field(default=None, repr=False)
+    api_key_env: str | None = Field(default=None, repr=False)
+    workspace_id: str | None = None
+    timeout_seconds: float = Field(default=2, gt=0, le=10)
+
+    @model_validator(mode="after")
+    def explicit_tracing(self) -> LangSmithConfig:
+        if not self.enabled:
+            return self
+        parsed = urlsplit(self.api_url)
+        if parsed.scheme not in {"https", "http"} or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
+            raise _SettingError("LangSmith requires an explicit HTTP(S) API URL without credentials, queries or fragments.")
+        if sum(value is not None for value in (self.api_key, self.api_key_env)) != 1:
+            raise _SettingError("Enabled LangSmith requires exactly one API key or explicit environment reference.")
+        value = self.api_key.get_secret_value() if self.api_key else self.api_key_env
+        if not value or not value.strip() or (self.api_key and _placeholder(value)):
+            raise _SettingError("LangSmith credentials must be nonempty.")
+        if self.api_key and any(ord(ch) < 32 or ord(ch) > 126 for ch in value):
+            raise _SettingError("LangSmith API keys must contain printable ASCII characters.")
+        return self
 
 
 class IngestionConfig(_StrictConfig):
@@ -280,6 +312,8 @@ class AppConfig(_StrictConfig):
     profiles: dict[str, Profile] = Field(min_length=1)
     roles: Roles
     evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)
+    memory: MemoryConfig = Field(default_factory=MemoryConfig)
+    langsmith: LangSmithConfig = Field(default_factory=LangSmithConfig)
 
     def role_name(self, role: Role) -> str:
         if role not in Roles.model_fields:
@@ -406,6 +440,9 @@ class AppConfig(_StrictConfig):
         data = self.model_dump(mode="json")
         data["database"]["dsn"] = REDACTED
         data["runtime"]["operator_token"] = REDACTED if self.runtime.operator_token is not None else None
+        data["langsmith"]["api_url"] = _safe_endpoint(self.langsmith.api_url)
+        for key in ("api_key", "api_key_env"):
+            data["langsmith"][key] = REDACTED if getattr(self.langsmith, key) is not None else None
         for name, profile in self.profiles.items():
             item = data["profiles"][name]
             for key in ("api_key", "api_key_env", "api_key_file"):
@@ -545,6 +582,12 @@ def load_config(path: str | Path) -> AppConfig:
         config = AppConfig.model_validate(data)
         config._source_directory = config_path.resolve().parent
         _resolve_keys(config, config_path.resolve().parent)
+        if config.langsmith.enabled and config.langsmith.api_key_env is not None:
+            value = os.environ.get(config.langsmith.api_key_env)
+            if _placeholder(value) or any(ord(ch) < 32 or ord(ch) > 126 for ch in value):
+                raise ConfigError("The selected LangSmith API key environment reference is unset or invalid.")
+            config.langsmith.api_key = SecretStr(value)
+            config.langsmith.api_key_env = None
         return config
     except ConfigError:
         raise

@@ -1,4 +1,4 @@
-import type { Payload } from "../types/api";
+import type { GraphStep, Orchestration, Payload } from "../types/api";
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -20,6 +20,7 @@ export function parsePayload(input: unknown): Payload {
     "job_id",
     "evaluation_id",
     "corpus_id",
+    "conversation_id",
     "document_id",
     "version_id",
     "latest_version_id",
@@ -188,7 +189,57 @@ export function parsePayload(input: unknown): Payload {
           ]),
         );
   }
+  if (value.orchestration != null) value.orchestration = parseOrchestration(value.orchestration);
+  if (value.graph_steps != null) {
+    if (!Array.isArray(value.graph_steps))
+      throw new Error("The workspace returned an invalid graph steps list.");
+    value.graph_steps = value.graph_steps.map(parseGraphStep);
+  }
   return value as Payload;
+}
+
+function invalidWorkflow(): never {
+  throw new Error("The workspace returned invalid workflow metadata.");
+}
+function strings(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+function parseGraphStep(value: unknown): GraphStep {
+  if (
+    !isRecord(value) ||
+    typeof value.node !== "string" ||
+    !["completed", "failed"].includes(String(value.status)) ||
+    typeof value.elapsed_seconds !== "number" ||
+    !Number.isFinite(value.elapsed_seconds) ||
+    value.elapsed_seconds < 0
+  )
+    invalidWorkflow();
+  return {
+    node: value.node,
+    status: value.status as GraphStep["status"],
+    elapsed_seconds: value.elapsed_seconds,
+  };
+}
+function parseOrchestration(value: unknown): Orchestration {
+  if (
+    !isRecord(value) ||
+    value.engine !== "langgraph" ||
+    !strings(value.nodes) ||
+    !strings(value.tools) ||
+    !Array.isArray(value.edges) ||
+    !value.edges.every((edge) => strings(edge) && edge.length === 2) ||
+    !isRecord(value.memory) ||
+    typeof value.memory.enabled !== "boolean" ||
+    typeof value.memory.max_turns !== "number" ||
+    !Number.isInteger(value.memory.max_turns) ||
+    value.memory.max_turns < 0 ||
+    !isRecord(value.tracing) ||
+    value.tracing.provider !== "langsmith" ||
+    typeof value.tracing.enabled !== "boolean" ||
+    value.tracing.content !== "metadata_only"
+  )
+    invalidWorkflow();
+  return value as unknown as Orchestration;
 }
 
 export function createApiClient(getToken: () => string, onAccessRequired: () => void = () => {}) {

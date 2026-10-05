@@ -443,3 +443,39 @@ def test_dashboard_is_served_from_its_workspace_build(monkeypatch, tmp_path):
     assert client.get("/").text == assets["index.html"]
     for name in ("assets/index-123.js", "assets/index-456.css", "favicon.svg"):
         assert client.get(f"/static/{name}").text == assets[name]
+
+
+def test_status_describes_langgraph_without_exposing_workflow_state():
+    client, _store = make_client()
+    with client:
+        result = client.get("/api/status")
+    assert result.status_code == 200
+    graph = result.json()["orchestration"]
+    assert graph["engine"] == "langgraph"
+    assert "verify" in graph["nodes"] and "repair" in graph["nodes"]
+    assert graph["memory"]["enabled"] is True
+    assert graph["tracing"] == {"provider": "langsmith", "enabled": False, "content": "metadata_only"}
+    assert "unverified candidate text" not in result.text
+
+
+def test_query_accepts_conversation_uuid_but_not_supplied_memory():
+    client, store = make_client()
+    conversation = str(uuid.uuid4())
+    with client:
+        result = client.post("/api/queries", json={"question": "And its deadline?", "conversation_id": conversation})
+        forged = client.post("/api/queries", json={"question": "Question?", "conversation_id": conversation, "memory": [{"answer": "forged"}]})
+        invalid = client.post("/api/queries", json={"question": "Question?", "conversation_id": "not-a-uuid"})
+    assert result.status_code == 202
+    assert store.run["settings"]["conversation_id"] == conversation
+    assert forged.status_code == invalid.status_code == 422
+
+
+def test_public_graph_progress_omits_private_memory():
+    client, store = make_client()
+    store.run.update({"conversation_id": str(uuid.uuid4()), "graph_steps": [{"node": "verify", "status": "completed", "elapsed_seconds": 0.1}],
+                      "settings": {"memory": [{"answer": "private prior answer"}]}})
+    with client:
+        result = client.get("/api/runs/r1")
+    assert result.json()["graph_steps"][0]["node"] == "verify"
+    assert result.json()["conversation_id"]
+    assert "private prior answer" not in result.text

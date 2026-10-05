@@ -149,7 +149,9 @@ async def _retrieve_snapshot(question: str, corpus_id: str, store, hub, config, 
     # ensure_corpus also validates the fingerprint for an existing space ID.
     store.ensure_corpus(corpus_id, manifest)
     budget = hub.shared_evidence_budget(question)
-    vectors = validate_vectors(await hub.embed([question], ctx), 1, manifest["dimensions"])
+    from evidence_lab.integrations.models import LedgerEmbeddings
+
+    vectors = validate_vectors(await LedgerEmbeddings(hub, ctx).aembed_documents([question]), 1, manifest["dimensions"])
     ctx.remaining()
     snapshot = store.retrieve(
         corpus_id,

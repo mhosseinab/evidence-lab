@@ -7,7 +7,7 @@ description: Implement Evidence Lab backend, contract, or workspace changes usin
 
 Read `AGENTS.md`, `docs/contracts.md`, and the relevant section of `docs/implementation-plan.md`; do not modify the approved plan.
 
-Choose the nearest existing module in `apps/evidence-lab/src/evidence_lab` before adding a pattern. Keep API/domain contracts in `domain.py`, provider behavior in adapters/configuration, and durable state in PostgreSQL/pgvector. Preserve `rag_*` table names and the existing `RAG_*` environment variables unless a separate persistence/configuration migration is explicitly requested.
+Choose the nearest existing module in `apps/evidence-lab/src/evidence_lab` before adding a pattern. Keep API/domain contracts in `domain.py`, provider behavior in adapters/configuration, and durable state in PostgreSQL/pgvector. Preserve `evidence_*` table names and the existing `EVIDENCE_LAB_*` environment variables unless a separate persistence/configuration migration is explicitly requested.
 
 Coordinate shared contract edits with dashboard contributors. Keep deterministic fixtures distinguishable from real endpoint measurements and prevent unverified drafts from entering the normal answer field. Private YAML accepts direct key values; redact secrets from exceptions, logs and traces.
 

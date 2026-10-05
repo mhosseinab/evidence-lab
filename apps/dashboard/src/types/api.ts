@@ -1,3 +1,16 @@
+export interface GraphStep {
+  node: string;
+  status: "completed" | "failed";
+  elapsed_seconds: number;
+}
+export interface Orchestration {
+  engine: "langgraph";
+  nodes: string[];
+  edges: [string, string][];
+  tools: string[];
+  memory: { enabled: boolean; max_turns: number };
+  tracing: { provider: "langsmith"; enabled: boolean; content: "metadata_only" };
+}
 export interface Payload {
   [key: string]: unknown;
   id?: string;
@@ -5,6 +18,9 @@ export interface Payload {
   job_id?: string;
   evaluation_id?: string;
   corpus_id?: string;
+  conversation_id?: string;
+  graph_steps?: GraphStep[];
+  orchestration?: Orchestration;
   document_id?: string;
   version_id?: string;
   latest_version_id?: string;

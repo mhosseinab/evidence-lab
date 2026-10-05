@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import AnswerPanel from "../components/AnswerPanel.vue";
 import EvidenceList from "../components/EvidenceList.vue";
 import StatusPill from "../components/StatusPill.vue";
+import WorkflowPanel from "../components/WorkflowPanel.vue";
 import { useDashboardContext } from "../composables/dashboardContext";
 import type { Payload } from "../types/api";
 import { dateText, documentStatus, idOf, pendingStates, statusOf } from "../utils/presentation";
@@ -73,6 +74,21 @@ async function refreshRuns() {
     </div>
     <div class="ask-layout">
       <div class="ask-main">
+        <div v-if="state.status?.orchestration?.memory.enabled" class="section-heading">
+          <span class="composer-hint"
+            >{{ state.conversationId ? "Conversation continues" : "New conversation" }}
+            · Up to {{ state.status.orchestration.memory.max_turns }} remembered turns</span
+          >
+          <button
+            id="new-conversation"
+            class="text-button"
+            type="button"
+            :disabled="active"
+            @click="actions.newConversation"
+          >
+            New conversation
+          </button>
+        </div>
         <form id="question-form" class="composer panel" @submit.prevent="submit">
           <label for="question">What would you like to know?</label>
           <textarea
@@ -108,6 +124,7 @@ async function refreshRuns() {
             {{ suggestion.label }} <span aria-hidden="true">↗</span>
           </button>
         </div>
+        <WorkflowPanel />
         <AnswerPanel v-if="state.run" @citation="highlightEvidence" />
         <div v-else id="ask-welcome" class="panel welcome-panel">
           <span class="welcome-icon" aria-hidden="true"

@@ -28,6 +28,7 @@ export interface DashboardState {
   token: string;
   status: Payload | null;
   corpusId: string;
+  conversationId: string | null;
   corpora: Payload[];
   documents: Payload[];
   runs: Payload[];
@@ -74,6 +75,7 @@ export function useDashboard() {
     token: "",
     status: null,
     corpusId: "default",
+    conversationId: null,
     corpora: [],
     documents: [],
     runs: [],
@@ -222,6 +224,7 @@ export function useDashboard() {
   async function selectCorpus(corpusId: string) {
     if (disposed || corpusId === state.corpusId) return;
     state.corpusId = corpusId;
+    state.conversationId = null;
     const selection = ++selectionVersion;
     queryPoll++;
     state.run = null;
@@ -260,8 +263,21 @@ export function useDashboard() {
       state.busy.corpus = false;
     }
   }
+  function newConversation() {
+    selectionVersion++;
+    queryPoll++;
+    state.conversationId = null;
+    state.run = null;
+    state.runId = null;
+    state.runJobId = null;
+    state.evidence = [];
+    state.question = "";
+    state.busy.question = false;
+    state.notice = "";
+  }
   function updateRun(run: Payload) {
     state.run = run;
+    if (run.conversation_id) state.conversationId = run.conversation_id;
     state.runJobId = run.job_id || state.runJobId;
     const pack = run.evidence_pack || run.evidence || run.result?.evidence_pack || run.result?.evidence;
     state.evidence = Array.isArray(pack) ? pack : listOf(pack, "items", "evidence");
@@ -277,7 +293,11 @@ export function useDashboard() {
     try {
       const result = await api("/api/queries", {
         method: "POST",
-        body: JSON.stringify({ question, corpus_id: state.corpusId }),
+        body: JSON.stringify({
+          question,
+          corpus_id: state.corpusId,
+          ...(state.conversationId ? { conversation_id: state.conversationId } : {}),
+        }),
       });
       if (disposed || selection !== selectionVersion) return;
       const id = result.run_id ?? result.id;
@@ -667,6 +687,7 @@ export function useDashboard() {
     for (const url of blobUrls) URL.revokeObjectURL(url);
     blobUrls.clear();
     state.token = "";
+    state.conversationId = null;
   }
   return {
     state,
@@ -679,6 +700,7 @@ export function useDashboard() {
       selectCorpus,
       createCorpus,
       submitQuestion,
+      newConversation,
       openRun,
       cancelRun,
       uploadFiles,

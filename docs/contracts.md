@@ -4,7 +4,7 @@ Domain models in `apps/evidence-lab/src/evidence_lab/domain.py` (imported as `ev
 
 ## Configuration and providers
 
-`evidence_lab.config.load_config(path) -> AppConfig`; Pydantic object with runtime, database, ingestion, retrieval, verification, budgets, profiles, roles, evaluation settings from plan. `config.safe_dict()` returns redacted config; `config.fingerprint()` returns sanitized hash. Database DSN is configurable, default `postgresql://rag:rag@localhost:5432/rag` (local sample only). Mock config must be complete and runnable; provider profiles still describe real contracts, runtime.mode=mock selects deterministic fixtures without HTTP/model downloads.
+`evidence_lab.config.load_config(path) -> AppConfig`; Pydantic object with runtime, database, ingestion, retrieval, verification, budgets, profiles, roles, evaluation settings from plan. `config.safe_dict()` returns redacted config; `config.fingerprint()` returns sanitized hash. Database DSN is configurable, default `postgresql://evidence:evidence@localhost:5432/evidence_lab` (local sample only). Mock config must be complete and runnable; provider profiles still describe real contracts, runtime.mode=mock selects deterministic fixtures without HTTP/model downloads.
 
 `evidence_lab.providers.ProviderHub(config, store=None, client=None)` provides async methods:
 
@@ -63,3 +63,13 @@ Module `evidence_lab.evaluation` owns schemas, paired A/B/C/D runner, controlled
 API routes from plan plus GET /api/status, GET /api/documents, GET /api/runs, GET /api/evaluations, POST /api/jobs/{id}/cancel, GET /api/runs/{id}/trace. Document upload uses multipart `file`, `corpus_id=default`, optional document_id. Query POST JSON `{question,corpus_id:"default"}`. Source preview `/api/source-versions/{id}`; download original at `/api/source-versions/{id}/download`. Evaluation POST JSON `{dataset:"demo"}`. Use JSON errors `{detail: safe string, code:...}`. Upload/query/eval mutations return202 with IDs; polling terminal statuses. GET /api/status exposes mode, policy state, corpus counts, redacted profile names/model IDs, budget summaries, no secrets. Auth optional operator token in config; default bind localhost. UI uses safe textContent, no unsanitized innerHTML for uploaded/model text.
 
 The Vue/TypeScript dashboard consumes these HTTP contracts through runtime-validated helpers in `apps/dashboard/src/api/` and types in `src/types/`. Components use Vue interpolation for untrusted text; answer views preserve the release gate and never render private drafts. Views live in `src/views/`, shared components in `src/components/`, state/actions in `src/composables/`, and CSS in `src/assets/`; `task dashboard:build` creates `apps/dashboard/dist/`, which FastAPI serves directly at `/` and `/static` from the repository root. `task dashboard:serve` starts this combined API/dashboard service. Run `task dashboard:typecheck` and `task dashboard:test` when changing dashboard request/response handling. Generated static files are build outputs, not contract sources.
+
+## LangGraph, conversation memory and telemetry
+
+QueryEngine.run(job) is the single compiled LangGraph path. integrations provides LedgerChatModel (BaseChatModel), LedgerEmbeddings, native verifier Runnable and corpus-scoped StructuredTools. ProviderHub/CallExecutor continue to own every outbound call, retry and spend reservation. No model-driven arbitrary tools are executed.
+
+POST /api/queries accepts optional conversation_id (UUID); the server creates a corpus-bound conversation when absent. Store(dsn, limits=None, memory=None) snapshots only completed answered pairs at acceptance, overwriting supplied memory. Source deletion scrubs copied context and fences pending runs. The public run adds conversation_id and graph_steps [{node,status,elapsed_seconds}]; memory snapshots and graph state remain private.
+
+GET /api/status adds orchestration {engine,nodes,edges,tools,memory,tracing}; the dashboard consumes this descriptor and persisted execution steps. LangSmith export is explicitly enabled through YAML with one direct/environment credential source, metadata only, and fails open independently of answer publication. Ambient tracing is disabled. Memory is durable SQL state; LangGraph checkpointers are not used and job recovery may restart a nonterminal query.
+
+The fresh baseline contains evidence_* tables, including corpus-bound conversations. Environment variables use EVIDENCE_LAB_*; previous schema and environment aliases are unsupported.

@@ -1,0 +1,222 @@
+task: Task "dashboard:build" is up to date
+task: Task "dashboard:build" is up to date
+task: [app:build] uv build --package evidence-lab --out-dir dist
+Building source distribution...
+running egg_info
+writing src/evidence_lab.egg-info/PKG-INFO
+writing dependency_links to src/evidence_lab.egg-info/dependency_links.txt
+writing entry points to src/evidence_lab.egg-info/entry_points.txt
+writing requirements to src/evidence_lab.egg-info/requires.txt
+writing top-level names to src/evidence_lab.egg-info/top_level.txt
+reading manifest file 'src/evidence_lab.egg-info/SOURCES.txt'
+writing manifest file 'src/evidence_lab.egg-info/SOURCES.txt'
+running sdist
+running egg_info
+writing src/evidence_lab.egg-info/PKG-INFO
+writing dependency_links to src/evidence_lab.egg-info/dependency_links.txt
+writing entry points to src/evidence_lab.egg-info/entry_points.txt
+writing requirements to src/evidence_lab.egg-info/requires.txt
+writing top-level names to src/evidence_lab.egg-info/top_level.txt
+reading manifest file 'src/evidence_lab.egg-info/SOURCES.txt'
+writing manifest file 'src/evidence_lab.egg-info/SOURCES.txt'
+running check
+creating evidence_lab-0.1.0
+creating evidence_lab-0.1.0/src/evidence_lab
+creating evidence_lab-0.1.0/src/evidence_lab.egg-info
+creating evidence_lab-0.1.0/src/evidence_lab/integrations
+creating evidence_lab-0.1.0/src/evidence_lab/migrations
+creating evidence_lab-0.1.0/src/evidence_lab/migrations/versions
+creating evidence_lab-0.1.0/src/evidence_lab/providers
+creating evidence_lab-0.1.0/tests
+copying files to evidence_lab-0.1.0...
+copying README.md -> evidence_lab-0.1.0
+copying pyproject.toml -> evidence_lab-0.1.0
+copying src/evidence_lab/__init__.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/__main__.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/api.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/cli.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/config.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/domain.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/engine.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/evaluation.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/experiments.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/graph.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/ingestion.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/langsmith_trace.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/memory.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/policy.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/retrieval.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/storage.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab/worker.py -> evidence_lab-0.1.0/src/evidence_lab
+copying src/evidence_lab.egg-info/PKG-INFO -> evidence_lab-0.1.0/src/evidence_lab.egg-info
+copying src/evidence_lab.egg-info/SOURCES.txt -> evidence_lab-0.1.0/src/evidence_lab.egg-info
+copying src/evidence_lab.egg-info/dependency_links.txt -> evidence_lab-0.1.0/src/evidence_lab.egg-info
+copying src/evidence_lab.egg-info/entry_points.txt -> evidence_lab-0.1.0/src/evidence_lab.egg-info
+copying src/evidence_lab.egg-info/requires.txt -> evidence_lab-0.1.0/src/evidence_lab.egg-info
+copying src/evidence_lab.egg-info/top_level.txt -> evidence_lab-0.1.0/src/evidence_lab.egg-info
+copying src/evidence_lab/integrations/__init__.py -> evidence_lab-0.1.0/src/evidence_lab/integrations
+copying src/evidence_lab/integrations/models.py -> evidence_lab-0.1.0/src/evidence_lab/integrations
+copying src/evidence_lab/integrations/tools.py -> evidence_lab-0.1.0/src/evidence_lab/integrations
+copying src/evidence_lab/migrations/__init__.py -> evidence_lab-0.1.0/src/evidence_lab/migrations
+copying src/evidence_lab/migrations/env.py -> evidence_lab-0.1.0/src/evidence_lab/migrations
+copying src/evidence_lab/migrations/versions/0001_initial.py -> evidence_lab-0.1.0/src/evidence_lab/migrations/versions
+copying src/evidence_lab/providers/__init__.py -> evidence_lab-0.1.0/src/evidence_lab/providers
+copying src/evidence_lab/providers/clef.py -> evidence_lab-0.1.0/src/evidence_lab/providers
+copying src/evidence_lab/providers/mock.py -> evidence_lab-0.1.0/src/evidence_lab/providers
+copying src/evidence_lab/providers/openai.py -> evidence_lab-0.1.0/src/evidence_lab/providers
+copying src/evidence_lab/providers/prompts.py -> evidence_lab-0.1.0/src/evidence_lab/providers
+copying src/evidence_lab/providers/transport.py -> evidence_lab-0.1.0/src/evidence_lab/providers
+copying tests/test_api.py -> evidence_lab-0.1.0/tests
+copying tests/test_config.py -> evidence_lab-0.1.0/tests
+copying tests/test_dev.py -> evidence_lab-0.1.0/tests
+copying tests/test_engine.py -> evidence_lab-0.1.0/tests
+copying tests/test_evaluation.py -> evidence_lab-0.1.0/tests
+copying tests/test_experiments.py -> evidence_lab-0.1.0/tests
+copying tests/test_graph.py -> evidence_lab-0.1.0/tests
+copying tests/test_ingestion.py -> evidence_lab-0.1.0/tests
+copying tests/test_integrations.py -> evidence_lab-0.1.0/tests
+copying tests/test_langsmith.py -> evidence_lab-0.1.0/tests
+copying tests/test_memory.py -> evidence_lab-0.1.0/tests
+copying tests/test_native_restore.py -> evidence_lab-0.1.0/tests
+copying tests/test_providers.py -> evidence_lab-0.1.0/tests
+copying tests/test_retrieval.py -> evidence_lab-0.1.0/tests
+copying tests/test_storage.py -> evidence_lab-0.1.0/tests
+copying tests/test_upload_body_limit.py -> evidence_lab-0.1.0/tests
+copying tests/test_worker.py -> evidence_lab-0.1.0/tests
+Writing evidence_lab-0.1.0/setup.cfg
+Creating tar archive
+removing 'evidence_lab-0.1.0' (and everything under it)
+Building wheel from source distribution...
+running egg_info
+writing src/evidence_lab.egg-info/PKG-INFO
+writing dependency_links to src/evidence_lab.egg-info/dependency_links.txt
+writing entry points to src/evidence_lab.egg-info/entry_points.txt
+writing requirements to src/evidence_lab.egg-info/requires.txt
+writing top-level names to src/evidence_lab.egg-info/top_level.txt
+reading manifest file 'src/evidence_lab.egg-info/SOURCES.txt'
+writing manifest file 'src/evidence_lab.egg-info/SOURCES.txt'
+running bdist_wheel
+running build
+running build_py
+creating build/lib/evidence_lab
+copying src/evidence_lab/worker.py -> build/lib/evidence_lab
+copying src/evidence_lab/storage.py -> build/lib/evidence_lab
+copying src/evidence_lab/retrieval.py -> build/lib/evidence_lab
+copying src/evidence_lab/policy.py -> build/lib/evidence_lab
+copying src/evidence_lab/memory.py -> build/lib/evidence_lab
+copying src/evidence_lab/langsmith_trace.py -> build/lib/evidence_lab
+copying src/evidence_lab/ingestion.py -> build/lib/evidence_lab
+copying src/evidence_lab/graph.py -> build/lib/evidence_lab
+copying src/evidence_lab/experiments.py -> build/lib/evidence_lab
+copying src/evidence_lab/evaluation.py -> build/lib/evidence_lab
+copying src/evidence_lab/engine.py -> build/lib/evidence_lab
+copying src/evidence_lab/domain.py -> build/lib/evidence_lab
+copying src/evidence_lab/config.py -> build/lib/evidence_lab
+copying src/evidence_lab/cli.py -> build/lib/evidence_lab
+copying src/evidence_lab/api.py -> build/lib/evidence_lab
+copying src/evidence_lab/__main__.py -> build/lib/evidence_lab
+copying src/evidence_lab/__init__.py -> build/lib/evidence_lab
+creating build/lib/evidence_lab/providers
+copying src/evidence_lab/providers/transport.py -> build/lib/evidence_lab/providers
+copying src/evidence_lab/providers/prompts.py -> build/lib/evidence_lab/providers
+copying src/evidence_lab/providers/openai.py -> build/lib/evidence_lab/providers
+copying src/evidence_lab/providers/mock.py -> build/lib/evidence_lab/providers
+copying src/evidence_lab/providers/clef.py -> build/lib/evidence_lab/providers
+copying src/evidence_lab/providers/__init__.py -> build/lib/evidence_lab/providers
+creating build/lib/evidence_lab/migrations
+copying src/evidence_lab/migrations/env.py -> build/lib/evidence_lab/migrations
+copying src/evidence_lab/migrations/__init__.py -> build/lib/evidence_lab/migrations
+creating build/lib/evidence_lab/integrations
+copying src/evidence_lab/integrations/tools.py -> build/lib/evidence_lab/integrations
+copying src/evidence_lab/integrations/models.py -> build/lib/evidence_lab/integrations
+copying src/evidence_lab/integrations/__init__.py -> build/lib/evidence_lab/integrations
+creating build/lib/evidence_lab/migrations/versions
+copying src/evidence_lab/migrations/versions/0001_initial.py -> build/lib/evidence_lab/migrations/versions
+running egg_info
+writing src/evidence_lab.egg-info/PKG-INFO
+writing dependency_links to src/evidence_lab.egg-info/dependency_links.txt
+writing entry points to src/evidence_lab.egg-info/entry_points.txt
+writing requirements to src/evidence_lab.egg-info/requires.txt
+writing top-level names to src/evidence_lab.egg-info/top_level.txt
+reading manifest file 'src/evidence_lab.egg-info/SOURCES.txt'
+writing manifest file 'src/evidence_lab.egg-info/SOURCES.txt'
+installing to build/bdist.linux-x86_64/wheel
+running install
+running install_lib
+creating build/bdist.linux-x86_64/wheel
+creating build/bdist.linux-x86_64/wheel/evidence_lab
+creating build/bdist.linux-x86_64/wheel/evidence_lab/integrations
+copying build/lib/evidence_lab/integrations/__init__.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/integrations
+copying build/lib/evidence_lab/integrations/models.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/integrations
+copying build/lib/evidence_lab/integrations/tools.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/integrations
+creating build/bdist.linux-x86_64/wheel/evidence_lab/migrations
+creating build/bdist.linux-x86_64/wheel/evidence_lab/migrations/versions
+copying build/lib/evidence_lab/migrations/versions/0001_initial.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/migrations/versions
+copying build/lib/evidence_lab/migrations/__init__.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/migrations
+copying build/lib/evidence_lab/migrations/env.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/migrations
+creating build/bdist.linux-x86_64/wheel/evidence_lab/providers
+copying build/lib/evidence_lab/providers/__init__.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/providers
+copying build/lib/evidence_lab/providers/clef.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/providers
+copying build/lib/evidence_lab/providers/mock.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/providers
+copying build/lib/evidence_lab/providers/openai.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/providers
+copying build/lib/evidence_lab/providers/prompts.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/providers
+copying build/lib/evidence_lab/providers/transport.py -> build/bdist.linux-x86_64/wheel/./evidence_lab/providers
+copying build/lib/evidence_lab/__init__.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/__main__.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/api.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/cli.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/config.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/domain.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/engine.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/evaluation.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/experiments.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/graph.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/ingestion.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/langsmith_trace.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/memory.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/policy.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/retrieval.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/storage.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+copying build/lib/evidence_lab/worker.py -> build/bdist.linux-x86_64/wheel/./evidence_lab
+running install_egg_info
+Copying src/evidence_lab.egg-info to build/bdist.linux-x86_64/wheel/./evidence_lab-0.1.0-py3.12.egg-info
+running install_scripts
+creating build/bdist.linux-x86_64/wheel/evidence_lab-0.1.0.dist-info/WHEEL
+creating '/home/geek/workspace/rag-poc/dist/.tmp-mz7365h8/evidence_lab-0.1.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+adding 'evidence_lab/__init__.py'
+adding 'evidence_lab/__main__.py'
+adding 'evidence_lab/api.py'
+adding 'evidence_lab/cli.py'
+adding 'evidence_lab/config.py'
+adding 'evidence_lab/domain.py'
+adding 'evidence_lab/engine.py'
+adding 'evidence_lab/evaluation.py'
+adding 'evidence_lab/experiments.py'
+adding 'evidence_lab/graph.py'
+adding 'evidence_lab/ingestion.py'
+adding 'evidence_lab/langsmith_trace.py'
+adding 'evidence_lab/memory.py'
+adding 'evidence_lab/policy.py'
+adding 'evidence_lab/retrieval.py'
+adding 'evidence_lab/storage.py'
+adding 'evidence_lab/worker.py'
+adding 'evidence_lab/integrations/__init__.py'
+adding 'evidence_lab/integrations/models.py'
+adding 'evidence_lab/integrations/tools.py'
+adding 'evidence_lab/migrations/__init__.py'
+adding 'evidence_lab/migrations/env.py'
+adding 'evidence_lab/migrations/versions/0001_initial.py'
+adding 'evidence_lab/providers/__init__.py'
+adding 'evidence_lab/providers/clef.py'
+adding 'evidence_lab/providers/mock.py'
+adding 'evidence_lab/providers/openai.py'
+adding 'evidence_lab/providers/prompts.py'
+adding 'evidence_lab/providers/transport.py'
+adding 'evidence_lab-0.1.0.dist-info/METADATA'
+adding 'evidence_lab-0.1.0.dist-info/WHEEL'
+adding 'evidence_lab-0.1.0.dist-info/entry_points.txt'
+adding 'evidence_lab-0.1.0.dist-info/top_level.txt'
+adding 'evidence_lab-0.1.0.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+Successfully built dist/evidence_lab-0.1.0.tar.gz
+Successfully built dist/evidence_lab-0.1.0-py3-none-any.whl

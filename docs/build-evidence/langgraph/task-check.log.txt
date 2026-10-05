@@ -1,0 +1,53 @@
+task: [app:lint] .venv/bin/ruff check apps/evidence-lab
+All checks passed!
+task: [lint] .venv/bin/ruff check tooling
+All checks passed!
+task: [dashboard:typecheck] pnpm --filter @evidence-lab/dashboard run typecheck
+$ vue-tsc --noEmit
+task: [dashboard:lint] pnpm exec biome check apps/dashboard tooling/typescript package.json biome.json
+Checked 32 files in 32ms. No fixes applied.
+task: Task "dashboard:build" is up to date
+task: [app:test] .venv/bin/pytest apps/evidence-lab/tests '--junitxml=docs/build-evidence/langgraph/check.junit.xml'
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/geek/workspace/rag-poc
+configfile: pyproject.toml
+plugins: asyncio-1.4.0, langsmith-0.14.4, anyio-4.15.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 387 items
+
+apps/evidence-lab/tests/test_api.py ............................         [  7%]
+apps/evidence-lab/tests/test_config.py ................................. [ 15%]
+......................                                                   [ 21%]
+apps/evidence-lab/tests/test_dev.py ......                               [ 22%]
+apps/evidence-lab/tests/test_engine.py ............................      [ 30%]
+apps/evidence-lab/tests/test_evaluation.py ............................. [ 37%]
+....                                                                     [ 38%]
+apps/evidence-lab/tests/test_experiments.py ...........................  [ 45%]
+apps/evidence-lab/tests/test_graph.py .........                          [ 48%]
+apps/evidence-lab/tests/test_ingestion.py ..........................     [ 54%]
+apps/evidence-lab/tests/test_integrations.py .......                     [ 56%]
+apps/evidence-lab/tests/test_langsmith.py ......                         [ 58%]
+apps/evidence-lab/tests/test_memory.py ......                            [ 59%]
+apps/evidence-lab/tests/test_native_restore.py .                         [ 59%]
+apps/evidence-lab/tests/test_providers.py .............................. [ 67%]
+.......................................................                  [ 81%]
+apps/evidence-lab/tests/test_retrieval.py ...................            [ 86%]
+apps/evidence-lab/tests/test_storage.py ................................ [ 95%]
+.......                                                                  [ 96%]
+apps/evidence-lab/tests/test_upload_body_limit.py ..                     [ 97%]
+apps/evidence-lab/tests/test_worker.py ..........                        [100%]
+
+- generated xml file: /home/geek/workspace/rag-poc/docs/build-evidence/langgraph/check.junit.xml -
+============================= 387 passed in 14.40s =============================
+task: [dashboard:test] pnpm --filter @evidence-lab/dashboard run test
+$ vitest run
+
+ RUN  v5.0.3 /home/geek/workspace/rag-poc/apps/dashboard
+
+
+ Test Files  3 passed (3)
+      Tests  28 passed (28)
+   Start at  00:55:43
+   Duration  806ms (environment 69%, transform 17%, tests 7%, import 6%, worker 1%)
+

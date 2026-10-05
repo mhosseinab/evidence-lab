@@ -1,7 +1,7 @@
 """Opt-in native pg_dump/pg_restore gate using dedicated disposable databases.
 
-RAG_TEST_NATIVE_ADMIN_DSN explicitly authorizes creation/deletion of uniquely
-named test databases. RAG_TEST_DSN alone is never sufficient. No existing
+EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN explicitly authorizes creation/deletion of uniquely
+named test databases. EVIDENCE_LAB_TEST_DSN alone is never sufficient. No existing
 database is migrated, seeded, restored, truncated or dropped by this test.
 """
 from __future__ import annotations
@@ -49,17 +49,17 @@ def _child_database_url(admin_dsn: str, name: str) -> str:
 
 @pytest.fixture
 def native_restore_databases():
-    if os.environ.get("RAG_TEST_BACKEND", "").lower() == "pglite":
+    if os.environ.get("EVIDENCE_LAB_TEST_BACKEND", "").lower() == "pglite":
         pytest.skip("Native restore gate cannot run on PGlite")
-    admin_dsn = os.environ.get("RAG_TEST_NATIVE_ADMIN_DSN")
+    admin_dsn = os.environ.get("EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN")
     if not admin_dsn:
-        pytest.skip("Set RAG_TEST_NATIVE_ADMIN_DSN to explicitly authorize isolated native test databases")
+        pytest.skip("Set EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN to explicitly authorize isolated native test databases")
     if not shutil.which("pg_dump") or not shutil.which("pg_restore"):
         pytest.skip("Native restore gate requires both pg_dump and pg_restore clients")
 
     nonce = uuid.uuid4().hex
-    source_name = f"rag_restore_it_{nonce}_src"
-    target_name = f"rag_restore_it_{nonce}_dst"
+    source_name = f"evidence_restore_it_{nonce}_src"
+    target_name = f"evidence_restore_it_{nonce}_dst"
     try:
         source_url = _child_database_url(admin_dsn, source_name)
         target_url = _child_database_url(admin_dsn, target_name)

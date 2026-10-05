@@ -1,6 +1,6 @@
 # Evidence Lab
 
-Document-grounded question answering with cited drafts, verification, one optional repair and explicit abstention. PostgreSQL stores application state; live inference uses configured external endpoints.
+Document-grounded question answering built on **LangGraph**, standard **LangChain model/tool interfaces**, PostgreSQL conversation memory and optional **LangSmith** tracing. Answers pass citation checks, verification and one optional repair before release.
 
 The default demo uses deterministic `fixture_only` answers and makes no inference requests. No models or tokenizers are downloaded or hosted.
 
@@ -8,7 +8,7 @@ See the [approved design](docs/implementation-plan.md), [verification results](d
 
 ## Names and workspace layout
 
-Names: CLI/distribution `evidence-lab`, Python package `evidence_lab`, frontend `@evidence-lab/dashboard`, Compose project `evidence-lab`, image `evidence-lab:local`. The checkout may remain `rag-poc`; `rag_*` tables and `RAG_*` variables retain compatibility.
+Names: CLI/distribution `evidence-lab`, Python package `evidence_lab`, frontend `@evidence-lab/dashboard`, Compose project `evidence-lab`, image `evidence-lab:local`. The checkout may remain `rag-poc`. Fresh deployments use `evidence_*` tables and `EVIDENCE_LAB_*` environment variables; legacy database/environment compatibility is removed.
 
 ```text
 .
@@ -42,7 +42,7 @@ task compose:seed
 
 Open **http://127.0.0.1:8000** for Documents, Ask and Evaluations.
 
-Compose runs PostgreSQL/pgvector, migrations, API and worker on localhost. Sample DB credentials: `rag:rag`. Pinned images are recorded in [container-images.json](docs/container-images.json).
+Compose runs PostgreSQL/pgvector, migrations, API and worker on localhost. Sample DB credentials: `evidence:evidence`. Pinned images are recorded in [container-images.json](docs/container-images.json).
 
 Upload a text file containing:
 
@@ -93,7 +93,7 @@ flowchart LR
   API --> Retrieval["retrieval.py: hybrid evidence"]
   Store --> Worker["worker.py: claim and renew leases"]
   Worker --> Ingestion["ingestion.py: extract, chunk, embed"]
-  Worker --> Engine["engine.py: query orchestration"]
+  Worker --> Engine["engine.py: LangGraph orchestration"]
   Worker --> Eval["evaluation.py: paired studies"]
   Engine --> Retrieval
   Engine --> Policy["policy.py: structural checks and release gate"]
@@ -204,6 +204,27 @@ flowchart LR
 
 Fixtures remain unqualified. See [evaluation](docs/evaluation.md), [experiments](docs/experiments.md) and [verification results](docs/verification-report.md).
 
+## LangGraph showcase
+
+The query graph invokes a corpus-scoped retrieval tool, a structured LangChain chat model and a native verifier runnable. The dashboard shows stage completion, repair executions and timings. Provider adapters retain exact endpoint contracts, bounded retries and PostgreSQL spending reservations.
+
+**Memory:** each conversation belongs to one corpus. Follow-ups receive a bounded snapshot of previously released answers; prior dialogue is context, never evidence. “New conversation” clears the thread selection. Each query retrieves fresh evidence. Source deletion clears copied dialogue and cancels pending affected work.
+
+**LangSmith:** explicitly enable metadata export in private YAML:
+
+```yaml
+langsmith:
+  enabled: true
+  project: evidence-lab
+  api_url: https://api.smith.langchain.com
+  api_key_env: EVIDENCE_LAB_LANGSMITH_API_KEY
+  timeout_seconds: 2
+```
+
+Set the selected key in your environment, then restart API/worker. Direct `api_key` also works. Exported traces contain run IDs, node status and timings; prompts, source text, drafts, dialogue and credentials are excluded. Ambient `LANGSMITH_TRACING` cannot enable content export. Export outages do not change query results.
+
+Conversation memory is durable PostgreSQL state. Graph stage checkpoints are not enabled: interrupted nonterminal jobs restart under the existing lease/attempt ledger. This is an enterprise-oriented showcase, not a production-readiness certification.
+
 ## Configure your providers
 
 Copy the live template and replace placeholders for `embeddings`, `generator` and `verifier`:
@@ -308,32 +329,25 @@ After changing the embedding space, create a new corpus and re-upload sources. E
 To run a private configuration in Compose:
 
 ```bash
-RAG_CONFIG=./configs/private.yaml task compose:up
+EVIDENCE_LAB_CONFIG=./configs/private.yaml task compose:up
 ```
 
 Restart API/worker after configuration changes. For a separate project, free the ports and use `docker compose -p evidence-lab-live ...`.
 
-The rename preserves existing deployment data. To reuse the old Compose project and volume:
-
-```bash
-docker compose -p grounded-rag-poc stop
-docker compose -p grounded-rag-poc up --build -d
-```
-
-Compose projects do not migrate data automatically. Preserve DSNs, credentials, `rag_*` tables and `RAG_*` variables unless explicitly migrating them.
+The schema is a fresh baseline; existing legacy databases must be reset before using this version. Compose database credentials and private DSNs must match.
 
 Containers run as UID `10001`; mounted YAML must be readable. Mount `api_key_file` read-only or explicitly forward the selected `api_key_env` variable.
 
 ## Configuration reference
 
-Schema: [config.py](apps/evidence-lab/src/evidence_lab/config.py). Select YAML with Task `CONFIG=...` or CLI `--config`. Samples: `mock.yaml` (local), `mock.compose.yaml` (DB host `db`), `live.example.yaml` (incomplete live template). Tables show schema defaults; samples may override them.
+Schema: [config.py](apps/evidence-lab/src/evidence_lab/config.py). Select YAML with Task `CONFIG=...` or CLI `--config`. Samples: `mock.yaml` (local), `mock.compose.yaml` (DB host `db`), `live.example.yaml` (incomplete live template), `clef.example.yaml` (complete OpenAI/Clef template requiring credentials). Tables show schema defaults; samples may override them.
 
 Strict UTF-8 YAML, ≤1 MiB. Unknown/duplicate keys, wrong types and non-finite values fail validation. Required fields have no default; `null` means unset.
 
 | Root field | Default | Meaning |
 | --- | --- | --- |
 | `config_version` | `1` | Only schema version `1` is supported. |
-| `runtime`, `database`, `ingestion`, `retrieval`, `verification`, `budgets`, `evaluation` | Section defaults below | Optional sections use their schema defaults. |
+| `runtime`, `database`, `ingestion`, `retrieval`, `verification`, `budgets`, `evaluation`, `memory`, `langsmith` | Section defaults below | Optional sections use their schema defaults. |
 | `profiles` | Required | Nonempty mapping of named provider contracts. Names start with a letter or number and contain up to 96 letters, numbers, `.`, `_` or `-`. |
 | `roles` | Required | Assigns pipeline roles to profiles. |
 
@@ -341,7 +355,7 @@ Strict UTF-8 YAML, ≤1 MiB. Unknown/duplicate keys, wrong types and non-finite 
 
 | YAML field | Default | Meaning and constraints |
 | --- | --- | --- |
-| `runtime.mode` | `mock` | `mock` uses deterministic fixtures without remote inference or credential resolution; `live` uses configured remote providers. |
+| `runtime.mode` | `mock` | `mock` uses deterministic fixtures without remote inference or model credential resolution; `live` uses configured remote providers. Explicit LangSmith tracing is configured separately. |
 | `runtime.require_openai_compatible` | `true` | Active native `cloudflare_clef` profiles require `false`. |
 | `runtime.remote_concurrency` | `4` | Global remote-call concurrency / default worker concurrency; integer 1–64. |
 | `runtime.query_deadline_seconds` | `60` | Query deadline in seconds; >0, ≤3600. |
@@ -353,7 +367,7 @@ Strict UTF-8 YAML, ≤1 MiB. Unknown/duplicate keys, wrong types and non-finite 
 | `runtime.worker_lease_seconds` | `120` | Job lease duration in seconds; 10–3600; worker heartbeats renew leases. |
 | `runtime.poll_seconds` | `0.5` | Worker polling interval in seconds; >0, ≤60. |
 | `runtime.operator_token` | `null` | Optional secret; when nonempty, `/api/` requests require `Authorization: Bearer <token>`. Health and dashboard assets remain accessible. Enter it in the dashboard's operator-token control. |
-| `database.dsn` | `postgresql://rag:rag@localhost:5432/rag` | PostgreSQL URL with a host and database name; accepts `postgresql` or `postgres`. Credentials are redacted from public configuration. No production storage fallback. |
+| `database.dsn` | `postgresql://evidence:evidence@localhost:5432/evidence_lab` | PostgreSQL URL with a host and database name; accepts `postgresql` or `postgres`. Credentials are redacted from public configuration. No production storage fallback. |
 
 ### Ingestion and retention
 
@@ -460,22 +474,38 @@ Replace `<name>` with a profile key.
 | `pricing.output_usd_per_million` | `0` | Nonnegative USD per million output tokens. |
 | `pricing.checked_on` | Required | Quoted ISO date string `YYYY-MM-DD`; record when the operator checked the price. |
 
-Active live profiles require exactly one credential source and a nonempty printable ASCII key. Mock mode ignores credential references. `api_key_file` resolves relative to the YAML file; dataset, policy and output paths resolve from the working directory.
+Active live profiles require exactly one credential source and a nonempty printable ASCII key. Mock mode ignores model credential references; explicitly enabled LangSmith resolves its selected tracing key. `api_key_file` resolves relative to the YAML file; dataset, policy and output paths resolve from the working directory.
+
+### Conversation memory and LangSmith
+
+| YAML field | Default | Meaning and constraints |
+|---|---|---|
+| `memory.enabled` | `true` | Include previously released turns in the conversation's acceptance-time snapshot |
+| `memory.max_turns` | `6` | Retained complete question/answer pairs; 1–20 |
+| `memory.max_context_bytes` | `8000` | Serialized dialogue byte cap; 256–32000; bundled samples choose 4000 |
+| `langsmith.enabled` | `false` | Explicitly enable workflow metadata export |
+| `langsmith.project` | `evidence-lab` | Trace project name; 1–96 characters |
+| `langsmith.api_url` | `https://api.smith.langchain.com` | Explicit hosted or self-hosted HTTP(S) API endpoint |
+| `langsmith.api_key` | `null` | Direct private secret; enabled tracing requires this or one environment reference |
+| `langsmith.api_key_env` | `null` | Explicit environment variable containing the trace key; e.g. `EVIDENCE_LAB_LANGSMITH_API_KEY` |
+| `langsmith.workspace_id` | `null` | LangSmith workspace ID, when required by the selected key |
+| `langsmith.timeout_seconds` | `2` | Export wait/transport timeout in seconds; >0, ≤10; a running SDK thread can finish after the caller times out |
 
 ### Environment variables and Task/dev controls
 
 | Variable/control | Scope and default | Meaning |
 | --- | --- | --- |
 | `CONFIG=path` | Task; `configs/mock.yaml` | Selects YAML for native app/dev/backup/restore tasks. It does not select the Compose-mounted file. |
-| `RAG_CONFIG` | Compose; `./configs/mock.compose.yaml` | Host configuration file mounted read-only at `/app/configs/runtime.yaml`. |
+| `EVIDENCE_LAB_CONFIG` | Compose; `./configs/mock.compose.yaml` | Host configuration file mounted read-only at `/app/configs/runtime.yaml`. |
 | `EVIDENCE_LAB_API_URL` | Vite development; `http://127.0.0.1:8000` | Proxy target for `/api` and `/health`. `task dev` sets it automatically from the selected runtime host/port, translating wildcard hosts to loopback. It is not a browser-exposed API key or production config variable. |
 | `--dashboard-port` | `task dev -- --dashboard-port 5174`; `5173` | Vite dev TCP port, 1–65535; strict port selection fails rather than silently switching ports. |
-| A profile's `api_key_env` name | Active live provider only; none | Arbitrary explicitly configured credential variable, e.g. `RAG_EMBEDDING_API_KEY`; the example name has no automatic meaning without the YAML reference. |
-| `RAG_DATABASE_DSN` | Direct Alembic invocation; unset | DSN fallback for Alembic when an application-provided migration connection is absent. Normal `task app:migrate` reads `database.dsn` from YAML. |
-| `RAG_TEST_DSN` | Integration tests; unset | Dedicated PostgreSQL/pgvector test database. Tests create/drop private schemas; unset skips database-dependent tests. |
-| `RAG_TEST_NATIVE_ADMIN_DSN` | Native restore tests; unset | Explicit opt-in connection for creating/deleting uniquely named disposable test databases. Requires database-creation permission, pgvector and native `pg_dump`/`pg_restore`; unset skips that gate. |
-| `RAG_TEST_BACKEND` | Tests; unset | `pglite` selects test-only fixture handling and skips native-only gates. It never enables a production storage fallback. |
-| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Compose database; literal `rag` values | Database initialization settings currently fixed in `compose.yaml`; they are not interpolated host environment overrides. The sample credentials are for the loopback mock setup. |
+| A profile's `api_key_env` name | Active live provider only; none | Arbitrary explicitly configured credential variable, e.g. `EVIDENCE_LAB_EMBEDDING_API_KEY`; the example name has no automatic meaning without the YAML reference. |
+| `langsmith.api_key_env` name | Enabled tracing in either runtime mode; none | Explicit tracing credential variable, e.g. `EVIDENCE_LAB_LANGSMITH_API_KEY`; forward it to API/worker environments or use a direct private YAML key. |
+| `EVIDENCE_LAB_DATABASE_DSN` | Direct Alembic invocation; unset | DSN fallback for Alembic when an application-provided migration connection is absent. Normal `task app:migrate` reads `database.dsn` from YAML. |
+| `EVIDENCE_LAB_TEST_DSN` | Integration tests; unset | Dedicated PostgreSQL/pgvector test database. Tests create/drop private schemas; unset skips database-dependent tests. |
+| `EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN` | Native restore tests; unset | Explicit opt-in connection for creating/deleting uniquely named disposable test databases. Requires database-creation permission, pgvector and native `pg_dump`/`pg_restore`; unset skips that gate. |
+| `EVIDENCE_LAB_TEST_BACKEND` | Tests; unset | `pglite` selects test-only fixture handling and skips native-only gates. It never enables a production storage fallback. |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Compose database; `evidence_lab`, `evidence`, `evidence` | Database initialization settings currently fixed in `compose.yaml`; they are not interpolated host environment overrides. The sample credentials are for the loopback mock setup. |
 
 The backup/restore helpers derive libpq variables from the YAML DSN and discard inherited `PG*` variables, so stale shell values cannot redirect them. Supported mappings are `host→PGHOST`, `hostaddr→PGHOSTADDR`, `port→PGPORT`, `dbname→PGDATABASE`, `user→PGUSER`, `password→PGPASSWORD`, `sslmode→PGSSLMODE`, `sslrootcert→PGSSLROOTCERT`, `sslcert→PGSSLCERT`, `sslkey→PGSSLKEY`, `sslcrl→PGSSLCRL`, `sslcrldir→PGSSLCRLDIR`, `connect_timeout→PGCONNECT_TIMEOUT`, `options→PGOPTIONS`, `application_name→PGAPPNAME`, `target_session_attrs→PGTARGETSESSIONATTRS`, `channel_binding→PGCHANNELBINDING`, `service→PGSERVICE`, `passfile→PGPASSFILE` and `gssencmode→PGGSSENCMODE`. These are derived subprocess settings, not independent application YAML overrides.
 
@@ -520,7 +550,7 @@ task test:offline
 task lint
 ```
 
-Full checks require dedicated `RAG_TEST_DSN`; native restore also needs `RAG_TEST_NATIVE_ADMIN_DSN` and PostgreSQL client tools. Missing prerequisites are skips. Export JUnit with `task app:test -- --junitxml=artifacts/pytest.xml`.
+Full checks require dedicated `EVIDENCE_LAB_TEST_DSN`; native restore also needs `EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN` and PostgreSQL client tools. Missing prerequisites are skips. Export JUnit with `task app:test -- --junitxml=artifacts/pytest.xml`.
 
 Engineering test results do not qualify model release. Qualification requires current reviewed evaluation, external fault evidence and independent studies.
 
@@ -571,7 +601,7 @@ task clean         # remove generated development/build caches
 
 ### Complete command reference
 
-Use `CONFIG` for native tasks and `RAG_CONFIG` for Compose. Forward CLI options after `--`:
+Use `CONFIG` for native tasks and `EVIDENCE_LAB_CONFIG` for Compose. Forward CLI options after `--`:
 
 ```bash
 task dev CONFIG=configs/mock.yaml -- --dashboard-port 5174
@@ -661,8 +691,9 @@ Roles inherit session settings; parallel delegation requires approval. Coordinat
 | `apps/evidence-lab/src/evidence_lab/providers/` | OpenAI-compatible/native adapters, transport and fixture mode |
 | `apps/evidence-lab/src/evidence_lab/storage.py`, `apps/evidence-lab/src/evidence_lab/migrations/` | PostgreSQL, vectors, immutable versions, leases and cost reservations |
 | `apps/evidence-lab/src/evidence_lab/ingestion.py`, `retrieval.py` | Extraction, stable chunks, embedding cache, exact hybrid retrieval |
-| `apps/evidence-lab/src/evidence_lab/engine.py`, `policy.py` | Frozen evidence, release decisions, repair and semantic identity |
+| `apps/evidence-lab/src/evidence_lab/engine.py`, `graph.py`, `policy.py` | LangGraph workflow, frozen evidence, release gate and bounded repair |
 | `apps/evidence-lab/src/evidence_lab/api.py`, `worker.py` | HTTP API and durable execution |
+| `apps/evidence-lab/src/evidence_lab/integrations/`, `memory.py`, `langsmith_trace.py` | Standard model/tool interfaces, conversation context and metadata tracing |
 | `apps/dashboard/src/`, `apps/dashboard/index.html`, `apps/dashboard/public/` | Vue/TypeScript dashboard, HTML entrypoint, CSS and favicon |
 | `apps/dashboard/dist/` | Generated dashboard build served directly by FastAPI |
 | `apps/evidence-lab/src/evidence_lab/evaluation.py`, `experiments.py` | Paired evaluation, independent studies and qualification evidence |

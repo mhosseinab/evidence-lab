@@ -1,4 +1,4 @@
-# Evidence Lab Vue migration verification
+# Evidence Lab verification history
 
 Verified on **5 October 2026**. The dashboard now uses Vue 3 single-file components, TypeScript and Vite, with the existing FastAPI single-origin deployment.
 
@@ -60,9 +60,9 @@ task build
 task dashboard:serve
 ```
 
-For hot reload, run `task app:serve` and `task dashboard:dev` in separate terminals, then open Vite's printed URL. For a container deployment, use `task compose:up` and `task compose:seed`; first follow the README's instructions if existing services occupy the configured ports.
+For hot reload, run `task dev`, then open Vite's printed URL. For a container deployment, use `task compose:up` and `task compose:seed`; first follow the README's instructions if existing services occupy the configured ports.
 
-For all native tests, set `RAG_TEST_DSN` and `RAG_TEST_NATIVE_ADMIN_DSN` to dedicated PostgreSQL/pgvector test connections and run `task check`. Native restore tests require PostgreSQL client tools. Run `task clean` after checks to remove generated outputs.
+For all native tests, set `EVIDENCE_LAB_TEST_DSN` and `EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN` to dedicated PostgreSQL/pgvector test connections and run `task check`. Native restore tests require PostgreSQL client tools. Run `task clean` after checks to remove generated outputs.
 
 No model downloads, hosted inference or paid calls were performed. Mock workflows do not establish model accuracy. Human-reviewed held-out gold, real endpoint performance and a qualified live release policy remain unmeasured; this migration does not establish production readiness.
 
@@ -89,3 +89,39 @@ The reported startup failure occurred because the development database was unava
 Six regression tests cover setup ordering, an existing default database, custom database boundaries, setup failures, missing schema and cancellation before server launch. `task check` passed **356 Python tests and 24 dashboard tests**, with no skips. Lint and the production dashboard build passed. A fresh native PostgreSQL fixture verified the custom missing-schema error, explicit migration, successful API access through Vite and process cleanup on Ctrl+C. Temporary test resources and generated outputs were removed; existing deployment services/data were preserved.
 
 Evidence: [full checks](build-evidence/dev-command/prerequisites-check.log.txt), [JUnit](build-evidence/dev-command/prerequisites.junit.xml), [missing-schema preflight](build-evidence/dev-command/unmigrated-database.log.txt), [prepared database startup](build-evidence/dev-command/prepared-database.log.txt). The missing-schema failure and interrupt exits are expected verification outcomes. Default Compose setup ordering is covered by regression tests; the native smoke check uses an isolated custom configuration.
+
+
+## LangGraph, memory and LangSmith — 6 October 2026
+
+The query path now executes a typed LangGraph through standard LangChain chat, embedding and corpus-bound tool interfaces. The Vue panel displays stage status, execution counts and timings. PostgreSQL conversation snapshots contain only released turns and are bounded at query acceptance. Source deletion clears copied context and fences pending work. Graph checkpoints are not enabled; interrupted nonterminal jobs restart through the durable ledger.
+
+| Check | Result |
+|---|---|
+| `task check` with dedicated PostgreSQL/pgvector test DSNs | **387 Python + 28 dashboard tests passed; no failures or skips** |
+| Ruff, strict Vue/TypeScript and Biome | Passed |
+| `task build`; Docker image build | Dashboard, wheel, source distribution and `evidence-lab:local` built |
+| Native development runtime | Vite HMR/proxy, graph release, persisted conversation follow-up, private history omission and one fully rechecked repair passed |
+| LangSmith transport/privacy | Real SDK exported parent/child metadata to a local HTTP sink; private content excluded; disabled tracing and export failures covered |
+| Fresh Compose deployment | Database/migration/API/worker ready; dashboard served; status reports actual tool names and zero documents |
+| Release invariant review | Frozen evidence, attempt/budget fencing, single repair and full recheck preserved; deadline checked immediately before answer publication |
+| Approved plan | Unchanged; SHA-256 `7492b09e9f4c3abc56940a34644b9d1be3c70028d93bdb6fba775c464ec12b26` |
+
+At the user's explicit request, this project's legacy and current database volumes were reset. The fresh schema uses `evidence_*` tables, `EVIDENCE_LAB_*` controls and one initial Alembic revision; no upgrade/compatibility path remains. The default database contains only its initial corpus. Unrelated Docker projects were preserved. Temporary test services and generated build/cache outputs were removed; dependencies, the fresh development database and the new application image remain.
+
+Evidence: [checks](build-evidence/langgraph/task-check.log.txt), [JUnit](build-evidence/langgraph/check.junit.xml), [packaging](build-evidence/langgraph/task-build.log.txt), [Docker build](build-evidence/langgraph/docker-build.log.txt), [Compose startup](build-evidence/langgraph/compose-start.log.txt), [development runtime](build-evidence/langgraph/dev-runtime.log.txt), [fresh status](build-evidence/langgraph/status.json). Startup proxy retries and interrupt exits in the development transcript are expected; the HTTP smoke confirmed completed answers and supervisor cleanup. Browser observation confirmed the panel and conversation controls; completion and memory behavior were checked through HTTP and automated UI tests.
+
+Reproduce from the checkout root:
+
+```bash
+task setup
+# Set dedicated EVIDENCE_LAB_TEST_DSN and EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN:
+task check
+task build
+task dev
+```
+
+Live model/Clef calls, a hosted LangSmith account, model accuracy, held-out gold and production qualification were not evaluated. No paid inference was performed. Metadata export is explicit and fails open; its caller timeout does not kill an already running SDK thread, which retains bounded transport timeouts.
+
+### README review before publication
+
+All five repository READMEs were checked against code, Taskfiles and samples. Local links resolve; documented Task names and representative CLI examples match their parsers; all 104 configuration schema fields are represented in the root tables. Both mock samples validate without inference. Corrected compiled dashboard versus asset URLs, model versus tracing credentials in mock mode, and the Clef sample listing. Charts and configuration tables remain intact. `git diff --check` passed; no code changed during this documentation pass.

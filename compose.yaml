@@ -7,7 +7,7 @@ x-app: &app
     dockerfile: apps/evidence-lab/Dockerfile
   init: true
   volumes:
-    - ${RAG_CONFIG:-./configs/mock.compose.yaml}:/app/configs/runtime.yaml:ro
+    - ${EVIDENCE_LAB_CONFIG:-./configs/mock.compose.yaml}:/app/configs/runtime.yaml:ro
     - artifacts:/app/artifacts
     - policies:/app/policies
   security_opt:
@@ -17,15 +17,15 @@ services:
   db:
     image: pgvector/pgvector:0.8.2-pg17-bookworm@sha256:feb68f4f15446397d8cac7f4fe48fe4586de83160d1fc48b46283312d1a33966
     environment:
-      POSTGRES_DB: rag
-      POSTGRES_USER: rag
-      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: evidence_lab
+      POSTGRES_USER: evidence
+      POSTGRES_PASSWORD: evidence
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rag -d rag"]
+      test: ["CMD-SHELL", "pg_isready -U evidence -d evidence_lab"]
       interval: 5s
       timeout: 3s
       retries: 20

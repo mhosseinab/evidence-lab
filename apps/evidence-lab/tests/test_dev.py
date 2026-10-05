@@ -15,7 +15,7 @@ def dev():
     return runpy.run_path(str(ROOT / "tooling/scripts/dev.py"))
 
 
-def config(dsn="postgresql://rag:rag@localhost:5432/rag"):
+def config(dsn="postgresql://evidence:evidence@localhost:5432/evidence_lab"):
     return SimpleNamespace(database=SimpleNamespace(dsn=dsn), runtime=SimpleNamespace(mode="mock"))
 
 

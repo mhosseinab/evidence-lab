@@ -111,15 +111,15 @@ def test_explicit_profile_selection_resolves_only_newly_active_reference(tmp_pat
     candidate.pop("api_key")
     candidate["model"] = "candidate-verifier-v2"
     if reference == "env":
-        candidate["api_key_env"] = "RAG_EXPLICIT_CANDIDATE_KEY"
-        monkeypatch.delenv("RAG_EXPLICIT_CANDIDATE_KEY", raising=False)
+        candidate["api_key_env"] = "EVIDENCE_LAB_EXPLICIT_CANDIDATE_KEY"
+        monkeypatch.delenv("EVIDENCE_LAB_EXPLICIT_CANDIDATE_KEY", raising=False)
     else:
         candidate["api_key_file"] = "candidate.key"
     live_data["profiles"]["candidate"] = candidate
     config = load_config(save(tmp_path, live_data))
     assert config.profiles["candidate"].api_key is None
     if reference == "env":
-        monkeypatch.setenv("RAG_EXPLICIT_CANDIDATE_KEY", "new-candidate-secret")
+        monkeypatch.setenv("EVIDENCE_LAB_EXPLICIT_CANDIDATE_KEY", "new-candidate-secret")
     else:
         (tmp_path / "candidate.key").write_text("new-candidate-secret\n")
     selected = config.with_roles(verifier="candidate")
@@ -288,8 +288,8 @@ def test_direct_env_and_file_secrets_work_without_environment_requirement(tmp_pa
     live_data["profiles"][names["embeddings"]]["api_key"] = "direct-key"
     generator = live_data["profiles"][names["generator"]]
     generator.pop("api_key")
-    generator["api_key_env"] = "RAG_TEST_GENERATOR_KEY"
-    monkeypatch.setenv("RAG_TEST_GENERATOR_KEY", "environment-key")
+    generator["api_key_env"] = "EVIDENCE_LAB_TEST_GENERATOR_KEY"
+    monkeypatch.setenv("EVIDENCE_LAB_TEST_GENERATOR_KEY", "environment-key")
     verifier = live_data["profiles"][names["verifier"]]
     verifier.pop("api_key")
     verifier["api_key_file"] = "verifier.key"
@@ -305,14 +305,14 @@ def test_direct_env_and_file_secrets_work_without_environment_requirement(tmp_pa
 def test_missing_active_reference_fails_safely(tmp_path, live_data, monkeypatch):
     profile = live_data["profiles"][live_data["roles"]["generator"]]
     profile.pop("api_key")
-    profile["api_key_env"] = "RAG_TEST_ABSENT_SECRET"
-    monkeypatch.delenv("RAG_TEST_ABSENT_SECRET", raising=False)
+    profile["api_key_env"] = "EVIDENCE_LAB_TEST_ABSENT_SECRET"
+    monkeypatch.delenv("EVIDENCE_LAB_TEST_ABSENT_SECRET", raising=False)
     with pytest.raises(ConfigError, match="reference is unset"):
         load_config(save(tmp_path, live_data))
 
 
 def test_ambiguous_active_key_sources_are_rejected(tmp_path, live_data):
-    live_data["profiles"][live_data["roles"]["generator"]]["api_key_env"] = "RAG_KEY"
+    live_data["profiles"][live_data["roles"]["generator"]]["api_key_env"] = "EVIDENCE_LAB_KEY"
     with pytest.raises(ConfigError, match="exactly one API key source"):
         load_config(save(tmp_path, live_data))
 

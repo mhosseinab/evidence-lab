@@ -22,6 +22,11 @@ Keep HTTP validation at the boundary. Treat responses as unknown until validated
 
 Use component props/events for presentation and composables for asynchronous workflows. Preserve the answer release guard: running, failed, shadow and unqualified runs must not display answer content even if it appears in a payload. Evaluation metrics and mock limitations must remain visible.
 
+`WorkflowPanel.vue` displays validated LangGraph stages, execution counts,
+timings and LangSmith status. The Ask workspace retains the server-issued
+conversation ID for follow-ups. New conversation and corpus changes clear it;
+stored conversation history stays private to the backend.
+
 From the repository root:
 
 ```bash

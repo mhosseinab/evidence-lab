@@ -20,7 +20,7 @@ runtime:
   operator_token: null
 database:
   # For Compose, change localhost to db in the private copy.
-  dsn: postgresql://rag:rag@localhost:5432/rag
+  dsn: postgresql://evidence:evidence@localhost:5432/evidence_lab
 budgets:
   total_max_estimated_cost_usd: 5
   phase_max_estimated_cost_usd:
@@ -140,3 +140,16 @@ evaluation:
     demo: data/demo/dataset.json
   gold_path: null
   policy_output_dir: policies
+
+memory:
+  enabled: true
+  max_turns: 6
+  max_context_bytes: 4000
+langsmith:
+  enabled: false
+  project: evidence-lab
+  api_url: https://api.smith.langchain.com
+  api_key: null
+  api_key_env: null
+  workspace_id: null
+  timeout_seconds: 2

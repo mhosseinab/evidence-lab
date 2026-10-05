@@ -19,9 +19,9 @@ connection = context.config.attributes.get("connection")
 if connection is not None:
     run(connection)
 else:
-    dsn = os.environ.get("RAG_DATABASE_DSN") or context.config.get_main_option("sqlalchemy.url")
+    dsn = os.environ.get("EVIDENCE_LAB_DATABASE_DSN") or context.config.get_main_option("sqlalchemy.url")
     if not dsn:
-        raise RuntimeError("Set RAG_DATABASE_DSN before running migrations.")
+        raise RuntimeError("Set EVIDENCE_LAB_DATABASE_DSN before running migrations.")
     url = make_url(dsn).set(drivername="postgresql+psycopg")
     engine = create_engine(url, poolclass=NullPool)
     try:

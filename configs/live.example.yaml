@@ -15,7 +15,7 @@ runtime:
   port: 8000
   operator_token: null
 database:
-  dsn: postgresql://rag:rag@localhost:5432/rag
+  dsn: postgresql://evidence:evidence@localhost:5432/evidence_lab
 budgets:
   total_max_estimated_cost_usd: 0
   phase_max_estimated_cost_usd:
@@ -29,7 +29,7 @@ profiles:
     endpoint: https://REPLACE.example/v1/embeddings
     api_key: REPLACE_IN_PRIVATE_CONFIG
     # Instead of api_key, use ONE explicitly selected reference:
-    # api_key_env: RAG_EMBEDDING_API_KEY
+    # api_key_env: EVIDENCE_LAB_EMBEDDING_API_KEY
     # api_key_file: secrets/embedding.key  # relative to this config's directory
     auth_header: Authorization
     auth_prefix: Bearer
@@ -126,3 +126,16 @@ evaluation:
   dataset_dir: data
   allowlisted_datasets:
     demo: data/demo/dataset.json
+
+memory:
+  enabled: true
+  max_turns: 6
+  max_context_bytes: 4000
+langsmith:
+  enabled: false
+  project: evidence-lab
+  api_url: https://api.smith.langchain.com
+  api_key: null
+  api_key_env: null
+  workspace_id: null
+  timeout_seconds: 2

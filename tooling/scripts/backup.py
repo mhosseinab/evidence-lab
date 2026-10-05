@@ -64,7 +64,7 @@ def main():
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
-        with tempfile.NamedTemporaryFile(dir=target.parent, prefix=".rag-backup-", suffix=".partial",
+        with tempfile.NamedTemporaryFile(dir=target.parent, prefix=".evidence-lab-backup-", suffix=".partial",
                                          delete=False) as handle:
             temporary = Path(handle.name)
         subprocess.run(

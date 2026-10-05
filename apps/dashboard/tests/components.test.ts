@@ -118,3 +118,49 @@ it("renders recorded evaluation metrics with mock limitations and exports the re
   await wrapper.find("#evaluation-export").trigger("click");
   expect(exportEvaluation).toHaveBeenCalledOnce();
 });
+
+it("shows actual graph execution and offers a fresh conversation without exposing drafts", async () => {
+  const { state, wrapper } = workspace(AskView);
+  state.status = {
+    orchestration: {
+      engine: "langgraph",
+      nodes: ["retrieve", "generate", "verify", "repair"],
+      edges: [
+        ["retrieve", "generate"],
+        ["generate", "verify"],
+      ],
+      tools: ["search_documents"],
+      memory: { enabled: true, max_turns: 8 },
+      tracing: { provider: "langsmith", enabled: true, content: "metadata_only" },
+    },
+  };
+  state.conversationId = "conversation";
+  state.run = {
+    status: "running",
+    stage: "verify",
+    draft: "PRIVATE DRAFT",
+    graph_steps: [
+      { node: "retrieve", status: "completed", elapsed_seconds: 0.1 },
+      { node: "generate", status: "completed", elapsed_seconds: 0.2 },
+    ],
+  };
+  await flushPromises();
+  expect(wrapper.text()).toContain("LangGraph workflow");
+  expect(wrapper.text()).toContain("LangSmith active");
+  expect(wrapper.text()).toContain("metadata only");
+  expect(wrapper.findAll('[data-status="completed"]')).toHaveLength(2);
+  expect(wrapper.find('[aria-current="step"]').text()).toContain("Verify claims");
+  expect(wrapper.find('[data-status="waiting"]').text()).toContain("Not run");
+  expect(wrapper.text()).not.toContain("PRIVATE");
+  expect(wrapper.find<HTMLButtonElement>("#new-conversation").element.disabled).toBe(true);
+  state.run = {
+    status: "answered",
+    conversation_id: "conversation",
+    graph_steps: [{ node: "verify", status: "failed", elapsed_seconds: 0.3 }],
+  };
+  await flushPromises();
+  expect(wrapper.find('[data-status="failed"]').text()).toContain("Failed");
+  await wrapper.find("#new-conversation").trigger("click");
+  expect(state.conversationId).toBeNull();
+  expect(wrapper.text()).toContain("New conversation");
+});

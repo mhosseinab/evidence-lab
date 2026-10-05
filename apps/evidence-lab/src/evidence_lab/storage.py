@@ -20,6 +20,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 from .domain import PIPELINE_VERSION, ProviderError
+from .memory import DEFAULT_MEMORY, bounded_turns
 
 
 TERMINAL_RUNS = {
@@ -127,9 +128,10 @@ def _cost(value):
 
 
 class Store:
-    def __init__(self, dsn: str, limits: dict | None = None):
+    def __init__(self, dsn: str, limits: dict | None = None, memory: dict | None = None):
         self._dsn = dsn
         self.limits = {**DEFAULT_LIMITS, **(limits or {})}
+        self.memory = {**DEFAULT_MEMORY, **(memory or {})}
 
     @contextmanager
     def _transaction(self, *, readonly=False):
@@ -172,7 +174,7 @@ class Store:
             with self._transaction(readonly=True) as connection:
                 row = connection.execute(
                     "SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname='vector') AS vector, "
-                    "to_regclass('rag_corpora') IS NOT NULL AS schema"
+                    "to_regclass('evidence_corpora') IS NOT NULL AS schema"
                 ).fetchone()
                 return bool(row["vector"] and row["schema"])
         except StorageError:
@@ -187,23 +189,23 @@ class Store:
             raise StorageError("invalid_embedding", "Embedding dimensions must be between 1 and 16000.")
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
-            existing = connection.execute("SELECT * FROM rag_embedding_spaces WHERE id=%s",
+            existing = connection.execute("SELECT * FROM evidence_embedding_spaces WHERE id=%s",
                                           (space["id"],)).fetchone()
             if existing and any(existing[key] != space[key] for key in ("dimensions", "model", "fingerprint")):
                 raise StorageError("space_changed", "Embedding-space identity cannot be changed in place.")
             if not existing:
                 connection.execute(
-                    "INSERT INTO rag_embedding_spaces(id,dimensions,model,fingerprint,manifest) "
+                    "INSERT INTO evidence_embedding_spaces(id,dimensions,model,fingerprint,manifest) "
                     "VALUES (%s,%s,%s,%s,%s)",
                     (space["id"], dimensions, space["model"], space["fingerprint"], _json(space, redact=True)),
                 )
-            corpus = connection.execute("SELECT * FROM rag_corpora WHERE id=%s FOR UPDATE",
+            corpus = connection.execute("SELECT * FROM evidence_corpora WHERE id=%s FOR UPDATE",
                                         (corpus_id,)).fetchone()
             if corpus and corpus["space_id"] != space["id"]:
                 raise StorageError("space_changed", "This corpus requires its existing embedding space.")
             if not corpus:
                 corpus = connection.execute(
-                    "INSERT INTO rag_corpora(id,space_id) VALUES (%s,%s) RETURNING *",
+                    "INSERT INTO evidence_corpora(id,space_id) VALUES (%s,%s) RETURNING *",
                     (corpus_id, space["id"]),
                 ).fetchone()
             return _json_safe(corpus)
@@ -212,15 +214,15 @@ class Store:
         with self._transaction(readonly=True) as connection:
             rows = connection.execute(
                 "SELECT c.id,c.space_id,c.revision,s.dimensions,s.model "
-                "FROM rag_corpora c JOIN rag_embedding_spaces s ON s.id=c.space_id ORDER BY c.id"
+                "FROM evidence_corpora c JOIN evidence_embedding_spaces s ON s.id=c.space_id ORDER BY c.id"
             ).fetchall()
             return _json_safe(rows)
 
     def get_corpus(self, corpus_id="default") -> dict:
         with self._transaction(readonly=True) as connection:
             row = connection.execute(
-                "SELECT c.*,s.dimensions,s.model,s.fingerprint FROM rag_corpora c "
-                "JOIN rag_embedding_spaces s ON s.id=c.space_id WHERE c.id=%s", (corpus_id,),
+                "SELECT c.*,s.dimensions,s.model,s.fingerprint FROM evidence_corpora c "
+                "JOIN evidence_embedding_spaces s ON s.id=c.space_id WHERE c.id=%s", (corpus_id,),
             ).fetchone()
             if not row:
                 raise StorageError("not_found", "Corpus not found.")
@@ -229,12 +231,12 @@ class Store:
     def _payload_bytes(self, connection):
         return connection.execute(
             "SELECT COALESCE((SELECT sum(octet_length(raw)+octet_length(pages::text)) "
-            "FROM rag_document_versions),0) + "
-            "COALESCE((SELECT sum(octet_length(text)) FROM rag_chunks),0) + "
+            "FROM evidence_document_versions),0) + "
+            "COALESCE((SELECT sum(octet_length(text)) FROM evidence_chunks),0) + "
             "COALESCE((SELECT sum(octet_length(data::text)+octet_length(settings::text)+"
-            "octet_length(question)) FROM rag_runs),0) + "
-            "COALESCE((SELECT sum(octet_length(event::text)) FROM rag_run_events),0) + "
-            "COALESCE((SELECT sum(octet_length(COALESCE(result::text,''))) FROM rag_jobs),0) AS n"
+            "octet_length(question)) FROM evidence_runs),0) + "
+            "COALESCE((SELECT sum(octet_length(event::text)) FROM evidence_run_events),0) + "
+            "COALESCE((SELECT sum(octet_length(COALESCE(result::text,''))) FROM evidence_jobs),0) AS n"
         ).fetchone()["n"]
 
     def _check_quota(self, connection, additional=0):
@@ -243,7 +245,7 @@ class Store:
 
     def _insert_job(self, connection, kind, payload):
         return connection.execute(
-            "INSERT INTO rag_jobs(id,kind,payload) VALUES (%s,%s,%s) RETURNING *",
+            "INSERT INTO evidence_jobs(id,kind,payload) VALUES (%s,%s,%s) RETURNING *",
             (_id(), kind, _json(payload)),
         ).fetchone()
 
@@ -258,13 +260,13 @@ class Store:
         content_hash = hashlib.sha256(raw).hexdigest()
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
-            corpus = connection.execute("SELECT * FROM rag_corpora WHERE id=%s FOR UPDATE",
+            corpus = connection.execute("SELECT * FROM evidence_corpora WHERE id=%s FOR UPDATE",
                                         (corpus_id,)).fetchone()
             if not corpus:
                 raise StorageError("not_found", "Corpus not found.")
             duplicate = connection.execute(
-                "SELECT v.id AS version_id,v.document_id,v.job_id,v.state FROM rag_document_versions v "
-                "JOIN rag_documents d ON d.id=v.document_id WHERE d.corpus_id=%s "
+                "SELECT v.id AS version_id,v.document_id,v.job_id,v.state FROM evidence_document_versions v "
+                "JOIN evidence_documents d ON d.id=v.document_id WHERE d.corpus_id=%s "
                 "AND d.deleted_at IS NULL AND v.version_no=d.latest_version_no AND v.content_hash=%s "
                 "AND v.pipeline_revision=%s AND v.space_id=%s "
                 "AND (%s::text IS NULL OR d.id=%s) LIMIT 1",
@@ -275,34 +277,34 @@ class Store:
             self._check_quota(connection, len(raw))
             if document_id:
                 document = connection.execute(
-                    "SELECT * FROM rag_documents WHERE id=%s AND corpus_id=%s "
+                    "SELECT * FROM evidence_documents WHERE id=%s AND corpus_id=%s "
                     "AND deleted_at IS NULL FOR UPDATE", (document_id, corpus_id),
                 ).fetchone()
                 if not document:
                     raise StorageError("not_found", "Document not found.")
             else:
                 count = connection.execute(
-                    "SELECT count(*) AS n FROM rag_documents WHERE corpus_id=%s AND deleted_at IS NULL",
+                    "SELECT count(*) AS n FROM evidence_documents WHERE corpus_id=%s AND deleted_at IS NULL",
                     (corpus_id,),
                 ).fetchone()["n"]
                 if count >= self.limits["max_documents"]:
                     raise StorageError("quota_exceeded", "Corpus document limit reached.")
                 document_id = _id()
                 document = connection.execute(
-                    "INSERT INTO rag_documents(id,corpus_id,name,media_type) VALUES (%s,%s,%s,%s) RETURNING *",
+                    "INSERT INTO evidence_documents(id,corpus_id,name,media_type) VALUES (%s,%s,%s,%s) RETURNING *",
                     (document_id, corpus_id, name, media_type),
                 ).fetchone()
             version_id = _id()
             version_no = document["latest_version_no"] + 1
             job = self._insert_job(connection, "ingest", {"version_id": version_id, "corpus_id": corpus_id})
             connection.execute(
-                "INSERT INTO rag_document_versions(id,document_id,version_no,space_id,name,media_type,content_hash,"
+                "INSERT INTO evidence_document_versions(id,document_id,version_no,space_id,name,media_type,content_hash,"
                 "pipeline_revision,raw,job_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (version_id, document_id, version_no, corpus["space_id"], name, media_type, content_hash,
                  pipeline_revision, raw, job["id"]),
             )
             connection.execute(
-                "UPDATE rag_documents SET latest_version_no=%s,name=%s,media_type=%s,"
+                "UPDATE evidence_documents SET latest_version_no=%s,name=%s,media_type=%s,"
                 "updated_at=clock_timestamp() WHERE id=%s",
                 (version_no, name, media_type, document_id),
             )
@@ -317,10 +319,10 @@ class Store:
             )
             row = connection.execute(
                 f"SELECT {columns},d.corpus_id,d.active_version_id,"
-                "(SELECT count(*) FROM rag_chunks WHERE version_id=v.id) AS chunk_count,"
-                "(SELECT count(*) FROM rag_chunk_embeddings e JOIN rag_chunks ch ON ch.id=e.chunk_id "
+                "(SELECT count(*) FROM evidence_chunks WHERE version_id=v.id) AS chunk_count,"
+                "(SELECT count(*) FROM evidence_chunk_embeddings e JOIN evidence_chunks ch ON ch.id=e.chunk_id "
                 "WHERE ch.version_id=v.id AND e.space_id=v.space_id) AS embedded_chunks "
-                "FROM rag_document_versions v JOIN rag_documents d ON d.id=v.document_id WHERE v.id=%s",
+                "FROM evidence_document_versions v JOIN evidence_documents d ON d.id=v.document_id WHERE v.id=%s",
                 (version_id,),
             ).fetchone()
             if not row:
@@ -333,11 +335,11 @@ class Store:
             rows = connection.execute(
                 "SELECT d.*,v.id AS version_id,v.state,v.job_id,v.content_hash,v.created_at AS version_created_at,"
                 "j.status AS job_status,"
-                "(SELECT count(*) FROM rag_chunks WHERE version_id=v.id) AS chunk_count,"
-                "(SELECT count(*) FROM rag_chunk_embeddings e JOIN rag_chunks ch ON ch.id=e.chunk_id "
+                "(SELECT count(*) FROM evidence_chunks WHERE version_id=v.id) AS chunk_count,"
+                "(SELECT count(*) FROM evidence_chunk_embeddings e JOIN evidence_chunks ch ON ch.id=e.chunk_id "
                 "WHERE ch.version_id=v.id AND e.space_id=v.space_id) AS embedded_chunks "
-                "FROM rag_documents d LEFT JOIN rag_document_versions v ON v.document_id=d.id "
-                "AND v.version_no=d.latest_version_no LEFT JOIN rag_jobs j ON j.id=v.job_id "
+                "FROM evidence_documents d LEFT JOIN evidence_document_versions v ON v.document_id=d.id "
+                "AND v.version_no=d.latest_version_no LEFT JOIN evidence_jobs j ON j.id=v.job_id "
                 "WHERE d.corpus_id=%s AND d.deleted_at IS NULL ORDER BY d.created_at,d.id", (corpus_id,),
             ).fetchall()
             return _json_safe([{**row, "document_id": row["id"]} for row in rows])
@@ -346,7 +348,7 @@ class Store:
         if not lease or not lease.get("id") or not lease.get("token"):
             raise StorageError("lease_lost", "An active worker lease is required.")
         job = connection.execute(
-            "SELECT * FROM rag_jobs WHERE id=%s AND token=%s AND status='running' "
+            "SELECT * FROM evidence_jobs WHERE id=%s AND token=%s AND status='running' "
             "AND lease_until>clock_timestamp() FOR UPDATE", (lease["id"], lease["token"]),
         ).fetchone()
         if not job:
@@ -361,8 +363,8 @@ class Store:
         self._assert_lease(connection, lease, version_id=version_id)
         row = connection.execute(
             "SELECT v.*,d.corpus_id,d.deleted_at,d.latest_version_no,d.active_version_id,"
-            "d.active_version_no FROM rag_document_versions v "
-            "JOIN rag_documents d ON d.id=v.document_id WHERE v.id=%s FOR UPDATE OF v,d",
+            "d.active_version_no FROM evidence_document_versions v "
+            "JOIN evidence_documents d ON d.id=v.document_id WHERE v.id=%s FOR UPDATE OF v,d",
             (version_id,),
         ).fetchone()
         if not row or row["deleted_at"] is not None:
@@ -420,7 +422,7 @@ class Store:
             version = self._owned_version(connection, version_id, lease)
             existing = connection.execute(
                 'SELECT id,text,text_hash,page,start_offset AS "start",end_offset AS "end" '
-                "FROM rag_chunks WHERE version_id=%s ORDER BY id", (version_id,),
+                "FROM evidence_chunks WHERE version_id=%s ORDER BY id", (version_id,),
             ).fetchall()
             expected = sorted(normalized, key=lambda item: item["id"])
             if existing and existing != expected:
@@ -437,13 +439,13 @@ class Store:
                 self._check_quota(connection, additional)
                 for item in normalized:
                     connection.execute(
-                        "INSERT INTO rag_chunks(id,version_id,text,text_hash,page,start_offset,end_offset) "
+                        "INSERT INTO evidence_chunks(id,version_id,text,text_hash,page,start_offset,end_offset) "
                         "VALUES (%s,%s,%s,%s,%s,%s,%s)",
                         (item["id"], version_id, item["text"], item["text_hash"], item["page"],
                          item["start"], item["end"]),
                     )
             connection.execute(
-                "UPDATE rag_document_versions SET pages=%s,state=%s,updated_at=clock_timestamp() WHERE id=%s",
+                "UPDATE evidence_document_versions SET pages=%s,state=%s,updated_at=clock_timestamp() WHERE id=%s",
                 (_json(pages), state, version_id),
             )
 
@@ -451,10 +453,10 @@ class Store:
         with self._transaction(readonly=True) as connection:
             rows = connection.execute(
                 'SELECT ch.id,ch.version_id,ch.text,ch.text_hash,ch.page,ch.start_offset AS "start",'
-                'ch.end_offset AS "end",EXISTS(SELECT 1 FROM rag_chunk_embeddings e '
-                "JOIN rag_document_versions v ON v.id=ch.version_id "
+                'ch.end_offset AS "end",EXISTS(SELECT 1 FROM evidence_chunk_embeddings e '
+                "JOIN evidence_document_versions v ON v.id=ch.version_id "
                 "WHERE e.chunk_id=ch.id AND e.space_id=v.space_id) AS embedded "
-                "FROM rag_chunks ch WHERE ch.version_id=%s ORDER BY ch.page,ch.start_offset,ch.id",
+                "FROM evidence_chunks ch WHERE ch.version_id=%s ORDER BY ch.page,ch.start_offset,ch.id",
                 (version_id,),
             ).fetchall()
             return _json_safe(rows)
@@ -464,7 +466,7 @@ class Store:
             return {}
         with self._transaction(readonly=True) as connection:
             rows = connection.execute(
-                "SELECT text_hash,embedding::text AS embedding FROM rag_embedding_cache "
+                "SELECT text_hash,embedding::text AS embedding FROM evidence_embedding_cache "
                 "WHERE space_id=%s AND text_hash=ANY(%s)", (space_id, list(set(hashes))),
             ).fetchall()
             return {row["text_hash"]: json.loads(row["embedding"]) for row in rows}
@@ -477,10 +479,10 @@ class Store:
             version = self._owned_version(connection, version_id, lease)
             if version["space_id"] != space_id:
                 raise StorageError("space_changed", "Embedding space does not match the staged version.")
-            space = connection.execute("SELECT dimensions FROM rag_embedding_spaces WHERE id=%s",
+            space = connection.execute("SELECT dimensions FROM evidence_embedding_spaces WHERE id=%s",
                                        (space_id,)).fetchone()
             chunks = connection.execute(
-                "SELECT id,text_hash FROM rag_chunks WHERE version_id=%s AND id=ANY(%s)",
+                "SELECT id,text_hash FROM evidence_chunks WHERE version_id=%s AND id=ANY(%s)",
                 (version_id, list(vectors)),
             ).fetchall() if vectors else []
             if len(chunks) != len(vectors):
@@ -489,21 +491,21 @@ class Store:
                 vector = _vector(vectors[chunk["id"]], space["dimensions"])
                 literal = _vector_literal(vector)
                 connection.execute(
-                    "INSERT INTO rag_embedding_cache(space_id,text_hash,embedding) VALUES (%s,%s,%s::vector) "
+                    "INSERT INTO evidence_embedding_cache(space_id,text_hash,embedding) VALUES (%s,%s,%s::vector) "
                     "ON CONFLICT DO NOTHING", (space_id, chunk["text_hash"], literal),
                 )
                 same = connection.execute(
-                    "SELECT embedding=%s::vector AS same FROM rag_embedding_cache "
+                    "SELECT embedding=%s::vector AS same FROM evidence_embedding_cache "
                     "WHERE space_id=%s AND text_hash=%s", (literal, space_id, chunk["text_hash"]),
                 ).fetchone()
                 if not same["same"]:
                     raise StorageError("embedding_conflict", "Cached embeddings differ within an immutable space.")
                 connection.execute(
-                    "INSERT INTO rag_chunk_embeddings(chunk_id,space_id,embedding) VALUES (%s,%s,%s::vector) "
+                    "INSERT INTO evidence_chunk_embeddings(chunk_id,space_id,embedding) VALUES (%s,%s,%s::vector) "
                     "ON CONFLICT DO NOTHING", (chunk["id"], space_id, literal),
                 )
                 same = connection.execute(
-                    "SELECT embedding=%s::vector AS same FROM rag_chunk_embeddings WHERE chunk_id=%s AND space_id=%s",
+                    "SELECT embedding=%s::vector AS same FROM evidence_chunk_embeddings WHERE chunk_id=%s AND space_id=%s",
                     (literal, chunk["id"], space_id),
                 ).fetchone()
                 if not same["same"]:
@@ -513,7 +515,7 @@ class Store:
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
             version = self._owned_version(connection, version_id, lease)
-            corpus = connection.execute("SELECT * FROM rag_corpora WHERE id=%s FOR UPDATE",
+            corpus = connection.execute("SELECT * FROM evidence_corpora WHERE id=%s FOR UPDATE",
                                         (version["corpus_id"],)).fetchone()
             if corpus["space_id"] != space_id or version["space_id"] != space_id:
                 raise StorageError("space_changed", "Corpus embedding space changed before activation.")
@@ -524,14 +526,14 @@ class Store:
             if version["state"] != "extracted":
                 raise StorageError("invalid_state", "Source extraction is incomplete or requires review.")
             counts = connection.execute(
-                "SELECT count(*) AS chunks,count(e.chunk_id) AS vectors FROM rag_chunks ch "
-                "LEFT JOIN rag_chunk_embeddings e ON e.chunk_id=ch.id AND e.space_id=%s "
+                "SELECT count(*) AS chunks,count(e.chunk_id) AS vectors FROM evidence_chunks ch "
+                "LEFT JOIN evidence_chunk_embeddings e ON e.chunk_id=ch.id AND e.space_id=%s "
                 "WHERE ch.version_id=%s", (space_id, version_id),
             ).fetchone()
             if not counts["chunks"] or counts["chunks"] != counts["vectors"]:
                 raise StorageError("incomplete_embeddings", "Every source chunk requires a valid embedding.")
             active_count = connection.execute(
-                "SELECT count(*) AS n FROM rag_chunks ch JOIN rag_documents d ON d.active_version_id=ch.version_id "
+                "SELECT count(*) AS n FROM evidence_chunks ch JOIN evidence_documents d ON d.active_version_id=ch.version_id "
                 "WHERE d.corpus_id=%s AND d.deleted_at IS NULL AND d.id<>%s",
                 (version["corpus_id"], version["document_id"]),
             ).fetchone()["n"]
@@ -539,16 +541,16 @@ class Store:
                 raise StorageError("quota_exceeded", "Activating this version would exceed the corpus chunk limit.")
             self._check_quota(connection)
             connection.execute(
-                "UPDATE rag_document_versions SET state='ready',activated_at=clock_timestamp(),"
+                "UPDATE evidence_document_versions SET state='ready',activated_at=clock_timestamp(),"
                 "updated_at=clock_timestamp() WHERE id=%s", (version_id,),
             )
             connection.execute(
-                "UPDATE rag_documents SET active_version_id=%s,active_version_no=%s,"
+                "UPDATE evidence_documents SET active_version_id=%s,active_version_no=%s,"
                 "updated_at=clock_timestamp() WHERE id=%s",
                 (version_id, version["version_no"], version["document_id"]),
             )
             revision = connection.execute(
-                "UPDATE rag_corpora SET revision=revision+1 WHERE id=%s RETURNING revision",
+                "UPDATE evidence_corpora SET revision=revision+1 WHERE id=%s RETURNING revision",
                 (version["corpus_id"],),
             ).fetchone()["revision"]
             return {"version_id": version_id, "corpus_revision": revision, "state": "ready"}
@@ -561,7 +563,7 @@ class Store:
             raise StorageError("invalid_data", "Retrieval limits must be between zero and 1000.")
         with self._transaction(readonly=True) as connection:
             corpus = connection.execute(
-                "SELECT c.*,s.dimensions FROM rag_corpora c JOIN rag_embedding_spaces s ON s.id=c.space_id "
+                "SELECT c.*,s.dimensions FROM evidence_corpora c JOIN evidence_embedding_spaces s ON s.id=c.space_id "
                 "WHERE c.id=%s", (corpus_id,),
             ).fetchone()
             if not corpus:
@@ -574,9 +576,9 @@ class Store:
                 'ch.start_offset AS "start",ch.end_offset AS "end"'
             )
             joins = (
-                " FROM rag_chunks ch JOIN rag_documents d ON d.active_version_id=ch.version_id "
-                "JOIN rag_document_versions v ON v.id=ch.version_id "
-                "JOIN rag_chunk_embeddings e ON e.chunk_id=ch.id AND e.space_id=%s "
+                " FROM evidence_chunks ch JOIN evidence_documents d ON d.active_version_id=ch.version_id "
+                "JOIN evidence_document_versions v ON v.id=ch.version_id "
+                "JOIN evidence_chunk_embeddings e ON e.chunk_id=ch.id AND e.space_id=%s "
             )
             filters = "d.corpus_id=%s AND d.deleted_at IS NULL AND v.state='ready' AND v.space_id=%s"
             dense = connection.execute(
@@ -610,14 +612,14 @@ class Store:
             raise StorageError("invalid_data", "A worker ID and positive bounded lease are required.")
         with self._transaction() as connection:
             job = connection.execute(
-                "SELECT id FROM rag_jobs WHERE status='queued' OR "
+                "SELECT id FROM evidence_jobs WHERE status='queued' OR "
                 "(status='running' AND lease_until<=clock_timestamp()) "
                 "ORDER BY created_at,id FOR UPDATE SKIP LOCKED LIMIT 1"
             ).fetchone()
             if not job:
                 return None
             row = connection.execute(
-                "UPDATE rag_jobs SET status='running',worker_id=%s,token=%s,"
+                "UPDATE evidence_jobs SET status='running',worker_id=%s,token=%s,"
                 "lease_until=clock_timestamp()+make_interval(secs=>%s),attempts=attempts+1,"
                 "updated_at=clock_timestamp() WHERE id=%s RETURNING *",
                 (worker_id, _id(), float(lease_seconds), job["id"]),
@@ -629,7 +631,7 @@ class Store:
             raise StorageError("invalid_data", "Lease duration is outside the allowed range.")
         with self._transaction() as connection:
             row = connection.execute(
-                "UPDATE rag_jobs SET lease_until=clock_timestamp()+make_interval(secs=>%s),"
+                "UPDATE evidence_jobs SET lease_until=clock_timestamp()+make_interval(secs=>%s),"
                 "updated_at=clock_timestamp() WHERE id=%s AND token=%s AND status='running' "
                 "AND lease_until>clock_timestamp() RETURNING id", (float(lease_seconds), job_id, token),
             ).fetchone()
@@ -648,20 +650,20 @@ class Store:
                 additional = len(json.dumps(encoded.obj, ensure_ascii=False).encode("utf-8"))
                 self._check_quota(connection, additional)
             connection.execute(
-                "UPDATE rag_jobs SET status=%s,result=%s,error=%s,token=NULL,lease_until=NULL,"
+                "UPDATE evidence_jobs SET status=%s,result=%s,error=%s,token=NULL,lease_until=NULL,"
                 "finished_at=clock_timestamp(),updated_at=clock_timestamp() WHERE id=%s",
                 (status, _json(result, redact=True), _json(error, redact=True), job_id),
             )
             if job["kind"] == "ingest" and status == "failed":
                 connection.execute(
-                    "UPDATE rag_document_versions SET state=CASE WHEN state='queued' THEN 'failed' ELSE state END,"
+                    "UPDATE evidence_document_versions SET state=CASE WHEN state='queued' THEN 'failed' ELSE state END,"
                     "updated_at=clock_timestamp() WHERE id=%s", (job["payload"].get("version_id"),),
                 )
             return {"id": job_id, "status": status}
 
     def get_job(self, job_id) -> dict:
         with self._transaction(readonly=True) as connection:
-            row = connection.execute("SELECT * FROM rag_jobs WHERE id=%s", (job_id,)).fetchone()
+            row = connection.execute("SELECT * FROM evidence_jobs WHERE id=%s", (job_id,)).fetchone()
             if not row:
                 raise StorageError("not_found", "Job not found.")
             return _json_safe(row)
@@ -669,7 +671,7 @@ class Store:
     def list_jobs(self, kind=None, limit=100) -> list[dict]:
         with self._transaction(readonly=True) as connection:
             rows = connection.execute(
-                "SELECT * FROM rag_jobs WHERE (%s::text IS NULL OR kind=%s) ORDER BY created_at DESC,id LIMIT %s",
+                "SELECT * FROM evidence_jobs WHERE (%s::text IS NULL OR kind=%s) ORDER BY created_at DESC,id LIMIT %s",
                 (kind, kind, max(1, min(int(limit), 1000))),
             ).fetchall()
             return _json_safe(rows)
@@ -679,17 +681,17 @@ class Store:
             # Result writes and source purge take this lock before job/run rows.
             # Keep cancellation in the same order to avoid an inverted row-lock cycle.
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
-            job = connection.execute("SELECT * FROM rag_jobs WHERE id=%s FOR UPDATE", (job_id,)).fetchone()
+            job = connection.execute("SELECT * FROM evidence_jobs WHERE id=%s FOR UPDATE", (job_id,)).fetchone()
             if not job:
                 raise StorageError("not_found", "Job not found.")
             if job["status"] in {"queued", "running"}:
                 connection.execute(
-                    "UPDATE rag_jobs SET status='cancelled',token=NULL,lease_until=NULL,"
+                    "UPDATE evidence_jobs SET status='cancelled',token=NULL,lease_until=NULL,"
                     "finished_at=clock_timestamp(),updated_at=clock_timestamp() WHERE id=%s", (job_id,),
                 )
                 if job["payload"].get("run_id"):
                     connection.execute(
-                        "UPDATE rag_runs SET status='cancelled',finished_at=clock_timestamp(),"
+                        "UPDATE evidence_runs SET status='cancelled',finished_at=clock_timestamp(),"
                         "updated_at=clock_timestamp() WHERE id=%s AND status<>ALL(%s)",
                         (job["payload"]["run_id"], list(TERMINAL_RUNS)),
                     )
@@ -700,7 +702,7 @@ class Store:
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
             row = connection.execute(
-                "UPDATE rag_jobs SET status='queued',token=NULL,lease_until=NULL,worker_id=NULL,"
+                "UPDATE evidence_jobs SET status='queued',token=NULL,lease_until=NULL,worker_id=NULL,"
                 "finished_at=NULL,error=NULL,updated_at=clock_timestamp() WHERE id=%s "
                 "AND status IN ('failed','cancelled','needs_review','needs_ocr') RETURNING *", (job_id,),
             ).fetchone()
@@ -718,15 +720,48 @@ class Store:
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
             self._check_quota(connection, len(question.encode("utf-8")))
-            corpus = connection.execute("SELECT * FROM rag_corpora WHERE id=%s", (corpus_id,)).fetchone()
+            corpus = connection.execute("SELECT * FROM evidence_corpora WHERE id=%s", (corpus_id,)).fetchone()
             if not corpus:
                 raise StorageError("not_found", "Corpus not found.")
+            accepted_settings = dict(settings or {})
+            conversation_id = accepted_settings.pop("conversation_id", None)
+            if conversation_id:
+                try:
+                    conversation_id = str(uuid.UUID(str(conversation_id)))
+                except ValueError:
+                    raise StorageError("invalid_data", "Conversation ID must be a UUID.") from None
+                conversation = connection.execute(
+                    "SELECT id FROM evidence_conversations WHERE id=%s AND corpus_id=%s FOR UPDATE",
+                    (conversation_id, corpus_id),
+                ).fetchone()
+                if not conversation:
+                    raise StorageError("not_found", "Conversation not found in this corpus.")
+            else:
+                conversation_id = _id()
+                connection.execute(
+                    "INSERT INTO evidence_conversations(id,corpus_id) VALUES (%s,%s)",
+                    (conversation_id, corpus_id),
+                )
+            accepted_settings["memory"] = []
+            if self.memory["enabled"]:
+                turns = connection.execute(
+                    "SELECT id,question,data->>'answer' AS answer FROM evidence_runs "
+                    "WHERE conversation_id=%s AND status='answered' "
+                    "ORDER BY finished_at DESC,id DESC LIMIT %s",
+                    (conversation_id, self.memory["max_turns"]),
+                ).fetchall()
+                accepted_settings["memory"] = bounded_turns(
+                    turns, self.memory["max_turns"], self.memory["max_context_bytes"],
+                )
+            serialized_settings = _json(accepted_settings, redact=True)
+            self._check_quota(connection, len(json.dumps(serialized_settings.obj).encode("utf-8")))
             run_id = _id()
             job = self._insert_job(connection, "query", {"run_id": run_id, "corpus_id": corpus_id})
             row = connection.execute(
-                "INSERT INTO rag_runs(id,job_id,corpus_id,space_id,question,settings) "
-                "VALUES (%s,%s,%s,%s,%s,%s) RETURNING *",
-                (run_id, job["id"], corpus_id, corpus["space_id"], question, _json(settings or {}, redact=True)),
+                "INSERT INTO evidence_runs(id,job_id,corpus_id,space_id,question,settings,conversation_id) "
+                "VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING *",
+                (run_id, job["id"], corpus_id, corpus["space_id"], question,
+                 serialized_settings, conversation_id),
             ).fetchone()
             return self._run_dict(row)
 
@@ -737,14 +772,14 @@ class Store:
     def update_run(self, run_id, fields: dict, lease: dict | None = None):
         if not isinstance(fields, dict):
             raise StorageError("invalid_data", "Run fields must be a JSON object.")
-        forbidden = {"id", "job_id", "corpus_id", "space_id", "question", "created_at", "settings", "data"}
+        forbidden = {"id", "job_id", "corpus_id", "space_id", "question", "created_at", "settings", "data", "conversation_id"}
         if forbidden.intersection(fields):
             raise StorageError("invalid_data", "Immutable run fields cannot be changed.")
         payload = {key: value for key, value in fields.items() if key != "status"}
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
             self._assert_lease(connection, lease, run_id=run_id)
-            row = connection.execute("SELECT * FROM rag_runs WHERE id=%s FOR UPDATE", (run_id,)).fetchone()
+            row = connection.execute("SELECT * FROM evidence_runs WHERE id=%s FOR UPDATE", (run_id,)).fetchone()
             if not row:
                 raise StorageError("not_found", "Query run not found.")
             if row["status"] in TERMINAL_RUNS:
@@ -760,7 +795,7 @@ class Store:
                 new_size = len(json.dumps({**row["data"], **_metadata(payload)}, ensure_ascii=False).encode("utf-8"))
                 self._check_quota(connection, max(0, new_size - old_size))
             row = connection.execute(
-                "UPDATE rag_runs SET status=%s,data=data||%s,updated_at=clock_timestamp(),"
+                "UPDATE evidence_runs SET status=%s,data=data||%s,updated_at=clock_timestamp(),"
                 "finished_at=CASE WHEN %s THEN clock_timestamp() ELSE NULL END WHERE id=%s RETURNING *",
                 (status, _json(payload, redact=True), status in TERMINAL_RUNS, run_id),
             ).fetchone()
@@ -768,11 +803,11 @@ class Store:
 
     def get_run(self, run_id) -> dict:
         with self._transaction(readonly=True) as connection:
-            row = connection.execute("SELECT * FROM rag_runs WHERE id=%s", (run_id,)).fetchone()
+            row = connection.execute("SELECT * FROM evidence_runs WHERE id=%s", (run_id,)).fetchone()
             if not row:
                 raise StorageError("not_found", "Query run not found.")
             events = connection.execute(
-                "SELECT id,event,created_at FROM rag_run_events WHERE run_id=%s ORDER BY id", (run_id,),
+                "SELECT id,event,created_at FROM evidence_run_events WHERE run_id=%s ORDER BY id", (run_id,),
             ).fetchall()
             result = self._run_dict(row)
             result["events"] = _json_safe(events)
@@ -781,7 +816,7 @@ class Store:
     def list_runs(self, limit=30, corpus_id=None) -> list[dict]:
         with self._transaction(readonly=True) as connection:
             rows = connection.execute(
-                "SELECT * FROM rag_runs WHERE (%s::text IS NULL OR corpus_id=%s) "
+                "SELECT * FROM evidence_runs WHERE (%s::text IS NULL OR corpus_id=%s) "
                 "ORDER BY created_at DESC,id LIMIT %s",
                 (corpus_id, corpus_id, max(1, min(int(limit), 1000))),
             ).fetchall()
@@ -794,7 +829,7 @@ class Store:
             serialized = _json(event, redact=True)
             self._check_quota(connection, len(json.dumps(serialized.obj, ensure_ascii=False).encode("utf-8")))
             row = connection.execute(
-                "INSERT INTO rag_run_events(run_id,event) VALUES (%s,%s) RETURNING id,created_at",
+                "INSERT INTO evidence_run_events(run_id,event) VALUES (%s,%s) RETURNING id,created_at",
                 (run_id, _json(event, redact=True)),
             ).fetchone()
             return _json_safe(row)
@@ -823,17 +858,17 @@ class Store:
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_BUDGET_LOCK,))
             connection.execute(
-                "UPDATE rag_calls SET status='expired_unknown',finished_at=clock_timestamp(),"
+                "UPDATE evidence_calls SET status='expired_unknown',finished_at=clock_timestamp(),"
                 "detail=COALESCE(detail,'{}'::jsonb)||'{\"reason\":\"reservation_expired_usage_unknown\"}'::jsonb "
                 "WHERE status='reserved' AND active_until<=clock_timestamp()"
             )
-            run = connection.execute("SELECT status FROM rag_runs WHERE id=%s", (run_id,)).fetchone()
+            run = connection.execute("SELECT status FROM evidence_runs WHERE id=%s", (run_id,)).fetchone()
             if run and run["status"] in TERMINAL_RUNS:
                 raise StorageError("cancelled", "This query run is already terminal.")
-            # A purged query no longer has a rag_runs row, but its stopped durable
+            # A purged query no longer has a evidence_runs row, but its stopped durable
             # job remains. It must still prevent a stale worker from booking a call.
             direct_jobs = connection.execute(
-                "SELECT status FROM rag_jobs WHERE id=%s OR "
+                "SELECT status FROM evidence_jobs WHERE id=%s OR "
                 "(kind='query' AND payload->>'run_id'=%s)", (run_id, run_id),
             ).fetchall()
             if any(job["status"] not in {"queued", "running"} for job in direct_jobs):
@@ -844,12 +879,12 @@ class Store:
                 owner_job = run_id.split(":", 2)[1]
             elif run_id.startswith("ingest:"):
                 source_job = connection.execute(
-                    "SELECT id FROM rag_jobs WHERE kind='ingest' AND payload->>'version_id'=%s",
+                    "SELECT id FROM evidence_jobs WHERE kind='ingest' AND payload->>'version_id'=%s",
                     (run_id.split(":", 1)[1],),
                 ).fetchone()
                 owner_job = source_job["id"] if source_job else None
             if owner_job:
-                owner = connection.execute("SELECT status FROM rag_jobs WHERE id=%s", (owner_job,)).fetchone()
+                owner = connection.execute("SELECT status FROM evidence_jobs WHERE id=%s", (owner_job,)).fetchone()
                 if owner and owner["status"] not in {"queued", "running"}:
                     raise StorageError("cancelled", "The owning job has stopped.")
             stats = connection.execute(
@@ -858,7 +893,7 @@ class Store:
                 "count(*) FILTER (WHERE run_id=%s) AS attempts,"
                 "count(*) FILTER (WHERE status='reserved' AND active_until>clock_timestamp()) AS active,"
                 "count(*) FILTER (WHERE status='reserved' AND active_until>clock_timestamp() AND profile=%s) AS active_profile "
-                "FROM rag_calls WHERE mock=%s", (phase, run_id, profile, mock),
+                "FROM evidence_calls WHERE mock=%s", (phase, run_id, profile, mock),
             ).fetchone()
             if stats["attempts"] >= attempt_cap:
                 raise StorageError("budget_exhausted", "Persistent run attempt limit reached.")
@@ -872,7 +907,7 @@ class Store:
                 raise StorageError("budget_exhausted", "Insufficient remaining total or phase budget.")
             call_id = _id()
             connection.execute(
-                "INSERT INTO rag_calls(id,run_id,phase,profile,mock,estimated_cost,charged_cost,active_until) "
+                "INSERT INTO evidence_calls(id,run_id,phase,profile,mock,estimated_cost,charged_cost,active_until) "
                 "VALUES (%s,%s,%s,%s,%s,%s,%s,clock_timestamp()+make_interval(secs=>%s))",
                 (call_id, run_id, phase, profile, mock, estimate, estimate, timeout),
             )
@@ -883,7 +918,7 @@ class Store:
             raise StorageError("invalid_data", "A completed call status is required.")
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_BUDGET_LOCK,))
-            row = connection.execute("SELECT * FROM rag_calls WHERE id=%s FOR UPDATE", (call_id,)).fetchone()
+            row = connection.execute("SELECT * FROM evidence_calls WHERE id=%s FOR UPDATE", (call_id,)).fetchone()
             if not row:
                 raise StorageError("not_found", "Call reservation not found.")
             actual = Decimal(0) if row["mock"] else (_cost(actual_cost) if actual_cost is not None else None)
@@ -897,7 +932,7 @@ class Store:
             if actual is not None and actual > row["estimated_cost"]:
                 metadata["estimate_exceeded"] = True
             row = connection.execute(
-                "UPDATE rag_calls SET status=%s,usage=%s,actual_cost=%s,charged_cost=%s,"
+                "UPDATE evidence_calls SET status=%s,usage=%s,actual_cost=%s,charged_cost=%s,"
                 "cost_known=%s,detail=%s,finished_at=clock_timestamp() WHERE id=%s RETURNING *",
                 (status, _json(usage, redact=True), actual, charged, actual is not None,
                  _json(metadata, redact=True), call_id),
@@ -907,7 +942,7 @@ class Store:
     def get_calls(self, run_id=None, prefix=None) -> list[dict]:
         with self._transaction(readonly=True) as connection:
             rows = connection.execute(
-                "SELECT * FROM rag_calls WHERE (%s::text IS NULL OR run_id=%s) "
+                "SELECT * FROM evidence_calls WHERE (%s::text IS NULL OR run_id=%s) "
                 "AND (%s::text IS NULL OR left(run_id,length(%s))=%s) ORDER BY created_at,id",
                 (run_id, run_id, prefix, prefix, prefix),
             ).fetchall()
@@ -921,7 +956,7 @@ class Store:
                 "COALESCE(sum(actual_cost) FILTER (WHERE cost_known),0) AS known_actual_cost,"
                 "count(*) FILTER (WHERE NOT cost_known) AS unknown_cost_calls,"
                 "count(*) FILTER (WHERE status='reserved' AND active_until>clock_timestamp()) AS active_calls "
-                "FROM rag_calls GROUP BY mock,phase ORDER BY mock,phase"
+                "FROM evidence_calls GROUP BY mock,phase ORDER BY mock,phase"
             ).fetchall()
             actual_disk = connection.execute(
                 "SELECT pg_database_size(current_database()) AS database_bytes"
@@ -938,31 +973,31 @@ class Store:
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
             document = connection.execute(
-                "SELECT * FROM rag_documents WHERE id=%s FOR UPDATE", (document_id,),
+                "SELECT * FROM evidence_documents WHERE id=%s FOR UPDATE", (document_id,),
             ).fetchone()
             if not document:
                 raise StorageError("not_found", "Document not found.")
             versions = connection.execute(
-                "SELECT id,job_id FROM rag_document_versions WHERE document_id=%s", (document_id,),
+                "SELECT id,job_id FROM evidence_document_versions WHERE document_id=%s", (document_id,),
             ).fetchall()
             references = [document_id] + [row["id"] for row in versions]
             # Cancel every in-flight corpus query: it may already hold the source in memory
             # even when its evidence has not yet been persisted. Lease fencing rejects later writes.
             running = connection.execute(
-                "SELECT id,job_id FROM rag_runs WHERE corpus_id=%s AND status<>ALL(%s) FOR UPDATE",
+                "SELECT id,job_id FROM evidence_runs WHERE corpus_id=%s AND status<>ALL(%s) FOR UPDATE",
                 (document["corpus_id"], list(TERMINAL_RUNS)),
             ).fetchall()
             running_jobs = [row["job_id"] for row in running]
             source_jobs = [row["job_id"] for row in versions if row["job_id"]]
             affected_runs = connection.execute(
-                "SELECT r.id,r.job_id FROM rag_runs r WHERE r.id=ANY(%s) OR "
+                "SELECT r.id,r.job_id FROM evidence_runs r WHERE r.id=ANY(%s) OR "
                 "EXISTS(SELECT 1 FROM unnest(%s::text[]) ref WHERE strpos(r.data::text,ref)>0) OR "
-                "EXISTS(SELECT 1 FROM rag_run_events ev,unnest(%s::text[]) ref "
+                "EXISTS(SELECT 1 FROM evidence_run_events ev,unnest(%s::text[]) ref "
                 "WHERE ev.run_id=r.id AND strpos(ev.event::text,ref)>0)",
                 ([row["id"] for row in running], references, references),
             ).fetchall()
             affected_jobs = connection.execute(
-                "SELECT id FROM rag_jobs j WHERE "
+                "SELECT id FROM evidence_jobs j WHERE "
                 "EXISTS(SELECT 1 FROM unnest(%s::text[]) ref "
                 "WHERE strpos(COALESCE(j.result::text,''),ref)>0 OR strpos(j.payload::text,ref)>0) OR "
                 "(kind='evaluation' AND status IN ('queued','running'))", (references,),
@@ -971,20 +1006,25 @@ class Store:
                                + [r["id"] for r in affected_jobs]))
             if job_ids:
                 connection.execute(
-                    "UPDATE rag_jobs SET status='cancelled',token=NULL,lease_until=NULL,result=NULL,error=NULL,"
+                    "UPDATE evidence_jobs SET status='cancelled',token=NULL,lease_until=NULL,result=NULL,error=NULL,"
                     "finished_at=clock_timestamp(),updated_at=clock_timestamp() WHERE id=ANY(%s)", (job_ids,),
                 )
             run_ids = [row["id"] for row in affected_runs]
             if run_ids:
-                connection.execute("DELETE FROM rag_runs WHERE id=ANY(%s)", (run_ids,))
-            connection.execute("UPDATE rag_documents SET active_version_id=NULL WHERE id=%s", (document_id,))
-            connection.execute("DELETE FROM rag_documents WHERE id=%s", (document_id,))
+                connection.execute("DELETE FROM evidence_runs WHERE id=ANY(%s)", (run_ids,))
+            # Source deletion also removes dialogue copied into other run snapshots.
             connection.execute(
-                "DELETE FROM rag_embedding_cache cache WHERE NOT EXISTS("
-                "SELECT 1 FROM rag_chunks ch JOIN rag_chunk_embeddings e ON e.chunk_id=ch.id "
+                "UPDATE evidence_runs SET settings=settings-'memory' WHERE corpus_id=%s",
+                (document["corpus_id"],),
+            )
+            connection.execute("UPDATE evidence_documents SET active_version_id=NULL WHERE id=%s", (document_id,))
+            connection.execute("DELETE FROM evidence_documents WHERE id=%s", (document_id,))
+            connection.execute(
+                "DELETE FROM evidence_embedding_cache cache WHERE NOT EXISTS("
+                "SELECT 1 FROM evidence_chunks ch JOIN evidence_chunk_embeddings e ON e.chunk_id=ch.id "
                 "WHERE ch.text_hash=cache.text_hash AND e.space_id=cache.space_id)"
             )
-            connection.execute("UPDATE rag_corpora SET revision=revision+1 WHERE id=%s",
+            connection.execute("UPDATE evidence_corpora SET revision=revision+1 WHERE id=%s",
                                (document["corpus_id"],))
             return {"document_id": document_id, "deleted": True, "purged_runs": len(run_ids),
                     "cancelled_jobs": len(job_ids)}
@@ -997,29 +1037,33 @@ class Store:
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
             deleted_runs = connection.execute(
-                "DELETE FROM rag_runs WHERE status=ANY(%s) AND finished_at < "
+                "DELETE FROM evidence_runs WHERE status=ANY(%s) AND finished_at < "
                 "clock_timestamp()-make_interval(days=>%s) RETURNING id",
                 (list(TERMINAL_RUNS), inactive_days),
             ).fetchall()
             deleted_versions = connection.execute(
-                "DELETE FROM rag_document_versions v USING rag_documents d "
+                "DELETE FROM evidence_document_versions v USING evidence_documents d "
                 "WHERE d.id=v.document_id AND d.active_version_id IS DISTINCT FROM v.id AND "
-                "NOT EXISTS(SELECT 1 FROM rag_jobs j WHERE j.id=v.job_id AND j.status IN ('queued','running')) AND "
+                "NOT EXISTS(SELECT 1 FROM evidence_jobs j WHERE j.id=v.job_id AND j.status IN ('queued','running')) AND "
                 "v.updated_at < clock_timestamp()-make_interval(days=>"
                 "CASE WHEN v.state IN ('queued','failed','needs_review','needs_ocr','extracted') THEN %s ELSE %s END) "
-                "AND NOT EXISTS(SELECT 1 FROM rag_runs r WHERE strpos(r.data::text,v.id)>0) "
-                "AND NOT EXISTS(SELECT 1 FROM rag_run_events e WHERE strpos(e.event::text,v.id)>0) "
-                "AND NOT EXISTS(SELECT 1 FROM rag_jobs j WHERE strpos(COALESCE(j.result::text,''),v.id)>0 "
+                "AND NOT EXISTS(SELECT 1 FROM evidence_runs r WHERE strpos(r.data::text,v.id)>0) "
+                "AND NOT EXISTS(SELECT 1 FROM evidence_run_events e WHERE strpos(e.event::text,v.id)>0) "
+                "AND NOT EXISTS(SELECT 1 FROM evidence_jobs j WHERE strpos(COALESCE(j.result::text,''),v.id)>0 "
                 "AND j.kind='evaluation') RETURNING v.id", (failed_days, inactive_days),
             ).fetchall()
             connection.execute(
-                "DELETE FROM rag_embedding_cache cache WHERE NOT EXISTS("
-                "SELECT 1 FROM rag_chunks ch JOIN rag_chunk_embeddings e ON e.chunk_id=ch.id "
+                "DELETE FROM evidence_embedding_cache cache WHERE NOT EXISTS("
+                "SELECT 1 FROM evidence_chunks ch JOIN evidence_chunk_embeddings e ON e.chunk_id=ch.id "
                 "WHERE ch.text_hash=cache.text_hash AND e.space_id=cache.space_id)"
             )
             connection.execute(
-                "DELETE FROM rag_documents d WHERE d.active_version_id IS NULL AND NOT EXISTS("
-                "SELECT 1 FROM rag_document_versions v WHERE v.document_id=d.id)"
+                "DELETE FROM evidence_documents d WHERE d.active_version_id IS NULL AND NOT EXISTS("
+                "SELECT 1 FROM evidence_document_versions v WHERE v.document_id=d.id)"
+            )
+            connection.execute(
+                "DELETE FROM evidence_conversations c WHERE NOT EXISTS("
+                "SELECT 1 FROM evidence_runs r WHERE r.conversation_id=c.id)"
             )
             return {"deleted_runs": len(deleted_runs), "deleted_versions": len(deleted_versions),
                     "retained_payload_bytes": int(self._payload_bytes(connection))}
