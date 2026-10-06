@@ -20,6 +20,10 @@ both forms and refreshes documents after observing a terminal ingestion job.
 
 Use ProviderError with a safe status/message. Missing/foreign/duplicate check IDs must fail. Bind hashes and round ID in application code, not by trusting model echoes. Mock generation/verification must be explicitly marked fixture-only, use exact evidence excerpts and deterministic adversarial cases. Do not claim mocked validation proves semantic quality. Native Clef uses its documented choice/probability schema. All optional protocol settings come from config. No auto fallback. Budget/call hooks below.
 
+Chat prompts include the exact wire JSON schema even when `response_format` uses
+`json_schema`. Answers still require `blocks[].block_id`, `text` and `citation_ids`;
+alternative fields such as `id`/`cite` are rejected without rewriting the draft.
+
 ## Store
 
 `evidence_lab.storage.Store(dsn: str, limits: dict | None = None)` uses sync psycopg connections, short transactions. Public methods:

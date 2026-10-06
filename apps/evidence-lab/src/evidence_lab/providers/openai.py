@@ -22,9 +22,8 @@ def chat_payload(profile: Any, messages: list[dict[str, Any]], schema: type[Base
     capabilities = profile.capabilities
     # LangChain dereferences Pydantic definitions and applies strict object rules.
     wire_schema = convert_to_openai_function(schema, strict=True)["parameters"]
-    if capabilities.structured_output != "json_schema":
-        messages = [dict(message) for message in messages]
-        messages[0]["content"] += "\nRequired JSON schema: " + compact_json(wire_schema)
+    messages = [dict(message) for message in messages]
+    messages[0]["content"] += "\nRequired JSON schema: " + compact_json(wire_schema)
     body: dict[str, Any] = {"model": profile.model, "messages": messages, "stream": False}
     body[capabilities.output_limit_parameter] = profile.max_output_tokens
     if capabilities.temperature:

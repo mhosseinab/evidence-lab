@@ -60,6 +60,8 @@ async def test_builtin_schema_conversion_preserves_strict_nested_domain_contract
         schema = payload["response_format"]["json_schema"]
         assert schema["strict"] is True
         check_schema(schema["schema"])
+        prompt_schema = json.loads(payload["messages"][0]["content"].split("Required JSON schema: ", 1)[1])
+        assert prompt_schema == schema["schema"]
     check = verification["response_format"]["json_schema"]["schema"]["properties"]["checks"]["items"]
     assert set(check["properties"]) == {"id", "kind", "support_status", "check_status", "reason"}
     await hub.aclose()
@@ -277,8 +279,8 @@ async def test_chat_capabilities_and_no_unsupported_temperature(style):
             assert "response_format" not in body
         else:
             assert body["response_format"]["type"] == style
-        if style != "json_schema":
-            assert "citation_ids" in body["messages"][0]["content"]
+        assert "block_id" in body["messages"][0]["content"]
+        assert "citation_ids" in body["messages"][0]["content"]
         return httpx.Response(200, json=chat_result(draft().model_dump(mode="json")))
     hub = ProviderHub(config, store=Ledger(), client=httpx.MockTransport(handler))
     assert await hub.generate("Price?", evidence(), context()) == draft()
@@ -297,7 +299,7 @@ async def test_generation_format_retry_is_bounded_and_accounted(content):
     await hub.aclose()
 
 
-@pytest.mark.parametrize("fault", ["duplicate_ids", "missing_id", "foreign_schema", "wrong_citation_type"])
+@pytest.mark.parametrize("fault", ["duplicate_ids", "missing_id", "foreign_schema", "wrong_citation_type", "wrong_field_names"])
 @pytest.mark.asyncio
 async def test_evaluation_candidate_retains_decodable_schema_faults_for_variant_b(fault):
     decoded = draft().model_dump(mode="json")
@@ -307,6 +309,10 @@ async def test_evaluation_candidate_retains_decodable_schema_faults_for_variant_
         del decoded["blocks"][0]["block_id"]
     elif fault == "foreign_schema":
         decoded["unrecognized_schema_field"] = "retained for the structural gate"
+    elif fault == "wrong_field_names":
+        block = decoded["blocks"][0]
+        block["id"] = block.pop("block_id")
+        block["cite"] = block.pop("citation_ids")
     else:
         decoded["blocks"][0]["citation_ids"] = [17]
     requests = []
@@ -433,7 +439,9 @@ async def test_hostile_evidence_and_draft_remain_data_without_tools_or_instructi
                 assert body["questions"][key]["instructions"] == UNTRUSTED_RULE + GLOBAL_INSTRUCTIONS[key]
             result = clef_result(block_choice="insufficient_evidence")
         else:
-            assert body["messages"][0] == {"role": "system", "content": VERIFICATION_INSTRUCTIONS}
+            system = body["messages"][0]
+            assert system["role"] == "system"
+            assert system["content"].split("\nRequired JSON schema: ", 1)[0] == VERIFICATION_INSTRUCTIONS
             assert [row["role"] for row in body["messages"]] == ["system", "user"]
             state = json.loads(body["messages"][1]["content"])
             decoded = checks()
