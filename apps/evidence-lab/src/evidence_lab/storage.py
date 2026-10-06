@@ -487,6 +487,21 @@ class Store:
                 (_json(pages), state, version_id),
             )
 
+    def get_evidence_item(self, corpus_id, version_id, evidence_id) -> dict:
+        """Read one immutable excerpt with corpus/deletion checks in one snapshot."""
+        with self._transaction(readonly=True) as connection:
+            row = connection.execute(
+                'SELECT ch.id,v.document_id,ch.version_id,v.name AS title,ch.text,ch.text_hash,'
+                'ch.page,ch.start_offset AS "start",ch.end_offset AS "end" '
+                "FROM evidence_chunks ch JOIN evidence_document_versions v ON v.id=ch.version_id "
+                "JOIN evidence_documents d ON d.id=v.document_id "
+                "WHERE ch.id=%s AND v.id=%s AND d.corpus_id=%s AND d.deleted_at IS NULL",
+                (evidence_id, version_id, corpus_id),
+            ).fetchone()
+            if row is None:
+                raise StorageError("not_found", "Evidence source is unavailable in this corpus.")
+            return _json_safe(row)
+
     def chunks_for_version(self, version_id) -> list[dict]:
         with self._transaction(readonly=True) as connection:
             rows = connection.execute(

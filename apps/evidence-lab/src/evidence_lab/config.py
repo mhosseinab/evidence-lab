@@ -313,10 +313,28 @@ def _validate_live_endpoint(value: str | None) -> None:
         raise _SettingError("Active endpoints must be complete HTTP(S) operation URLs without URL credentials, queries or fragments.")
 
 
+class AgentRagConfig(_StrictConfig):
+    allowed_corpora: list[str] = Field(default_factory=lambda: ["default"], min_length=1, max_length=100)
+    allowed_hosts: list[str] = Field(default_factory=lambda: [
+        "localhost", "localhost:*", "127.0.0.1", "127.0.0.1:*", "[::1]", "[::1]:*",
+    ], min_length=1, max_length=100)
+    allowed_origins: list[str] = Field(default_factory=lambda: ["http://localhost:*", "http://127.0.0.1:*"])
+    max_request_bytes: int = Field(default=65536, ge=1024, le=1024 * 1024)
+    max_result_bytes: int = Field(default=65536, ge=1024, le=1024 * 1024)
+
+    @field_validator("allowed_corpora")
+    @classmethod
+    def corpus_identifiers(cls, values: list[str]) -> list[str]:
+        if any(not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", value) for value in values):
+            raise _SettingError("Agent RAG corpus identifiers must be valid corpus names.")
+        return values
+
+
 class AppConfig(_StrictConfig):
     _source_directory: Path | None = PrivateAttr(default=None)
     config_version: Literal[1] = 1
     runtime: RuntimeConfig = Field(default_factory=RuntimeConfig)
+    agent_rag: AgentRagConfig = Field(default_factory=AgentRagConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     ingestion: IngestionConfig = Field(default_factory=IngestionConfig)
     retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)

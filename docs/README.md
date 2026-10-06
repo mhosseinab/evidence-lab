@@ -6,6 +6,8 @@ charts, configuration variables and Cloudflare Clef activation.
 | Guide | Purpose |
 |---|---|
 | [Contracts](contracts.md) | Provider, storage, HTTP and LangChain integration boundaries |
+| [Agent RAG interface](agent-rag-interface.md) | Read-only MCP tools, local/remote client setup and authorization limits |
+| [TODO](todo.md) | Planned workspace isolation and shared-file access model |
 | [Evaluation](evaluation.md) | Paired studies, human review and policy qualification |
 | [Experiments](experiments.md) | Repeatability and API load measurement commands |
 | [Approved plan](implementation-plan.md) | Original design and evaluation requirements; current behavior is documented in the guides above |

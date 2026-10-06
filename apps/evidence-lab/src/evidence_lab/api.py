@@ -27,6 +27,7 @@ from evidence_lab.policy import policy_state
 from evidence_lab.retrieval import retrieve_evidence, space_manifest
 from evidence_lab.storage import Store
 from evidence_lab.graph import graph_descriptor
+from evidence_lab.mcp_server import build_mcp_server, mcp_http_app
 
 PUBLIC_RUN_FIELDS = (
     "id", "job_id", "corpus_id", "space_id", "question", "status", "answer", "blocks",
@@ -101,6 +102,8 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
     store = store if store is not None else make_store(config)
     owns_hub = hub is None
     hub = hub if hub is not None else ProviderHub(config, store=store)
+    mcp_server = build_mcp_server(config, store, hub)
+    mcp_app = mcp_http_app(mcp_server, config)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -117,7 +120,8 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
                 # An old embedding space remains readable. The operator can
                 # create/reindex a separate corpus; retrieval still rejects it
                 # under a mismatched embedding configuration before inference.
-        yield
+        async with mcp_server.session_manager.run():
+            yield
         if owns_hub:
             await hub.aclose()
 
@@ -130,14 +134,19 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
     async def operator_boundary(request: Request, call_next):
         if request.url.path.startswith("/api/"):
             token = config.runtime.operator_token
+            is_mcp = request.url.path == "/api/mcp" or request.url.path.startswith("/api/mcp/")
+            if is_mcp and (token is None or not token.get_secret_value().strip()):
+                return JSONResponse({"detail": "MCP requires a configured operator token.", "code": "unauthorized"},
+                                    status_code=401)
             if token:
                 supplied = request.headers.get("authorization", "")
                 expected = "Bearer " + token.get_secret_value()
                 if not hmac.compare_digest(supplied.encode(), expected.encode()):
                     return JSONResponse({"detail": "An operator token is required.", "code": "unauthorized"},
                                         status_code=401)
-            # Prevent another website from driving an unauthenticated localhost app.
-            if request.method not in {"GET", "HEAD", "OPTIONS"}:
+            # REST writes retain same-origin protection. Authenticated MCP requests
+            # are checked against the SDK's configured Host/Origin allowlists.
+            if not is_mcp and request.method not in {"GET", "HEAD", "OPTIONS"}:
                 origin = request.headers.get("origin")
                 if request.headers.get("sec-fetch-site") == "cross-site" or (
                     origin and origin.rstrip("/") != str(request.base_url).rstrip("/")
@@ -400,6 +409,8 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
         if value["kind"] != "evaluation":
             raise ProviderError("not_found", "Evaluation not found.")
         return public_job(value)
+
+    app.mount("/api/mcp", mcp_app, name="agent-rag")
 
     dashboard = Path.cwd() / "apps/dashboard/dist"
     if (not all((dashboard / name).is_file() for name in ("index.html", "favicon.svg"))

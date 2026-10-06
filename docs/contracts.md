@@ -147,3 +147,25 @@ Retaining an external workspace embedding profile in browser BYOK mode strips
 its server credential references and authenticates it with the browser LLM key.
 Separate server and browser provider credentials are not combined. Signed-in
 operators use the server configuration normally.
+
+## Agent RAG over MCP
+
+`/api/mcp/` serves stateless Streamable HTTP using MCP SDK 2.3.0. All requests
+require the configured operator bearer token, including in fixture mode. Origin
+checks and an explicit Host allowlist apply. This is a private trusted-operator
+interface, not scoped OAuth delegation; token holders retain ordinary operator
+REST privileges. `agent_rag` configuration declares enabled corpora, allowed
+hosts/origins and bounded request/structured-result sizes.
+
+Tools are `search_evidence(question, corpus_id="default")` and
+`get_evidence_source(corpus_id, version_id, evidence_id)`. Both return structured
+JSON and read corpus data. Search uses `retrieve_evidence` and existing embedding
+adapters/ledger, returning an EvidencePack, content hash, runtime/embedding modes,
+qualification and `verified_answer: false`; it never generates or verifies answers.
+Source fetch uses `Store.get_evidence_item` with one snapshot checking corpus,
+version, excerpt ID and document deletion, and returns a typed EvidenceItem.
+No tools accept keys, URLs, paths, provider/mode/budget overrides or mutations.
+Errors are safe MCP tool errors; consumers must inspect `isError`.
+
+See [Agent RAG interface](agent-rag-interface.md) for configuration, client example,
+authorization limitations and rollout requirements.
