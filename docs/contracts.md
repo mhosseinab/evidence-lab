@@ -24,6 +24,10 @@ Chat prompts include the exact wire JSON schema even when `response_format` uses
 `json_schema`. Answers still require `blocks[].block_id`, `text` and `citation_ids`;
 alternative fields such as `id`/`cite` are rejected without rewriting the draft.
 
+Native Clef `confidence` is validated as a finite number in [0,1], without requiring
+equality to the selected entry in `probabilities`. Support scores come from the
+per-option probabilities; they remain uncalibrated model outputs.
+
 ## Store
 
 `evidence_lab.storage.Store(dsn: str, limits: dict | None = None)` uses sync psycopg connections, short transactions. Public methods:

@@ -85,7 +85,7 @@ def _choice(row: Any, labels: set[str]) -> tuple[str, dict[str, float]]:
     tolerance = max(0.00021, len(labels) * 0.00011)
     if abs(sum(scores.values()) - 1.0) > tolerance:
         raise _invalid()
-    if abs(float(confidence) - scores[chosen]) > 0.00021 or scores[chosen] + 0.00021 < max(scores.values()):
+    if scores[chosen] + 0.00021 < max(scores.values()):
         raise _invalid()
     return chosen, scores
 

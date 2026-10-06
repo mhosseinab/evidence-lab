@@ -484,6 +484,27 @@ async def test_native_clef_exact_route_choice_schema_reason_and_uncalibrated_sco
     await hub.aclose()
 
 
+@pytest.mark.asyncio
+async def test_native_clef_accepts_observed_confidence_distinct_from_choice_probability():
+    response = clef_result()
+    response["result"]["answers"]["block.1"].update(
+        confidence=0.8365,
+        probabilities={"conflicting_evidence": 0.0132, "contradicted": 0.0111,
+                       "insufficient_evidence": 0.04, "supported": 0.9357},
+    )
+    response["result"]["answers"]["global.task_scope"].update(
+        confidence=0.7196, probabilities={"fail": 0.0759, "pass": 0.9241},
+    )
+    hub = ProviderHub(configuration(native=True), store=Ledger(),
+                      client=httpx.MockTransport(lambda _: httpx.Response(200, json=response)))
+    result = await hub.verify("Price?", draft(), evidence(), context())
+    assert result.execution_status == "ok"
+    assert result.checks[0].support_status == "supported"
+    assert result.checks[0].support_score == 0.9357
+    assert next(check for check in result.checks if check.id == "global.task_scope").support_score == 0.9241
+    await hub.aclose()
+
+
 @pytest.mark.parametrize("mutation", ["unwrapped", "missing", "foreign", "choice", "confidence", "sum", "nan", "model"])
 @pytest.mark.asyncio
 async def test_native_clef_malformed_contract_is_not_retried(mutation):
@@ -498,7 +519,7 @@ async def test_native_clef_malformed_contract_is_not_retried(mutation):
     elif mutation == "choice":
         row["choice"] = "insufficient_evidence"
     elif mutation == "confidence":
-        row["confidence"] = 0.5
+        row["confidence"] = 1.5
     elif mutation == "sum":
         row["probabilities"]["contradicted"] = 1.0
     elif mutation == "nan":
