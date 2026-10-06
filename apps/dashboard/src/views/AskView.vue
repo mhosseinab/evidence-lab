@@ -12,7 +12,11 @@ const { state, actions } = useDashboardContext();
 const questionInput = ref<HTMLTextAreaElement | null>(null);
 const evidenceList = ref<InstanceType<typeof EvidenceList> | null>(null);
 const active = computed(
-  () => state.busy.question || Boolean(state.run && pendingStates.has(statusOf(state.run))),
+  () =>
+    !state.corpusId ||
+    state.busy.deleteCorpus ||
+    state.busy.question ||
+    Boolean(state.run && pendingStates.has(statusOf(state.run))),
 );
 const readyCount = computed(
   () =>

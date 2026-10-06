@@ -170,6 +170,9 @@ class MemoryIngestionStore:
             raise ProviderError("space_changed", "Space mismatch")
         return {"id": corpus_id, "space_id": manifest["id"], "revision": 0}
 
+    def get_corpus(self, corpus_id):
+        return {"id": corpus_id, "space_id": self.manifest["id"], "revision": 0}
+
     def get_version(self, version_id, include_bytes=False):
         return deepcopy(self.version)
 

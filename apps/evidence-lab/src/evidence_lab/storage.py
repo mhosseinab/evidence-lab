@@ -917,6 +917,12 @@ class Store:
             raise StorageError("budget_exhausted", "Live calls require positive total and phase budgets.")
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_BUDGET_LOCK,))
+            if limits.get("owner_job_id"):
+                owner = connection.execute(
+                    "SELECT status FROM evidence_jobs WHERE id=%s", (limits["owner_job_id"],),
+                ).fetchone()
+                if not owner or owner["status"] not in {"queued", "running"}:
+                    raise StorageError("cancelled", "The owning job has stopped or was purged.")
             connection.execute(
                 "UPDATE evidence_calls SET status='expired_unknown',finished_at=clock_timestamp(),"
                 "detail=COALESCE(detail,'{}'::jsonb)||'{\"reason\":\"reservation_expired_usage_unknown\"}'::jsonb "
@@ -989,8 +995,12 @@ class Store:
                 return _json_safe(row)
             charged = actual if actual is not None else row["charged_cost"]
             metadata = _metadata(detail) if isinstance(detail, dict) else {"detail": detail}
+            if row["run_id"].startswith("purged:"):
+                # A late provider completion may update accounting, never restore purged context.
+                usage, metadata = None, None
             if actual is not None and actual > row["estimated_cost"]:
-                metadata["estimate_exceeded"] = True
+                if metadata is not None:
+                    metadata["estimate_exceeded"] = True
             row = connection.execute(
                 "UPDATE evidence_calls SET status=%s,usage=%s,actual_cost=%s,charged_cost=%s,"
                 "cost_known=%s,detail=%s,finished_at=clock_timestamp() WHERE id=%s RETURNING *",
@@ -1027,6 +1037,74 @@ class Store:
                                "database_bytes": actual_disk,
                                "live_charged_cost": sum(row["charged_cost"] for row in rows if not row["mock"]),
                                "active_calls": sum(row["active_calls"] for row in rows)})
+
+    def delete_corpus(self, corpus_id: str) -> dict:
+        """Atomically purge corpus content while retaining anonymous global accounting."""
+        with self._transaction() as connection:
+            connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
+            connection.execute("SELECT pg_advisory_xact_lock(%s)", (_BUDGET_LOCK,))
+            corpus = connection.execute(
+                "SELECT * FROM evidence_corpora WHERE id=%s FOR UPDATE", (corpus_id,),
+            ).fetchone()
+            if not corpus:
+                raise StorageError("not_found", "Corpus not found.")
+            unscoped = connection.execute(
+                "SELECT id FROM evidence_jobs WHERE kind='evaluation' AND status IN ('queued','running') "
+                "AND NOT (payload ? 'corpus_ids') LIMIT 1"
+            ).fetchone()
+            if unscoped:
+                raise StorageError("invalid_state", "Cancel or finish active evaluations before deleting a corpus.")
+            versions = connection.execute(
+                "SELECT v.id,v.job_id,v.document_id FROM evidence_document_versions v "
+                "JOIN evidence_documents d ON d.id=v.document_id WHERE d.corpus_id=%s", (corpus_id,),
+            ).fetchall()
+            runs = connection.execute(
+                "SELECT id,job_id FROM evidence_runs WHERE corpus_id=%s", (corpus_id,),
+            ).fetchall()
+            references = [row["id"] for row in versions] + [row["document_id"] for row in versions]
+            owned_jobs = [row["job_id"] for row in versions + runs if row["job_id"]]
+            jobs = connection.execute(
+                "SELECT id FROM evidence_jobs j WHERE id=ANY(%s) OR payload->>'corpus_id'=%s "
+                "OR (payload->'corpus_ids') ? %s "
+                "OR jsonb_path_exists(COALESCE(result,'{}'::jsonb), '$.**.corpus_id ? (@ == $corpus)', "
+                "jsonb_build_object('corpus',%s::text)) OR EXISTS(SELECT 1 FROM unnest(%s::text[]) ref "
+                "WHERE strpos(COALESCE(result::text,''),ref)>0 OR strpos(payload::text,ref)>0)",
+                (owned_jobs, corpus_id, corpus_id, corpus_id, references),
+            ).fetchall()
+            job_ids = [row["id"] for row in jobs]
+            run_ids = [row["id"] for row in runs]
+            # Remove linkage and copied metadata, but keep spend and live reservations.
+            # Otherwise deleting a corpus would reset the configured global budget.
+            connection.execute(
+                "UPDATE evidence_calls SET run_id='purged:'||id,usage=NULL,detail=NULL WHERE "
+                "run_id=ANY(%s) OR run_id=ANY(%s) OR "
+                "(left(run_id,7)='ingest:' AND substring(run_id FROM 8)=ANY(%s)) OR "
+                "(left(run_id,5)='eval:' AND split_part(run_id,':',2)=ANY(%s))",
+                (run_ids, job_ids, [row["id"] for row in versions], job_ids),
+            )
+            connection.execute("DELETE FROM evidence_runs WHERE corpus_id=%s", (corpus_id,))
+            documents = connection.execute(
+                "DELETE FROM evidence_documents WHERE corpus_id=%s RETURNING id", (corpus_id,),
+            ).fetchall()
+            connection.execute("DELETE FROM evidence_jobs WHERE id=ANY(%s)", (job_ids,))
+            connection.execute("DELETE FROM evidence_corpora WHERE id=%s", (corpus_id,))
+            connection.execute(
+                "DELETE FROM evidence_embedding_cache cache WHERE space_id=%s "
+                "AND NOT EXISTS(SELECT 1 FROM evidence_chunks ch JOIN evidence_chunk_embeddings e "
+                "ON e.chunk_id=ch.id WHERE ch.text_hash=cache.text_hash AND e.space_id=cache.space_id)",
+                (corpus["space_id"],),
+            )
+            connection.execute(
+                "DELETE FROM evidence_embedding_spaces s WHERE id=%s "
+                "AND NOT EXISTS(SELECT 1 FROM evidence_corpora c WHERE c.space_id=s.id) "
+                "AND NOT EXISTS(SELECT 1 FROM evidence_document_versions v WHERE v.space_id=s.id) "
+                "AND NOT EXISTS(SELECT 1 FROM evidence_runs r WHERE r.space_id=s.id) "
+                "AND NOT EXISTS(SELECT 1 FROM evidence_embedding_cache cache WHERE cache.space_id=s.id) "
+                "AND NOT EXISTS(SELECT 1 FROM evidence_chunk_embeddings e WHERE e.space_id=s.id)",
+                (corpus["space_id"],),
+            )
+            return {"corpus_id": corpus_id, "deleted": True, "purged_documents": len(documents),
+                    "purged_runs": len(runs), "purged_jobs": len(jobs)}
 
     def delete_document(self, document_id) -> dict:
         """Explicit purge includes snapshots; financial call metadata is retained."""

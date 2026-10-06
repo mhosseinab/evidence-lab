@@ -605,6 +605,7 @@ Active live profiles require exactly one credential source and a nonempty printa
 | `memory.max_turns` | `6` | Retained complete question/answer pairs; 1–20 |
 | `memory.max_context_bytes` | `8000` | Serialized dialogue byte cap; 256–32000; bundled samples choose 4000 |
 | `langsmith.enabled` | `false` | Explicitly enable workflow metadata export |
+| `langsmith.capture_content` | `false` | Opt in to redacted provider request/response bodies, including rejected responses; up to 1 MiB per call context. May export question, answer and document text. |
 | `langsmith.project` | `evidence-lab` | Trace project name; 1–96 characters |
 | `langsmith.api_url` | `https://api.smith.langchain.com` | Explicit hosted or self-hosted HTTP(S) API endpoint |
 | `langsmith.api_key` | `null` | Direct private secret; enabled tracing requires this or one environment reference |
@@ -629,6 +630,21 @@ Active live profiles require exactly one credential source and a nonempty printa
 | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Compose database; `evidence_lab`, `evidence`, `evidence` | Database initialization settings currently fixed in `compose.yaml`; they are not interpolated host environment overrides. The sample credentials are for the loopback mock setup. |
 
 The backup/restore helpers derive libpq variables from the YAML DSN and discard inherited `PG*` variables, so stale shell values cannot redirect them. Supported mappings are `host→PGHOST`, `hostaddr→PGHOSTADDR`, `port→PGPORT`, `dbname→PGDATABASE`, `user→PGUSER`, `password→PGPASSWORD`, `sslmode→PGSSLMODE`, `sslrootcert→PGSSLROOTCERT`, `sslcert→PGSSLCERT`, `sslkey→PGSSLKEY`, `sslcrl→PGSSLCRL`, `sslcrldir→PGSSLCRLDIR`, `connect_timeout→PGCONNECT_TIMEOUT`, `options→PGOPTIONS`, `application_name→PGAPPNAME`, `target_session_attrs→PGTARGETSESSIONATTRS`, `channel_binding→PGCHANNELBINDING`, `service→PGSERVICE`, `passfile→PGPASSFILE` and `gssencmode→PGGSSENCMODE`. These are derived subprocess settings, not independent application YAML overrides.
+
+## Delete a workspace
+
+On the Documents screen, choose **Delete workspace** and type its name to confirm.
+This permanently removes the corpus and its documents, source bytes and versions,
+chunks, vectors, conversations, runs, events and related jobs. Shared embedding
+cache entries remain only while another corpus uses them. Anonymous spend and
+concurrency accounting remain so deletion cannot reset configured budgets;
+previously exported LangSmith traces and backups require separate deletion.
+The dashboard selects another workspace or asks you to create one when none remain.
+Server startup recreates an empty `default` workspace if it was deleted.
+
+The authenticated API is `DELETE /api/corpora/{corpus_id}`. Wait for unscoped
+evaluations to finish or cancel them before deleting a workspace, since their
+pending corpus dependencies cannot be determined safely.
 
 ## What the release gate enforces
 

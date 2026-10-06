@@ -48,15 +48,17 @@ export interface DashboardState {
   question: string;
   notice: string;
   toast: string;
-  dialog: "source" | "trace" | "connection" | "operator-login" | "new-corpus" | null;
+  dialog: "source" | "trace" | "connection" | "operator-login" | "new-corpus" | "delete-corpus" | null;
   uploading: boolean;
   uploads: UploadRecord[];
   corpusError: string;
+  deleteCorpusId: string;
   connected: boolean;
   accessRequired: boolean;
   busy: {
     question: boolean;
     corpus: boolean;
+    deleteCorpus: boolean;
     evaluation: boolean;
     cancelRun: boolean;
     cancelEvaluation: boolean;
@@ -104,11 +106,13 @@ export function useDashboard() {
     uploading: false,
     uploads: [],
     corpusError: "",
+    deleteCorpusId: "",
     connected: false,
     accessRequired: false,
     busy: {
       question: false,
       corpus: false,
+      deleteCorpus: false,
       evaluation: false,
       cancelRun: false,
       cancelEvaluation: false,
@@ -186,11 +190,23 @@ export function useDashboard() {
     const result = await api("/api/corpora");
     if (disposed || request !== corporaRequest) return;
     state.corpora = listOf(result, "corpora", "items");
-    if (!state.corpora.some((corpus) => corpus.id === state.corpusId) && state.corpora[0]?.id)
-      await selectCorpus(state.corpora[0].id);
+    if (!state.corpora.length) {
+      stopWorkspaceRequests();
+      statusRequest++;
+      clearWorkspaceResults();
+      state.corpusId = "";
+      state.status = null;
+      state.connected = false;
+      return;
+    }
+    if (!state.corpora.some((corpus) => (corpus.corpus_id || corpus.id) === state.corpusId)) {
+      const next = state.corpora[0];
+      await selectCorpus(next?.corpus_id || next?.id || "");
+    }
   }
   async function refreshStatus() {
     const corpusId = state.corpusId;
+    if (!corpusId) return;
     const request = ++statusRequest;
     try {
       const result = await api(corpusPath("/api/status", corpusId));
@@ -233,11 +249,15 @@ export function useDashboard() {
     state.documents = [];
     state.runs = [];
     state.evaluations = [];
+    state.source = { title: "", pages: [], versionId: "", loading: false, error: "", meta: "", notes: "" };
+    state.trace = { title: "", content: "", loading: false };
   }
   async function switchMode(mode: RuntimeMode) {
     if (
       disposed ||
       state.token ||
+      !state.corpusId ||
+      state.busy.deleteCorpus ||
       state.switchingMode ||
       state.uploading ||
       state.busy.question ||
@@ -278,6 +298,7 @@ export function useDashboard() {
   }
   async function refreshDocuments() {
     const corpusId = state.corpusId;
+    if (!corpusId) return;
     const request = ++documentsRequest;
     const result = await api(corpusPath("/api/documents", corpusId));
     if (disposed || corpusId !== state.corpusId || request !== documentsRequest) return;
@@ -298,6 +319,7 @@ export function useDashboard() {
   }
   async function refreshRuns() {
     const corpusId = state.corpusId;
+    if (!corpusId) return;
     const request = ++runsRequest;
     const result = await api(corpusPath("/api/runs", corpusId));
     if (disposed || corpusId !== state.corpusId || request !== runsRequest) return;
@@ -310,7 +332,7 @@ export function useDashboard() {
       state.evaluations = listOf(result, "evaluations", "jobs", "items");
   }
   async function selectCorpus(corpusId: string) {
-    if (disposed || state.switchingMode || corpusId === state.corpusId) return;
+    if (disposed || state.switchingMode || state.busy.deleteCorpus || corpusId === state.corpusId) return;
     state.corpusId = corpusId;
     state.conversationId = null;
     const selection = ++selectionVersion;
@@ -329,6 +351,7 @@ export function useDashboard() {
     if (failure?.status === "rejected" && selection === selectionVersion) notifyError(failure.reason);
   }
   async function createCorpus(id: string) {
+    if (disposed || state.busy.deleteCorpus || state.busy.corpus) return;
     const corpusId = id.trim();
     state.corpusError = "";
     if (!/^[A-Za-z0-9_-]{1,64}$/.test(corpusId)) {
@@ -349,6 +372,50 @@ export function useDashboard() {
       if (!disposed) state.corpusError = errorText(error);
     } finally {
       state.busy.corpus = false;
+    }
+  }
+  function requestCorpusDeletion() {
+    if (!state.corpusId || state.busy.deleteCorpus || state.uploading) return;
+    state.deleteCorpusId = state.corpusId;
+    state.corpusError = "";
+    state.dialog = "delete-corpus";
+  }
+  async function deleteCorpus(confirmation: string) {
+    const corpusId = state.deleteCorpusId;
+    if (disposed || state.busy.deleteCorpus || !corpusId || confirmation !== corpusId) return;
+    state.busy.deleteCorpus = true;
+    state.corpusError = "";
+    try {
+      await api(`/api/corpora/${encodeURIComponent(corpusId)}`, { method: "DELETE" });
+      if (disposed) return;
+      stopWorkspaceRequests();
+      statusRequest++;
+      corporaRequest++;
+      clearWorkspaceResults();
+      state.uploads = state.uploads.filter((upload) => upload.corpusId !== corpusId);
+      state.status = null;
+      state.corpusId = "";
+      state.question = "";
+      state.busy.question = false;
+      state.busy.evaluation = false;
+      state.connected = false;
+      state.corpora = state.corpora.filter((corpus) => (corpus.corpus_id || corpus.id) !== corpusId);
+      state.busy.deleteCorpus = false;
+      state.dialog = null;
+      toast(`Corpus ${corpusId} and its data were deleted.`);
+      try {
+        await refreshCorpora();
+      } catch (error) {
+        notifyError(error);
+      }
+      if (disposed) return;
+      const next = state.corpora[0];
+      if (!state.corpusId && next) await selectCorpus(next.corpus_id || next.id || "");
+      if (!state.corpusId) state.dialog = "new-corpus";
+    } catch (error) {
+      if (!disposed) state.corpusError = errorText(error);
+    } finally {
+      if (!disposed) state.busy.deleteCorpus = false;
     }
   }
   function newConversation() {
@@ -373,7 +440,15 @@ export function useDashboard() {
   }
   async function submitQuestion(input: string) {
     const question = input.trim();
-    if (!question || state.busy.question || state.switchingMode || disposed) return;
+    if (
+      !question ||
+      !state.corpusId ||
+      state.busy.deleteCorpus ||
+      state.busy.question ||
+      state.switchingMode ||
+      disposed
+    )
+      return;
     submittingQuestion = true;
     state.question = question;
     state.busy.question = true;
@@ -471,7 +546,7 @@ export function useDashboard() {
     corpusId = state.corpusId,
   ) {
     const list = Array.from(files || []);
-    if (!list.length || state.switchingMode || disposed) return;
+    if (!list.length || !corpusId || state.busy.deleteCorpus || state.switchingMode || disposed) return;
     if (state.uploading) {
       toast("Wait for the current upload to finish.");
       return;
@@ -659,7 +734,14 @@ export function useDashboard() {
     state.dialog = "trace";
   }
   async function startEvaluation() {
-    if (state.busy.evaluation || state.switchingMode || disposed) return;
+    if (
+      !state.corpusId ||
+      state.busy.deleteCorpus ||
+      state.busy.evaluation ||
+      state.switchingMode ||
+      disposed
+    )
+      return;
     state.busy.evaluation = true;
     try {
       const result = await api("/api/evaluations", {
@@ -729,6 +811,7 @@ export function useDashboard() {
     return (
       disposed ||
       state.busy.connection ||
+      state.busy.deleteCorpus ||
       state.switchingMode ||
       state.uploading ||
       state.busy.question ||
@@ -755,19 +838,16 @@ export function useDashboard() {
     state.token = value;
     state.mode = undefined;
     try {
+      await refreshCorpora();
       await refreshStatus();
       if (disposed) return;
       clearWorkspaceResults();
-      const results = await Promise.allSettled([
-        refreshCorpora(),
-        refreshDocuments(),
-        refreshRuns(),
-        refreshEvaluations(),
-      ]);
+      const results = await Promise.allSettled([refreshDocuments(), refreshRuns(), refreshEvaluations()]);
       const failure = results.find((result) => result.status === "rejected");
       if (failure?.status === "rejected") notifyError(failure.reason);
       if (!disposed) {
-        state.dialog = null;
+        state.accessRequired = false;
+        state.dialog = state.corpusId ? null : "new-corpus";
         toast("Signed in. Using server configuration.");
       }
     } catch (error) {
@@ -790,6 +870,7 @@ export function useDashboard() {
     state.status = null;
     state.connected = false;
     try {
+      await refreshCorpora();
       await refreshStatus();
       if (disposed) return;
       if (credentials.mode.value && credentials.mode.value !== state.mode)
@@ -820,8 +901,14 @@ export function useDashboard() {
     if (initialized || disposed) return;
     initialized = true;
     window.addEventListener("hashchange", switchView);
+    try {
+      await refreshCorpora();
+    } catch (error) {
+      notifyError(error);
+    }
+    if (disposed) return;
     switchView();
-    const results = await Promise.allSettled([refreshCorpora(), refreshStatus(), refreshDocuments()]);
+    const results = await Promise.allSettled([refreshStatus(), refreshDocuments()]);
     const failure = results.find((result) => result.status === "rejected");
     if (failure?.status === "rejected") notifyError(failure.reason);
     if (credentials.mode.value && credentials.mode.value !== state.mode)
@@ -860,6 +947,8 @@ export function useDashboard() {
       refreshEvaluations,
       selectCorpus,
       createCorpus,
+      requestCorpusDeletion,
+      deleteCorpus,
       submitQuestion,
       newConversation,
       openRun,

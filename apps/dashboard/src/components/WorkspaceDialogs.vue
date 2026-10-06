@@ -10,6 +10,8 @@ const traceDialog = ref<HTMLDialogElement>();
 const connectionDialog = ref<HTMLDialogElement>();
 const operatorDialog = ref<HTMLDialogElement>();
 const corpusDialog = ref<HTMLDialogElement>();
+const deleteCorpusDialog = ref<HTMLDialogElement>();
+const deleteConfirmation = ref("");
 const token = ref("");
 const corpusId = ref("");
 const dialogs = {
@@ -18,6 +20,7 @@ const dialogs = {
   connection: connectionDialog,
   "operator-login": operatorDialog,
   "new-corpus": corpusDialog,
+  "delete-corpus": deleteCorpusDialog,
 };
 watch(
   () => state.dialog,
@@ -26,6 +29,7 @@ watch(
       if (name === active && dialog.value && !dialog.value.open) dialog.value.showModal();
       else if (name !== active && dialog.value?.open) dialog.value.close();
     }
+    if (active !== "delete-corpus") deleteConfirmation.value = "";
     if (active !== "operator-login") token.value = "";
     if (active !== "new-corpus") corpusId.value = "";
     else state.corpusError = "";
@@ -33,7 +37,7 @@ watch(
   { flush: "post" },
 );
 function close() {
-  state.dialog = null;
+  if (!state.busy.deleteCorpus) state.dialog = null;
 }
 function backdrop(event: MouseEvent) {
   if (event.target === event.currentTarget) close();
@@ -280,6 +284,69 @@ const connectionRows = computed(() => {
         <button type="button" class="button secondary" @click="close">Cancel</button
         ><button id="new-corpus-submit" type="submit" class="button primary" :disabled="state.busy.corpus">
           {{ state.busy.corpus ? "Creating…" : "Create corpus" }}
+        </button>
+      </div>
+    </form>
+  </dialog>
+  <dialog
+    id="delete-corpus-dialog"
+    ref="deleteCorpusDialog"
+    class="dialog connection-dialog"
+    aria-labelledby="delete-corpus-title"
+    @click="backdrop"
+    @keydown.esc.prevent="close"
+    @cancel.prevent="close"
+    @close="state.dialog === 'delete-corpus' && close()"
+  >
+    <div class="dialog-heading">
+      <h2 id="delete-corpus-title">Delete workspace {{ state.deleteCorpusId }}?</h2>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Close workspace deletion"
+        :disabled="state.busy.deleteCorpus"
+        @click="close"
+      >
+        ×
+      </button>
+    </div>
+    <form
+      id="delete-corpus-form"
+      class="corpus-form"
+      @submit.prevent="actions.deleteCorpus(deleteConfirmation)"
+    >
+      <p class="field-help">
+        This permanently purges workspace data, including documents, source versions, embeddings,
+        conversations, runs, jobs and diagnostics. This cannot be undone. Anonymous spend accounting is
+        retained to enforce budgets. Previously exported LangSmith traces remain in LangSmith.
+      </p>
+      <label for="delete-corpus-confirmation">Type {{ state.deleteCorpusId }} to confirm</label>
+      <input
+        id="delete-corpus-confirmation"
+        v-model="deleteConfirmation"
+        type="text"
+        autocomplete="off"
+        required
+        :disabled="state.busy.deleteCorpus"
+      >
+      <p v-if="state.corpusError" class="field-error" role="alert">{{ state.corpusError }}</p>
+      <div class="dialog-footer">
+        <button
+          id="delete-corpus-cancel"
+          type="button"
+          class="button secondary"
+          :disabled="state.busy.deleteCorpus"
+          @click="close"
+        >
+          Cancel
+        </button>
+        <button
+          id="delete-corpus-submit"
+          type="submit"
+          class="button primary"
+          :disabled="state.busy.deleteCorpus || deleteConfirmation !== state.deleteCorpusId"
+        >
+          {{ state.busy.deleteCorpus ? "Deleting…" : "Permanently delete workspace" }}
         </button>
       </div>
     </form>

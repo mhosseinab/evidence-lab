@@ -70,7 +70,7 @@ class Ledger:
         self.rows = []
 
     def reserve_call(self, run_id, phase, profile, estimated_cost, limits):
-        assert set(limits) == {"total_cap", "phase_caps", "run_attempt_cap", "remote_concurrency", "profile_concurrency", "mock", "timeout_seconds"}
+        assert set(limits) - {"owner_job_id"} == {"total_cap", "phase_caps", "run_attempt_cap", "remote_concurrency", "profile_concurrency", "mock", "timeout_seconds"}
         count = sum(row["run_id"] == run_id for row in self.rows)
         if count >= limits["run_attempt_cap"]:
             raise ProviderError("budget_exhausted", "Attempt ledger limit reached")

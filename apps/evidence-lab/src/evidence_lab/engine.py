@@ -39,6 +39,7 @@ class QueryEngine:
             remaining -= max(0, (datetime.now(timezone.utc) - when).total_seconds())
         ctx = CallContext.for_seconds(run_id, "queries", max(0, remaining),
                                      self.config.runtime.max_remote_attempts_per_query)
+        ctx.owner_job_id = job["id"]
         ctx.attempts_used = len(self.store.get_calls(run_id))
         timings = {}
         graph_steps = []

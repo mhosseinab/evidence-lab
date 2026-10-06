@@ -151,6 +151,7 @@ class CallContext:
     calls: list[dict[str, Any]] = field(default_factory=list)
     cancelled: bool = False
     provider_traces: list[dict[str, Any]] = field(default_factory=list, repr=False)
+    owner_job_id: str | None = None
 
     @classmethod
     def for_seconds(cls, run_id: str, phase: str, seconds: float = 60, max_attempts: int = 10):

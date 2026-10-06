@@ -291,6 +291,10 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
     def create_corpus(payload: CorpusRequest, request: Request):
         return store.ensure_corpus(payload.corpus_id, space_manifest(runtime_config(request)))
 
+    @app.delete("/api/corpora/{corpus_id}")
+    def delete_corpus(corpus_id: str):
+        return store.delete_corpus(corpus_id)
+
     @app.get("/api/documents")
     def documents(corpus_id: str = "default"):
         return {"documents": store.list_documents(corpus_id)}

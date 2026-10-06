@@ -174,6 +174,8 @@ class CallExecutor:
                 # subsequent bounded HTTP call is still legitimately active.
                 "timeout_seconds": ctx.remaining(),
             }
+            if ctx.owner_job_id is not None:
+                limits["owner_job_id"] = ctx.owner_job_id
             try:
                 call_id = await asyncio.to_thread(self.store.reserve_call, ctx.run_id, ctx.phase, name, estimated_cost, limits)
                 # The durable reservation is the attempt boundary. Waiting for

@@ -16,8 +16,10 @@ const { state, actions } = useDashboardContext();
       ><select
         id="corpus-select"
         :value="state.corpusId"
+        :disabled="state.busy.deleteCorpus"
         @change="actions.selectCorpus(($event.target as HTMLSelectElement).value)"
       >
+        <option v-if="!state.corpusId" value="">No workspace</option>
         <option
           v-for="corpus in state.corpora"
           :key="corpus.corpus_id || corpus.id"
@@ -27,6 +29,7 @@ const { state, actions } = useDashboardContext();
         </option>
       </select><button
         id="new-corpus-open"
+        :disabled="state.busy.deleteCorpus"
         type="button"
         class="new-corpus-button"
         aria-label="New corpus"

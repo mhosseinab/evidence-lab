@@ -176,7 +176,7 @@ function refreshEvaluations() {
         id="start-evaluation"
         class="button primary"
         type="button"
-        :disabled="active || state.busy.evaluation"
+        :disabled="!state.corpusId || state.busy.deleteCorpus || active || state.busy.evaluation"
         @click="actions.startEvaluation"
       >
         <span aria-hidden="true">▷</span>Run demo evaluation

@@ -70,6 +70,15 @@ async function refreshDocuments() {
         <h1 id="documents-heading">Documents</h1>
         <p class="page-description">Add your documents and follow their journey into the search index.</p>
       </div>
+      <button
+        id="delete-corpus-open"
+        class="button secondary"
+        type="button"
+        :disabled="!state.corpusId || state.busy.deleteCorpus || state.uploading"
+        @click="actions.requestCorpusDeletion"
+      >
+        Delete workspace
+      </button>
       <button id="documents-refresh" class="button secondary" type="button" @click="refreshDocuments">
         <span aria-hidden="true">↻</span>Refresh
       </button>
@@ -109,7 +118,7 @@ async function refreshDocuments() {
         multiple
         :accept="accepted"
         class="visually-hidden"
-        :disabled="state.uploading"
+        :disabled="!state.corpusId || state.busy.deleteCorpus || state.uploading"
         @change="chooseFiles($event)"
       >
       <span class="upload-icon" aria-hidden="true"
@@ -124,7 +133,7 @@ async function refreshDocuments() {
         id="choose-files"
         type="button"
         class="button secondary"
-        :disabled="state.uploading"
+        :disabled="!state.corpusId || state.busy.deleteCorpus || state.uploading"
         @click="fileInput?.click()"
       >
         Choose files
@@ -136,7 +145,7 @@ async function refreshDocuments() {
       type="file"
       :accept="accepted"
       class="visually-hidden"
-      :disabled="state.uploading"
+      :disabled="!state.corpusId || state.busy.deleteCorpus || state.uploading"
       @change="chooseFiles($event, true)"
       @cancel="revision = null"
     >

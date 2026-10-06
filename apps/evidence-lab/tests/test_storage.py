@@ -455,6 +455,81 @@ class TestPostgresPersistence:
             store.reserve_call("ingest:" + document["version_id"], "ingestion", "test-model", 0.1, _call_limits())
         assert error.value.code == "cancelled"
 
+    def test_corpus_purge_removes_content_and_fences_workers_without_resetting_budget(self, store, storage_dsn):
+        shared = "Content used by both corpora."
+        document, ingest, chunks, _ = _stage(store, [shared, "Private deleted content."],
+                                           vectors=[[1, 0, 0], [0, 1, 0]], activate=True, finish=True)
+        store.ensure_corpus("other", SPACE)
+        other, _, other_chunks, _ = _stage(store, [shared], corpus="other",
+                                          vectors=[[1, 0, 0]], activate=True, finish=True)
+        other_run = store.create_run("Keep this question.", "other")
+        other_lease = store.claim_job("other-query")
+        store.finish_job(other_lease["id"], other_lease["token"], "succeeded")
+        run = store.create_run("Delete this question.", "test")
+        lease = store.claim_job("query")
+        store.append_event(run["id"], {"type": "private", "text": "Copied context."}, lease)
+        call = store.reserve_call(run["id"], "queries", "model", 0.1,
+                                  _call_limits(owner_job_id=lease["id"]))
+        # A completed evaluation can hold copies even without a top-level corpus payload.
+        evaluation = store.enqueue_job("evaluation", {"dataset": "operator"})
+        eval_lease = store.claim_job("eval")
+        store.finish_job(eval_lease["id"], eval_lease["token"], "succeeded",
+                         result={"questions": [{"evidence": {"corpus_id": "test", "text": "Copied source."}}]})
+        result = store.delete_corpus("test")
+        assert result == {"corpus_id": "test", "deleted": True, "purged_documents": 1,
+                          "purged_runs": 1, "purged_jobs": 3}
+        for method, identifier in [(store.get_corpus, "test"), (store.get_version, document["version_id"]),
+                                   (store.get_run, run["id"]), (store.get_job, lease["id"]),
+                                   (store.get_job, ingest["id"]), (store.get_job, evaluation["id"])]:
+            with pytest.raises(StorageError) as error:
+                method(identifier)
+            assert error.value.code == "not_found"
+        assert store.get_version(other["version_id"])["id"] == other["version_id"]
+        assert store.get_run(other_run["id"])["question"] == "Keep this question."
+        assert store.get_cached_embeddings(SPACE["id"], [chunks[0]["text_hash"]])
+        assert store.get_cached_embeddings(SPACE["id"], [chunks[1]["text_hash"]]) == {}
+        assert store.retrieve("other", SPACE["id"], shared, [1, 0, 0])["dense"][0]["id"] == other_chunks[0]["id"]
+        assert store.get_calls(run["id"]) == []
+        assert store.budget_summary()["live_charged_cost"] == 0.1
+        assert store.budget_summary()["active_calls"] == 1
+        with pytest.raises(StorageError) as error:
+            store.reserve_call(run["id"], "queries", "model", 0.1, _call_limits(owner_job_id=lease["id"]))
+        assert error.value.code == "cancelled"
+        with pytest.raises(StorageError) as error:
+            store.finish_job(lease["id"], lease["token"], "succeeded", result={"private": "late"})
+        assert error.value.code == "lease_lost"
+        store.finish_call(call, "ok", usage={"copied": "private"}, actual_cost=0.05,
+                          detail={"run_id": run["id"], "source": document["version_id"]})
+        anonymous = store.get_calls()[0]
+        assert anonymous["run_id"] == "purged:" + call
+        assert anonymous["usage"] is None and anonymous["detail"] is None
+        assert store.budget_summary()["live_charged_cost"] == 0.05
+        with psycopg.connect(storage_dsn) as connection:
+            events = connection.execute("SELECT count(*) FROM evidence_run_events").fetchone()
+            assert events is not None and events[0] == 0
+            conversations = connection.execute("SELECT count(*) FROM evidence_conversations WHERE corpus_id='test'").fetchone()
+            assert conversations is not None and conversations[0] == 0
+
+    def test_corpus_purge_refuses_unscoped_active_evaluation_atomically(self, store):
+        document = store.create_document("private.txt", b"Keep until safe.", "text/plain", "test")
+        store.enqueue_job("evaluation", {"dataset": "operator"})
+        with pytest.raises(StorageError) as error:
+            store.delete_corpus("test")
+        assert error.value.code == "invalid_state"
+        assert store.get_corpus("test")["id"] == "test"
+        assert store.get_version(document["version_id"])["id"] == document["version_id"]
+
+    def test_corpus_purge_removes_unreferenced_embedding_space(self, store, storage_dsn):
+        _stage(store, ["Only source."], vectors=[[1, 0, 0]], activate=True, finish=True)
+        store.delete_corpus("test")
+        assert store.list_corpora() == []
+        with psycopg.connect(storage_dsn) as connection:
+            for table in ("evidence_documents", "evidence_document_versions", "evidence_chunks",
+                          "evidence_chunk_embeddings", "evidence_embedding_cache", "evidence_embedding_spaces",
+                          "evidence_jobs", "evidence_conversations"):
+                count = connection.execute(sql.SQL("SELECT count(*) FROM {}").format(sql.Identifier(table))).fetchone()
+                assert count is not None and count[0] == 0
+
     def test_cleanup_preserves_referenced_old_source_then_removes_it_after_run_retention(self, store):
         old, _, _, _ = _stage(
             store, ["The previous source says blue."], vectors=[[1, 0, 0]], activate=True, finish=True,

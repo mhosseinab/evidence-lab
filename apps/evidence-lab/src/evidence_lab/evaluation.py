@@ -1268,6 +1268,7 @@ async def evaluate_dataset(
             continue
         allowance = per_case_cap if _runtime_mode(config) == "mock" else min(per_case_cap, cap - consumed)
         ctx = CallContext.for_seconds(prefix + "q:" + case.id, "evaluation", deadline, allowance)
+        ctx.owner_job_id = worker_job["id"] if worker_job else None
         result = await run_question_case(case, dataset, store, hub, config, ctx)
         result["attempted"] = True
         report["questions"].append(result)
@@ -1281,6 +1282,7 @@ async def evaluate_dataset(
             continue
         allowance = per_case_cap if _runtime_mode(config) == "mock" else min(per_case_cap, cap - consumed)
         ctx = CallContext.for_seconds(prefix + "c:" + case.id, "evaluation", deadline, allowance)
+        ctx.owner_job_id = worker_job["id"] if worker_job else None
         result = await run_controlled_case(case, dataset, hub, config, ctx)
         result["attempted"] = True
         report["controlled"].append(result)

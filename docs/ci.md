@@ -107,3 +107,24 @@ and `git diff --check` passed. The check log is
 `/tmp/evidence-host-caddy-check.log` on the development host. The follow-up is not
 claimed as a complete native run. Live model quality, MCP hostname permissions,
 and Sales Coach backend readiness were not qualified by this deployment check.
+
+### Corpus deletion and tracing compatibility verification
+
+The dashboard accepts both `metadata_only` and `provider_payloads` tracing metadata
+and describes the configured export mode. Corpus deletion tests cover typed-name
+confirmation, cancellation, errors, pending response cleanup, selecting a remaining
+workspace and signing in after the last workspace or `default` is removed.
+Native storage tests cover atomic content purge, other-corpus isolation, shared
+cache retention, stale-worker fencing and anonymous global budget accounting.
+
+Run the checks with a dedicated PostgreSQL/pgvector database:
+
+```sh
+EVIDENCE_LAB_TEST_DSN="$TEST_DSN" \
+EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN="$TEST_ADMIN_DSN" task ci
+```
+
+The local run on 2026-10-06 passed all checks and builds: 549 backend tests,
+72 dashboard tests and 5 deployment tests, without backend skips.
+Its log is `/tmp/evidence-corpus-purge-ci.log`. No paid inference or existing
+workspace deletion was used for verification.

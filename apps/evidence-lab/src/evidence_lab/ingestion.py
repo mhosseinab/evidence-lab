@@ -329,6 +329,7 @@ async def ingest_job(job: dict, store, hub, config) -> dict:
     from evidence_lab.langsmith_trace import export_trace
 
     ctx = CallContext.for_seconds(job["id"], "ingestion", config.runtime.ingestion_deadline_seconds, config.runtime.max_remote_attempts_per_ingestion)
+    ctx.owner_job_id = job["id"]
     result = {"status": "failed"}
     try:
         result = await _ingest_job(job, store, hub, config, ctx)
@@ -347,7 +348,7 @@ async def _ingest_job(job: dict, store, hub, config, ctx: CallContext) -> dict:
     version = store.get_version(version_id, include_bytes=True)
     corpus_id = version["corpus_id"]
     manifest = space_manifest(config)
-    corpus = store.ensure_corpus(corpus_id, manifest)
+    corpus = store.get_corpus(corpus_id)
     if corpus["space_id"] != manifest["id"]:
         raise ProviderError("space_changed", "The active embedding space does not match ingestion configuration")
     if version["state"] == "ready":

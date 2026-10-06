@@ -70,6 +70,12 @@ onUnmounted(() => {
           Live generation uses existing local pgvector vectors with deterministic fixture embeddings.
           Retrieval quality has not been evaluated.
         </div>
+        <div v-if="!state.corpusId" class="notice" role="status">
+          No workspace remains.
+          <button type="button" class="button secondary" @click="state.dialog = 'new-corpus'">
+            Create a workspace
+          </button>
+        </div>
         <AskView v-show="state.view === 'ask'" /><DocumentsView v-show="state.view === 'documents'" />
         <EvaluationsView v-show="state.view === 'evaluations'" />
         <footer class="main-footer">

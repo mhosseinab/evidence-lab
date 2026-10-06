@@ -50,6 +50,7 @@ class APIStore:
         }
         self.created_documents = []
         self.ensured_corpora = []
+        self.deleted_corpora = []
         self.enqueued = []
         self.calls = []
         self.raw_source = b"Original source bytes."
@@ -63,6 +64,13 @@ class APIStore:
     def ensure_corpus(self, corpus_id, manifest):
         self.ensured_corpora.append(corpus_id)
         return self.get_corpus(corpus_id)
+
+    def delete_corpus(self, corpus_id):
+        if corpus_id == "missing":
+            raise ProviderError("not_found", "Corpus not found.")
+        self.deleted_corpora.append(corpus_id)
+        return {"corpus_id": corpus_id, "deleted": True, "purged_documents": 1,
+                "purged_runs": 2, "purged_jobs": 3}
 
     def list_documents(self, corpus_id="default"):
         return [deepcopy(self.doc)]
@@ -233,6 +241,23 @@ def test_operator_token_protects_public_and_trace_endpoints():
         assert client.get("/api/runs/r1/trace", headers={"Authorization": "Bearer wrong"}).status_code == 401
         allowed = client.get("/api/runs/r1/trace", headers={"Authorization": "Bearer operator-test-token"})
     assert allowed.status_code == 200
+
+
+def test_corpus_delete_requires_operator_auth_and_same_origin():
+    cfg = load_config("configs/mock.yaml")
+    cfg.runtime.operator_token = SecretStr("operator-test-token")
+    client, store = make_client(config=cfg)
+    auth = {"Authorization": "Bearer operator-test-token"}
+    with client:
+        assert client.delete("/api/corpora/test").status_code == 401
+        assert client.delete("/api/corpora/test", headers={**auth, "Origin": "https://other.example"}).status_code == 403
+        assert store.deleted_corpora == []
+        response = client.delete("/api/corpora/test", headers=auth)
+        assert response.status_code == 200
+        assert response.json() == {"corpus_id": "test", "deleted": True, "purged_documents": 1,
+                                   "purged_runs": 2, "purged_jobs": 3}
+        assert client.delete("/api/corpora/missing", headers=auth).status_code == 404
+    assert store.deleted_corpora == ["test"]
 
 
 @pytest.mark.parametrize(
