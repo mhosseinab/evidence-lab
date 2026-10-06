@@ -21,7 +21,6 @@ jobs:
     env:
       EVIDENCE_LAB_TEST_DSN: postgresql://evidence:evidence@127.0.0.1:5432/evidence_test
       EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN: postgresql://evidence:evidence@127.0.0.1:5432/evidence_test
-      PYTEST_ADDOPTS: --junitxml=artifacts/pytest.xml
     services:
       postgres:
         image: pgvector/pgvector:0.8.2-pg17-bookworm@sha256:feb68f4f15446397d8cac7f4fe48fe4586de83160d1fc48b46283312d1a33966
@@ -71,29 +70,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes postgresql-client-17
           echo '/usr/lib/postgresql/17/bin' >> "$GITHUB_PATH"
-      - name: Install locked workspace dependencies
-        run: task setup
-      - name: Check dependency consistency
-        run: |
-          uv lock --check
-          uv pip check
-      - name: Lint and test both apps
-        run: task check
-      - name: Check VPS deployment failure paths
-        run: .venv/bin/python deploy/test_deploy_vps.py
-      - name: Require complete test coverage
-        run: |
-          .venv/bin/python - <<'PY'
-          import xml.etree.ElementTree as ET
-          root = ET.parse("artifacts/pytest.xml").getroot()
-          suites = list(root.iter("testsuite"))
-          tests = sum(int(suite.get("tests", "0")) for suite in suites)
-          skipped = sum(int(suite.get("skipped", "0")) for suite in suites)
-          if not tests or skipped:
-              raise SystemExit(f"Expected a complete suite: tests={tests}, skipped={skipped}")
-          PY
-      - name: Build distributions and dashboard
-        run: task build
+      - name: Run shared CI checks and builds
+        run: task ci
       - name: Upload test results and builds
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

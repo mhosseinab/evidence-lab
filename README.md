@@ -669,10 +669,25 @@ task lint          # Ruff, Basedpyright, dashboard type checking and Biome lint
 task format        # format Python with Ruff and frontend sources with Biome
 task test          # Python and frontend tests; integration prerequisites apply
 task check         # lint, then the complete test suite
+task ci            # same checks/builds as GitHub CI; requires dedicated test DSNs
 task typecheck     # check Python and dashboard TypeScript types
 task build         # build dashboard assets, then the Python distribution
 task clean         # remove generated development/build caches
 ```
+
+`task ci` runs the same sequence as GitHub CI and writes `artifacts/pytest.xml`.
+It requires PostgreSQL with pgvector, `pg_dump`/`pg_restore`, and explicit dedicated
+test DSNs. The admin DSN authorizes the native restore tests to create and remove
+their own temporary databases. Never use an application database:
+
+```bash
+EVIDENCE_LAB_TEST_DSN=postgresql://evidence:evidence@127.0.0.1:5432/evidence_test \
+EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN=postgresql://evidence:evidence@127.0.0.1:5432/evidence_test \
+  task ci
+```
+
+Missing prerequisites or skipped backend tests fail this gate. Use `task test:offline`
+for checks without native PostgreSQL. Local `task ci` does not publish or deploy.
 
 ### Complete command reference
 
@@ -697,6 +712,7 @@ task app:test -- --junitxml=artifacts/pytest.xml
 | `task test` | Backend and dashboard tests; missing DB prerequisites produce skips |
 | `task test:offline` | Backend tests excluding integration/native markers, plus dashboard tests |
 | `task check` | Lint then full tests, sequentially |
+| `task ci` | Locked setup, dependency checks, lint/native tests, deployment tests, no-skip gate and builds |
 | `task build` | Dashboard assets and backend wheel/source distribution |
 | `task clean` | Remove generated build/test caches; preserve dependencies and runtime data |
 | `task app:cli -- COMMAND [ARGS]` | Build dashboard and run an operator command |

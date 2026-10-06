@@ -57,6 +57,30 @@ tasks:
     cmds:
     - task: lint
     - task: test
+  ci:
+    desc: Run CI locally (requires dedicated native PostgreSQL test DSNs)
+    preconditions:
+    - sh: test -n "$EVIDENCE_LAB_TEST_DSN" && test -n "$EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN"
+      msg: Set EVIDENCE_LAB_TEST_DSN and EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN to dedicated test databases; never use application data.
+    - sh: command -v pg_dump >/dev/null && command -v pg_restore >/dev/null
+      msg: Install PostgreSQL pg_dump and pg_restore clients for the native restore tests.
+    cmds:
+    - task: setup
+    - uv lock --check
+    - uv pip check
+    - PYTEST_ADDOPTS="$PYTEST_ADDOPTS --junitxml=artifacts/pytest.xml" task check
+    - .venv/bin/python deploy/test_deploy_vps.py
+    - |
+      .venv/bin/python - <<'PY'
+      import xml.etree.ElementTree as ET
+      root = ET.parse("artifacts/pytest.xml").getroot()
+      suites = list(root.iter("testsuite"))
+      tests = sum(int(suite.get("tests", "0")) for suite in suites)
+      skipped = sum(int(suite.get("skipped", "0")) for suite in suites)
+      if not tests or skipped:
+          raise SystemExit(f"Expected a complete suite: tests={tests}, skipped={skipped}")
+      PY
+    - task: build
   build:
     desc: Build the app wheel and source distribution
     cmds:

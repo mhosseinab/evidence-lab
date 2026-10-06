@@ -66,3 +66,23 @@ validation against the real VPS, actual Pages upload, DNS/TLS and the public
 reverse proxy remain unverified until credentials and infrastructure are set up.
 The [deployment guide](deployment.md) lists the required settings. Local fixture
 checks do not measure human-reviewed held-out gold or real endpoint performance.
+
+## Local `task ci` follow-up
+
+On 2026-10-06, the shared local/GitHub CI entrypoint passed with an isolated
+PostgreSQL/pgvector container named `evidence-local-ci-20261006`:
+
+```sh
+UV_CACHE_DIR=/tmp/evidence-lab-ci-uv-cache \
+EVIDENCE_LAB_TEST_DSN=postgresql://evidence:evidence@127.0.0.1:32771/evidence_ci_test \
+EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN=postgresql://evidence:evidence@127.0.0.1:32771/evidence_ci_test \
+  task ci
+```
+
+Locked setup, dependency consistency, lint/type checks, 518 backend tests,
+56 dashboard tests, 5 deployment-script tests, the no-skip JUnit gate and both
+builds passed. Counts reflect the current workspace, including concurrent backend
+changes outside this task. Actionlint and `git diff --check` also passed.
+Running `task ci` without the DSNs failed at the intended prerequisite check
+before setup or tests. The dedicated test container was removed afterward; no
+application database was used. The full run log is `/tmp/evidence-local-ci.log`.
