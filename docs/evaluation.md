@@ -2,6 +2,11 @@
 
 The evaluator produces a paired experiment with explicit denominators and unmeasured fields. It can record a negative or incomplete result. A completed job is not automatically a qualified model policy.
 
+This guide defines the study procedure and evidence requirements. The companion
+[qualification assurance guide](qualification-assurance.md) explains how those
+requirements relate to per-answer verification, publication and runtime artifact
+checks, including their trust limits.
+
 Dashboard BYOK live mode uses shadow verification and does not qualify a release
 policy. Use explicit CLI-selected datasets and reviewed server settings for live
 studies; HTTP evaluation is limited to the bundled mock demo. MCP returns evidence
@@ -9,6 +14,23 @@ with `verified_answer: false` and does not execute answer verification or evalua
 See [BYOK](byok.md) and [MCP](agent-rag-interface.md) for these boundaries.
 
 The bundled demo is deliberately small: **four fictional documents, seven questions, and sixteen controlled claims**. Its exact-text mock behavior checks software plumbing. It establishes neither retrieval quality nor the semantic accuracy of any hosted model. No human-reviewed development or held-out benchmark is bundled.
+
+## Choose the publication mode
+
+`verification.mode` controls publication separately from study execution:
+
+| Mode | Live behavior |
+| --- | --- |
+| `shadow` | Execute checks but keep candidate drafts in operator diagnostics. |
+| `evaluation` | Keep candidate drafts unpublished while measuring the pipeline. Selecting this mode does not start a study. |
+| `verified` | Automatically release answers that pass all per-answer checks; the policy remains unqualified. |
+| `gated` | Require a matching qualified policy artifact as well as passing per-answer checks. |
+
+Mock releases remain labeled `fixture_only`, regardless of their deterministic
+check results. An operator-approved release is an audited exception for one
+checked shadow run; it does not qualify a policy or change future queries.
+See [publication and operator overrides](qualification-assurance.md) for the full
+release rules.
 
 ## Run the mock demonstration
 
@@ -137,6 +159,43 @@ uv run --locked --package evidence-lab python -m evidence_lab.evaluation propose
 
 This literal helper requires exactly one matching span. It writes `supported:null` and `review.status:"unreviewed"`. A person must decide whether the wording is natural and whether the support label actually changed. The command does not append the proposal to the frozen dataset or assign invented reviewer identities.
 
+## Run a live study
+
+Prepare the human-reviewed dataset described above, configure real provider
+profiles and dated prices, and prepare the configured PostgreSQL database and
+corpus sources. Paths below are illustrative operator-owned files; the repository
+does not supply a reviewed live dataset or completed study artifacts.
+
+First inspect the development estimate without making inference calls:
+
+```bash
+task app:cli -- --config configs/private.yaml evaluate \
+  --dataset data/private/study.json --split development
+```
+
+After reviewing the estimate and configuring sufficient total/evaluation budgets,
+execute the development study explicitly:
+
+```bash
+task app:cli -- --config configs/private.yaml evaluate \
+  --dataset data/private/study.json --split development \
+  --execute --output artifacts/development-evaluation
+```
+
+Freeze the selected settings, prompts, threshold, source revisions and held-out
+manifest before running the test split. This command makes budgeted external calls:
+
+```bash
+task app:cli -- --config configs/private.yaml evaluate \
+  --dataset data/private/study.json --split test \
+  --execute --output artifacts/held-out-evaluation
+```
+
+Complete the independent, hash-bound output review using the rubric and
+`eval-review` procedure above. Retain the reviewed report and collect the separate
+fault, load and repeatability artifacts before qualification. Do not tune settings
+against the held-out results and then present the same split as untouched evidence.
+
 ## Metric definitions and uncertainty
 
 Every report includes the selected frozen manifest. Scoring rejects missing or duplicated case rows, altered family/type/controlled-label metadata, a changed manifest hash, or an incomplete A/B/C/D set. Each declared case has an output row even if budget, cancellation, or restart prevents execution.
@@ -211,7 +270,40 @@ task app:cli -- --config configs/private.yaml qualify \
   --policy-id reviewed-candidate-v1 --output policies/reviewed-candidate-v1.json
 ```
 
-Only an all-pass result has `qualified:true`. Missing inputs, mock runs, incomplete gold, source/policy changes, or failed goals produce an explicit list of unmet requirements. Configure the matching policy ID and path only after inspecting that concrete result. Qualification applies to the frozen measured PoC; source truth and production readiness are separate questions.
+Only an all-pass result has `qualified:true`. Missing inputs, mock runs, incomplete gold, mismatched study snapshots or fingerprints, and failed goals produce an explicit list of unmet requirements. Configure the matching policy ID and path only after inspecting that concrete result. Qualification applies to the frozen measured PoC; source truth and production readiness are separate questions.
+
+## Activate and maintain a qualified policy
+
+After an all-pass qualification result, configure the artifact ID and a path
+readable by both API and worker processes:
+
+```yaml
+verification:
+  mode: gated
+  policy_id: reviewed-candidate-v1
+  policy_path: /app/policies/reviewed-candidate-v1.json
+```
+
+The path is illustrative: mount the actual artifact at that location, or choose
+the correct local path. Relative paths resolve against the process working
+directory. Restart the API and worker after changing their YAML configuration.
+Check authenticated `/api/status` for the effective policy state and
+`release_allowed`; an unmatched or unreadable artifact must not enable release.
+
+At runtime, the gate checks the artifact's policy ID, semantic configuration
+fingerprint, implementation fingerprint, `qualified: true`, `runtime_mode: live`,
+`human_reviewed: true`, nonempty evaluation ID, primary variant `D`, and
+`complete: true`. It does **not** rerun the empirical study, recompute its metrics,
+authenticate reviewers or verify a cryptographic signature. Protect the artifact
+as an operator-controlled record and inspect the actual qualification result.
+
+Changes to fingerprinted configuration or application/build files require a
+matching new artifact. Runtime policy loading does not compare every future
+corpus revision with the measured study snapshot. Source additions and replacements
+still receive per-answer checks, but qualification on the old snapshot does not
+establish quality on the changed corpus. Reassess the affected dataset and rerun
+studies when the measured assumptions change. The [assurance guide](qualification-assurance.md)
+details fingerprint scope, source boundaries and maintenance triggers.
 
 ## Tests and module interfaces
 

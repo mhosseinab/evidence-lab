@@ -1,10 +1,12 @@
 # Evidence Lab documentation
 
-Start with the [project README](../README.md) for setup, Task commands, architecture
-charts, configuration variables and Cloudflare Clef activation.
+Start with the [project README](../README.md) for quick setup and the complete
+configuration reference. Use the operator guide for detailed workflows and commands.
 
 | Guide | Purpose |
 |---|---|
+| [Operator and development guide](operator-guide.md) | Architecture, provider setup, commands, tests and recovery |
+| [Qualification assurance](qualification-assurance.md) | Answer checks, publication modes, measured policy qualification and trust limits |
 | [Contracts](contracts.md) | Provider, storage, HTTP and LangChain integration boundaries |
 | [Dashboard BYOK](byok.md) | Browser keys, modes, workspace embeddings, operator sign-in and recovery |
 | [Agent RAG interface](agent-rag-interface.md) | Read-only MCP tools, local/remote client setup and authorization limits |

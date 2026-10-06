@@ -80,7 +80,7 @@ Run `task check` and `task build` from the repository root. SDK tests invoke the
 real integration classes with mocked HTTP, including mutation/extra-request
 rejection, retries, raw usage validation and unchanged native Clef routing.
 Concurrent reservation coverage requires dedicated native PostgreSQL test DSNs.
-No real model calls are required. See the root [test commands](../../../../../README.md#tests-recovery-and-operations).
+No real model calls are required. See the root [test commands](../../../../../docs/operator-guide.md#tests-recovery-and-operations).
 
 Dependency behavior was checked against current LangChain documentation and the
 installed `langchain-openai==1.6.7` / `openai==3.24.0` sources. See the official
