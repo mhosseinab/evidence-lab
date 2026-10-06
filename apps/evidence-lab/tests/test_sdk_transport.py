@@ -18,6 +18,30 @@ from evidence_lab.storage import Store
 from test_providers import SECRET, Ledger, chat_result, clef_result, configuration, context, draft, evidence
 
 
+async def test_content_capture_retains_schema_rejected_response_without_ledger_content():
+    config = configuration()
+    config.langsmith.enabled = True
+    config.langsmith.capture_content = True
+    ledger = Ledger()
+    ctx = context()
+    rejected = draft().model_dump(mode="json")
+    rejected["blocks"][0]["unexpected"] = "diagnostic response " + SECRET
+    response = chat_result(rejected, usage={"prompt_tokens": 12, "completion_tokens": 8, "total_tokens": 20})
+    hub = ProviderHub(config, store=ledger, client=httpx.MockTransport(lambda request: httpx.Response(200, json=response)))
+    try:
+        with pytest.raises(ProviderError, match="schema validation"):
+            await hub.generate("Private debugging question", evidence(), ctx)
+        captured = ctx.provider_traces[0]
+        assert captured["status"] == "invalid_response"
+        assert "Private debugging question" in json.dumps(captured["content"]["request"])
+        assert "diagnostic response" in json.dumps(captured["content"]["response"])
+        assert SECRET not in json.dumps(captured, default=str)
+        assert "diagnostic response" not in json.dumps(ctx.calls, default=str)
+        assert "diagnostic response" not in json.dumps(ledger.rows, default=str)
+    finally:
+        await hub.aclose()
+
+
 async def test_live_chat_uses_real_sdk_with_exact_operation_auth_and_private_tracing(monkeypatch):
     config = configuration()
     profile = config.role_profile("generator")

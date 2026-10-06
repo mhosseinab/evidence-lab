@@ -54,7 +54,7 @@ still fail the existing strict checks. Response sizes, deadlines, cancellation
 and safe errors remain enforced in `transport.py`.
 
 Ambient content tracing is disabled around SDK calls. Explicit LangSmith export
-contains stage metadata only. Clef does not enter the SDK guard; its native
+contains stage metadata by default; explicit YAML `langsmith.capture_content: true` adds redacted request/response bodies, including schema failures. Clef does not enter the SDK guard; its native
 choice/probability decoding and evidence-binding checks remain unchanged.
 
 ## Built-in reuse

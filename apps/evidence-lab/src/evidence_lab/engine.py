@@ -206,4 +206,4 @@ class QueryEngine:
             return terminal(status, error=str(exc), code=exc.status)
         finally:
             if completed_result is not None:
-                await export_trace(self.config, run_id, graph_steps, completed_result)
+                await export_trace(self.config, run_id, graph_steps, completed_result, provider_calls=ctx.provider_traces)

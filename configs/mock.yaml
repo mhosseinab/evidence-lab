@@ -112,6 +112,7 @@ memory:
   max_context_bytes: 4000
 langsmith:
   enabled: false
+  capture_content: false
   project: evidence-lab
   api_url: https://api.smith.langchain.com
   api_key: null

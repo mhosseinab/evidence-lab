@@ -113,12 +113,13 @@ To enable LangSmith, edit the private copy:
 ```yaml
 langsmith:
   enabled: true
+  capture_content: true
   project: evidence-lab
   api_url: https://api.smith.langchain.com
   api_key_env: EVIDENCE_LAB_LANGSMITH_API_KEY
   timeout_seconds: 2
 ```
 
-Set the referenced key in the API and worker environments (or use a direct `api_key`). Compose requires explicitly forwarding it; the root sample does not inherit host secrets. Metadata traces include run IDs, stages and timings only. Raw prompts, source text, drafts and dialogue remain local. Global `LANGSMITH_TRACING` settings do not enable content tracing. Restart after changes.
+Set the referenced key in the API and worker environments (or use a direct `api_key`). Compose requires explicitly forwarding it; the root sample does not inherit host secrets. By default, traces contain run IDs, stages and timings only. Set `capture_content: true` explicitly to export provider request bodies and responses, including schema-rejected JSON, for queries and ingestion. This sends questions, source excerpts and model output to the selected LangSmith project. Authentication headers are never captured; configured keys and database credentials are redacted. Content is held only in memory until the final export, independently of answer publication; it is not stored in the call ledger. The total content allowance per job is 1 MiB; oversized calls retain metadata with `content_omitted: true`. Ambient `LANGSMITH_TRACING` settings do not enable content tracing. Restart API and worker after changes. Existing traces are not backfilled.
 
 This version uses a fresh `evidence_*` schema and `EVIDENCE_LAB_*` controls; legacy database/environment compatibility is removed. The local sample DSN is `postgresql://evidence:evidence@localhost:5432/evidence_lab`.

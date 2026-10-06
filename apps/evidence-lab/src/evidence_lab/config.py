@@ -100,6 +100,7 @@ class MemoryConfig(_StrictConfig):
 
 class LangSmithConfig(_StrictConfig):
     enabled: bool = False
+    capture_content: bool = False
     project: str = Field(default="evidence-lab", min_length=1, max_length=96)
     api_url: str = "https://api.smith.langchain.com"
     api_key: SecretStr | None = Field(default=None, repr=False)

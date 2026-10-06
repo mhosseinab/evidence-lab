@@ -9,6 +9,7 @@ import yaml
 
 from evidence_lab.config import ConfigError, load_config
 from evidence_lab import langsmith_trace
+from evidence_lab.domain import CallContext
 
 
 def test_tracing_is_disabled_even_with_ambient_credentials(monkeypatch):
@@ -67,7 +68,34 @@ def test_disabled_langsmith_redacts_url_credentials(tmp_path):
     assert "PRIVATE" not in json.dumps(load_config(path).safe_dict())
 
 
-def test_real_sdk_exports_only_allowlisted_metadata_to_selected_endpoint():
+def test_content_capture_is_opt_in_redacted_and_bounded():
+    from pydantic import SecretStr
+
+    config = load_config("configs/mock.yaml")
+    config.langsmith.enabled = True
+    config.langsmith.api_key = SecretStr("private-trace-key")
+    ctx = CallContext.for_seconds("run1", "queries")
+    payload = {"messages": [{"content": "document excerpt private-trace-key"}]}
+    response = {"choices": [{"message": {"content": "invalid schema private-trace-key"}}],
+                "api_key": "another-secret"}
+    langsmith_trace.capture_provider_call(config, ctx, "generator", payload, response, "invalid_response", 0.1)
+    assert not ctx.provider_traces
+    config.langsmith.capture_content = True
+    langsmith_trace.capture_provider_call(config, ctx, "generator", payload, response, "invalid_response", 0.1)
+    records = langsmith_trace.trace_records(config, "run1", [], {"status": "failed"}, provider_calls=ctx.provider_traces)
+    encoded = json.dumps(records, default=str)
+    assert "document excerpt" in encoded and "invalid schema" in encoded
+    assert "private-trace-key" not in encoded and "another-secret" not in encoded
+    assert records[0]["error"] and records[-1]["error"]
+    assert records[-1]["parent_run_id"] == records[0]["id"]
+    assert not ctx.calls  # Content never enters persistent budget accounting.
+    langsmith_trace.capture_provider_call(config, ctx, "generator", {"text": "x" * langsmith_trace.MAX_CONTENT_BYTES}, {}, "ok", 0.1)
+    assert ctx.provider_traces[-1]["content_omitted"] is True
+    assert ctx.provider_traces[-1]["content"] == {}
+
+
+@pytest.mark.parametrize("capture_content", [False, True])
+def test_real_sdk_exports_only_explicit_content_to_selected_endpoint(capture_content):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     from threading import Thread
     from pydantic import SecretStr
@@ -99,15 +127,22 @@ def test_real_sdk_exports_only_allowlisted_metadata_to_selected_endpoint():
         config.langsmith.enabled = True
         config.langsmith.api_url = f"http://127.0.0.1:{server.server_port}"
         config.langsmith.api_key = SecretStr("test-trace-key")
+        config.langsmith.capture_content = capture_content
+        ctx = CallContext.for_seconds("run1", "queries")
+        langsmith_trace.capture_provider_call(config, ctx, "generator", {"messages": ["REQUEST CONTENT"]},
+                                             {"response": "RESPONSE CONTENT", "api_key": "PRIVATE KEY"},
+                                             "invalid_response", 0.1)
         records = langsmith_trace.trace_records(config, "run1", [
             {"node": "verify", "status": "completed", "elapsed_seconds": 0.1,
              "question": "PRIVATE QUESTION", "draft": "PRIVATE DRAFT"},
-        ], {"status": "answered", "answer": "PRIVATE ANSWER"})
+        ], {"status": "answered", "answer": "PRIVATE ANSWER"}, provider_calls=ctx.provider_traces)
         langsmith_trace._send(config, records)
         assert len(batches) == 1
-        assert len(batches[0]["post"]) == 2
+        assert len(batches[0]["post"]) == (3 if capture_content else 2)
         assert "PRIVATE" not in json.dumps(batches)
         assert batches[0]["post"][1]["name"] == "verify"
+        assert ("REQUEST CONTENT" in json.dumps(batches)) is capture_content
+        assert ("RESPONSE CONTENT" in json.dumps(batches)) is capture_content
     finally:
         server.shutdown()
         server.server_close()

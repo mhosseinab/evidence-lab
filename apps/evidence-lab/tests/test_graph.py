@@ -99,7 +99,8 @@ def test_telemetry_receives_only_safe_steps_and_terminal_metadata(monkeypatch):
 
     exports = []
 
-    async def export(config, run_id, steps, result):
+    async def export(config, run_id, steps, result, *, provider_calls):
+        assert provider_calls == []
         exports.append((run_id, steps, result))
 
     monkeypatch.setattr(engine_module, "export_trace", export)

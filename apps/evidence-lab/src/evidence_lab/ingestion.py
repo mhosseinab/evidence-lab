@@ -326,9 +326,23 @@ def _embedding_batches(chunks: list[dict], profile, batch_size: int) -> list[lis
 
 async def ingest_job(job: dict, store, hub, config) -> dict:
     """Process a claimed ingest job; every publication is fenced by its lease."""
-    from evidence_lab.retrieval import space_manifest
+    from evidence_lab.langsmith_trace import export_trace
 
     ctx = CallContext.for_seconds(job["id"], "ingestion", config.runtime.ingestion_deadline_seconds, config.runtime.max_remote_attempts_per_ingestion)
+    result = {"status": "failed"}
+    try:
+        result = await _ingest_job(job, store, hub, config, ctx)
+        return result
+    finally:
+        if config.langsmith.capture_content and ctx.provider_traces:
+            await export_trace(config, job["id"], [],
+                               {"status": "answered" if result["status"] == "ready" else "failed"},
+                               provider_calls=ctx.provider_traces, name="Evidence Lab ingestion")
+
+
+async def _ingest_job(job: dict, store, hub, config, ctx: CallContext) -> dict:
+    from evidence_lab.retrieval import space_manifest
+
     version_id = job["payload"]["version_id"]
     version = store.get_version(version_id, include_bytes=True)
     corpus_id = version["corpus_id"]

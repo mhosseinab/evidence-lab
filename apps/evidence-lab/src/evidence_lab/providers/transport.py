@@ -17,6 +17,7 @@ import httpx
 
 from evidence_lab.config import input_token_bound
 from evidence_lab.domain import CallContext, ProviderError, strict_json
+from evidence_lab.langsmith_trace import capture_provider_call
 
 T = TypeVar("T")
 MAX_RESPONSE_BYTES = 8 * 1024 * 1024
@@ -196,7 +197,7 @@ class CallExecutor:
         except Exception:
             raise ProviderError("provider_unavailable", "Call-budget completion could not be recorded") from None
 
-    async def _http(self, profile: Any, payload: dict, timeout: float) -> tuple[Any, str | None]:
+    async def _http(self, profile: Any, payload: dict, timeout: float, observe_response: Callable[[Any], None]) -> tuple[Any, str | None]:
         if self.client is None:
             self.client = httpx.AsyncClient(follow_redirects=False, trust_env=False, limits=httpx.Limits(max_connections=self.config.runtime.remote_concurrency))
         secret = profile.api_key.get_secret_value()
@@ -204,21 +205,27 @@ class CallExecutor:
         headers = {profile.auth_header: authentication, "Content-Type": "application/json", "Accept": "application/json"}
         async with self.client.stream("POST", profile.endpoint, headers=headers, json=payload, timeout=timeout, follow_redirects=False) as response:
             retry_after = response.headers.get("Retry-After")
+            body = bytearray()
+            async for chunk in response.aiter_bytes():
+                body.extend(chunk)
+                if len(body) > MAX_RESPONSE_BYTES:
+                    raise ProviderError("invalid_response", "Provider response exceeded the bounded response size")
+            invalid_json = False
+            try:
+                data = strict_json(body.decode("utf-8"))
+            except (ValueError, UnicodeError, TypeError, RecursionError):
+                data = body.decode("utf-8", errors="replace")
+                invalid_json = True
+            observe_response(data)
             if response.status_code != 200:
                 if response.status_code in {401, 403}:
                     raise ProviderError("provider_unavailable", "Provider authentication or access was rejected")
                 error = ProviderError("provider_unavailable", "The configured provider returned an unsuccessful response", retryable=response.status_code in RETRY_STATUS)
                 error.retry_after = retry_after
                 raise error
-            body = bytearray()
-            async for chunk in response.aiter_bytes():
-                body.extend(chunk)
-                if len(body) > MAX_RESPONSE_BYTES:
-                    raise ProviderError("invalid_response", "Provider response exceeded the bounded response size")
-            try:
-                return strict_json(body.decode("utf-8")), retry_after
-            except (ValueError, UnicodeError, TypeError, RecursionError):
+            if invalid_json:
                 raise ProviderError("invalid_response", "Provider returned an invalid JSON response") from None
+            return data, retry_after
 
     async def invoke(self, name: str, profile: Any, payload: dict, ctx: CallContext, decoder: Callable[[Any], T], *, format_retry: bool = False, embedding_batch: bool = False) -> T:
         ctx.remaining()
@@ -239,9 +246,16 @@ class CallExecutor:
                 status = "provider_unavailable"
                 usage = None
                 actual_cost = None
+                request_content = payload
+                response_content = None
+
+                def observe_response(data):
+                    nonlocal response_content
+                    response_content = data
 
                 async def send(actual_payload: dict) -> tuple[Any, str | None]:
-                    nonlocal call_id, estimate_tokens, estimated_cost, usage, actual_cost, decoded, retry_after
+                    nonlocal call_id, estimate_tokens, estimated_cost, usage, actual_cost, decoded, retry_after, request_content
+                    request_content = actual_payload
                     # Authorize the actual SDK request, not merely a model invocation.
                     estimate_tokens = check_payload(profile, actual_payload, embedding_batch=embedding_batch)
                     estimated_cost = _cost(profile, estimate_tokens, output_reservation(profile))
@@ -249,7 +263,7 @@ class CallExecutor:
                         raise ProviderError("budget_exhausted", "A conservative call-cost estimate is unavailable")
                     if sdk_request:
                         call_id = await self._reserve(name, profile, estimated_cost, ctx, mock=False)
-                    data, retry_after = await self._http(profile, actual_payload, min(timeout, ctx.remaining()))
+                    data, retry_after = await self._http(profile, actual_payload, min(timeout, ctx.remaining()), observe_response)
                     usage = _usage(data, profile.protocol)
                     if usage is not None:
                         actual_cost = _cost(profile, usage.get("input_tokens"), usage.get("output_tokens"))
@@ -292,6 +306,8 @@ class CallExecutor:
                     record = {"call_id": call_id, "phase": ctx.phase, "status": status, "usage": usage, "estimated_cost_usd": estimated_cost, "actual_cost_usd": actual_cost, **detail}
                     ctx.calls.append(record)
                     await self._finish(call_id, status, usage, actual_cost, detail)
+                    capture_provider_call(self.config, ctx, name, request_content, response_content, status,
+                                          detail["latency_seconds"])
             if failure is None:
                 ctx.remaining()
                 if decoded is None:
