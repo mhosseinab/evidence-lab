@@ -1,0 +1,2 @@
+# Host-level Caddy: each project owns one site file, installed by an administrator.
+import /etc/caddy/sites-enabled/*.caddy

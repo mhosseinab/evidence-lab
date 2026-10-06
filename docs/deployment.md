@@ -1,8 +1,14 @@
 # GitHub Actions deployment
 
 See [CI](ci.md) for the native test/no-skip gate and local reproduction commands.
-This guide covers provisioning for the implemented workflows; adding configuration
-does not establish that either cloud target has been deployed.
+This guide covers the deployment workflows and shared VPS proxy. Both targets
+were verified in mock mode on 2026-10-06; this does not establish live inference
+quality or production readiness.
+
+| Service | Current address |
+|---|---|
+| Pages dashboard | <https://evidence-lab-16x.pages.dev> |
+| VPS API and same-origin dashboard | <https://evidence-lab.blublux.com> |
 
 Successful `CI` runs for the current `main` commit trigger two deployments:
 
@@ -38,7 +44,7 @@ Configure the GitHub environment **cloudflare-pages**:
 | Secret | `CLOUDFLARE_API_TOKEN` | Account-scoped token with Cloudflare Pages Edit permission |
 | Variable | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
 | Variable | `CLOUDFLARE_PAGES_PROJECT` | Existing Direct Upload project name |
-| Variable | `EVIDENCE_LAB_BACKEND_ORIGIN` | VPS backend HTTPS origin, e.g. `https://api.example.com` |
+| Variable | `EVIDENCE_LAB_BACKEND_ORIGIN` | `https://evidence-lab.blublux.com` |
 
 Wrangler reads the account ID and API token from its supported environment
 variables; `--project-name` selects the GitHub-configured project and overrides
@@ -70,6 +76,15 @@ BYOK keys/settings are saved per browser origin; users must re-enter them when
 moving from localhost to the deployed dashboard domain. Operator tokens remain in
 page memory and are entered through **Sign in**, never frontend variables. See
 [BYOK](byok.md) for credential lifetime and server-vs-browser behavior.
+
+Use the stable Pages address above for normal access. Hash-prefixed deployment
+URLs retain their deployed configuration; they do not pick up later variable
+fixes. An older deployment used `evidence-lab.blueblux.com` (an extra `e`) and
+returned HTTP 530 with Cloudflare error 1016. The correct domain is
+`evidence-lab.blublux.com`. After changing the GitHub variable, redeploy and open
+the stable address. A JSON 401 stating that an operator token is required means
+the proxy reached the API; enter the token through **Sign in**. Sign-in state is
+separate on the Pages and backend origins.
 
 Files are shared by all users with workspace access. A shared operator token
 does not establish individual identities or workspace isolation. The dashboard
@@ -103,9 +118,8 @@ Provision these private files on the VPS; workflows never upload or overwrite th
   Keep this file readable only by the deployment user. A host reverse proxy
   connecting through Docker often appears as the Compose network gateway.
   Inspect it with `docker network inspect evidence-lab-production_default`.
-  For initial provisioning on an isolated VPS where every container and local
-  process is trusted, `FORWARDED_ALLOW_IPS=*` can be used; narrow it to the actual
-  proxy address once the network exists. The API port stays bound to localhost.
+  Trust the actual gateway address rather than `*`. The API port stays bound to
+  localhost.
 - `runtime.yaml`: full application configuration, based on
   `configs/mock.compose.yaml` for deterministic fixtures or a reviewed live sample.
   Set `database.dsn` to
@@ -120,16 +134,52 @@ configured provider keys, limits and budget. Keep policy paths inside
 `/app/policies/`; artifacts and policies have persistent volumes. Provision any
 required qualified policy separately. Mock mode remains a plumbing fixture.
 
-Provide an HTTPS reverse proxy for `api.example.com` to `127.0.0.1:8000`.
-It must preserve the public `Host`, overwrite `X-Forwarded-Proto` with `https`,
-and permit the configured upload size and request durations. Uvicorn must trust
+### Shared host Caddy
+
+The VPS uses one host-level Caddy systemd service shared by all projects. Its
+`/etc/caddy/Caddyfile` imports `/etc/caddy/sites-enabled/*.caddy`; each project
+has a separate root-owned configuration in `/etc/caddy/sites-available/`, enabled
+with a symlink. Only host Caddy binds public ports 80/443. Project containers
+publish backend ports on localhost; do not run a competing project proxy.
+
+The checked-in `deploy/caddy/evidence-lab.caddy` maps
+`evidence-lab.blublux.com` to `127.0.0.1:8000`. Install it as an administrator:
+
+```sh
+sudo install -m 644 deploy/caddy/evidence-lab.caddy /etc/caddy/sites-available/evidence-lab.caddy
+sudo ln -sfn /etc/caddy/sites-available/evidence-lab.caddy /etc/caddy/sites-enabled/evidence-lab.caddy
+sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+sudo systemctl reload caddy
+```
+
+Install the official stable Caddy package and create the two site directories
+once per host. `deploy/caddy/Caddyfile` is the shared entrypoint; application CI
+does not overwrite shared host configuration or restart other projects. DNS must
+route the hostname to the VPS; use Full (strict) TLS if Cloudflare proxies it.
+Set the Pages environment variable `EVIDENCE_LAB_BACKEND_ORIGIN` to
+`https://evidence-lab.blublux.com`.
+
+Caddy preserves the public `Host` and sets `X-Forwarded-Proto` for HTTPS.
+It permits the application's upload sizes and request durations. Uvicorn must trust
 its connecting address through `FORWARDED_ALLOW_IPS`; otherwise the existing
 origin check rejects POSTs forwarded by Pages. PostgreSQL has no published port.
 Protect direct backend access according to the existing operator contract.
 
+Sales Coach has a separate `deploy/caddy/salescoach.caddy` site. Its VPS
+`/opt/salescoach-staging/config/docker-compose.public-dev.yml` overlay publishes
+API `127.0.0.1:8001`, dashboard `127.0.0.1:3001`, and object storage
+`127.0.0.1:9001`, and excludes the old Caddy service with a profile. Include that
+overlay when resuming or deploying Sales Coach; its source CI must retain those
+settings. Sales Coach remains deliberately stopped, with containers and volumes
+preserved. Its proxy returns HTTP 503 until the backends resume. Migration notes
+are in `/opt/salescoach-staging/config/HOST-CADDY.md` on the VPS.
+
+See [deployment verification](ci.md#deployment-verification-2026-10-06) for the
+observed checks and their limits.
+
 ### Remote MCP
 
-MCP is mounted at `https://api.example.com/api/mcp/`. Configure a nonempty private
+MCP is mounted at `https://evidence-lab.blublux.com/api/mcp/`. Configure a nonempty private
 `runtime.operator_token` and add the actual backend hostname to
 `agent_rag.allowed_hosts`. Declare permitted corpora in `allowed_corpora` and
 applicable browser origins in `allowed_origins`; defaults allow loopback hosts
@@ -177,10 +227,12 @@ EVIDENCE_LAB_DEPLOY_ROOT=/opt/evidence-lab \
 ```
 
 Use dedicated test DSNs for native tests. See [CI](ci.md) for the shared check gate.
-Credentials, public domains and a prepared VPS/Pages
-project are prerequisites; adding these files does not deploy either service.
+Credentials, public domains and a prepared VPS/Pages project are prerequisites
+for a new installation. Application deployments do not install or update the
+shared host proxy.
 
 References: [Pages Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/),
 [Wrangler Pages configuration](https://developers.cloudflare.com/pages/functions/wrangler-configuration/),
 [GHCR authentication](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry),
-and [Uvicorn proxy settings](https://www.uvicorn.org/settings/#http).
+[Uvicorn proxy settings](https://www.uvicorn.org/settings/#http),
+and [Caddy service management](https://caddyserver.com/docs/running#using-the-service).

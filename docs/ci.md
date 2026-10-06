@@ -54,39 +54,56 @@ Local fixture checks do not establish hosted workflow success, live endpoint
 performance or production readiness. Keep execution logs locally or as CI
 artifacts; Git records source and validation history.
 
-## Wrangler configuration verification (2026-10-06)
+## Deployment verification (2026-10-06)
 
-The Pages workflow now uses the checked-in `apps/dashboard/wrangler.jsonc` and
-the native Wrangler deployment command. No custom provisioning
-script remains; `jq` fills the plain backend-origin variable from GitHub before
-deployment. `wrangler pages functions build` with locked
-Wrangler 4.147.0 compiled the Worker successfully using the checked-in config.
-`task dashboard:pages:build`, a dry run of `task dashboard:pages:deploy`,
-Actionlint, Biome and `git diff --check` passed.
+The locked Wrangler 4.147.0 configuration and native Pages command compiled and
+uploaded the Functions bundle successfully. The dashboard deployment workflow
+[run 37431700794](https://github.com/mhosseinab/evidence-lab/actions/runs/37431700794)
+completed successfully, including a rerun after investigating an old deployment
+URL. The current stable address is <https://evidence-lab-16x.pages.dev>.
 
-The full `task ci` passed against a dedicated PostgreSQL/pgvector container:
-542 backend tests, 62 dashboard tests, 5 deployment-script tests, no skipped
-backend tests, and successful dashboard/wheel/source builds. The runnable command
-was:
+Live checks confirmed:
+
+- Pages and VPS readiness endpoints returned HTTP 200 and mock mode.
+- Pages returned JSON 401 without the operator token and HTTP 200 for authenticated
+  `/api/corpora` reads.
+- Authenticated empty query requests reached validation (422) through both Pages
+  and the direct backend. Foreign-origin writes returned 403. No records or paid
+  inference calls were created by these checks.
+- Host Caddy 2.11.7 is active and enabled at boot. Configuration validation and
+  graceful reload passed. Caddy owns ports 80/443; its admin port 2019 and the API
+  port 8000 are bound to localhost.
+- The Sales Coach Compose overlay validated with localhost ports and its old
+  Caddy service excluded. Sales Coach stays stopped with its data preserved; its
+  HTTPS route returns 503.
+
+Recheck the unauthenticated endpoints without exposing credentials:
 
 ```sh
-UV_CACHE_DIR=/tmp/evidence-lab-ci-uv-cache \
-EVIDENCE_LAB_TEST_DSN=postgresql://evidence:evidence@127.0.0.1:32775/evidence_ci_test \
-EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN=postgresql://evidence:evidence@127.0.0.1:32775/evidence_ci_test \
-  task ci
+curl --fail https://evidence-lab-16x.pages.dev/health/ready
+curl --fail https://evidence-lab.blublux.com/health/ready
+curl -i https://evidence-lab-16x.pages.dev/api/corpora
 ```
 
-The task-created container `evidence-wrangler-ci-20261006` was removed after the
-run. Native tests used their existing isolated schema/database fixtures; no
-application data was used. Logs are in `/tmp/evidence-pages-native-ci.log` and
-`/tmp/evidence-pages-native-wrangler.log`. Initial dependency installation required
-explicit pnpm build approval for esbuild/workerd; the approved native build tools
-then installed successfully. No authenticated Cloudflare command or deployment
-was executed; live provisioning and runtime variable updates remain unverified.
+On the VPS, validate the proxy before reloading it:
 
-The subsequent plain-variable change was verified with `jq` and Wrangler's
-installed config parser: the GitHub-provided URL resolves as a plain `vars`
-binding. Actionlint, Biome and `git diff --check` passed. `task check` passed with
-495 backend tests and 62 dashboard tests, with 47 backend prerequisite skips.
-Native backend prerequisites were not supplied for this follow-up; the skips are recorded in
-`/tmp/evidence-pages-vars-check.log` rather than claimed as a complete native run.
+```sh
+sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+sudo systemctl is-active caddy
+sudo systemctl is-enabled caddy
+```
+
+The earlier full `task ci` passed against a dedicated PostgreSQL/pgvector container:
+542 backend tests, 62 dashboard tests, 5 deployment-script tests, no backend skips,
+and successful dashboard/wheel/source builds. The test container was removed
+following that run; its ephemeral port is not a reusable prerequisite. Use the
+[local reproduction instructions](#reproduce-locally) with a dedicated database.
+The original log is `/tmp/evidence-pages-native-ci.log` on the development host.
+
+For the host-proxy change, `task check` passed with 495 backend tests and 62
+dashboard tests; 47 native PostgreSQL tests were skipped because dedicated test
+DSNs were unset. `.venv/bin/python deploy/test_deploy_vps.py` passed all five tests,
+and `git diff --check` passed. The check log is
+`/tmp/evidence-host-caddy-check.log` on the development host. The follow-up is not
+claimed as a complete native run. Live model quality, MCP hostname permissions,
+and Sales Coach backend readiness were not qualified by this deployment check.

@@ -1,0 +1,25 @@
+# Requires the Sales Coach host-proxy Compose overlay on the VPS.
+salescoach.blublux.com {
+	header Cache-Control "no-store"
+	@metrics path /metrics* /v1/metrics* /api/metrics* /api/v1/metrics*
+	route {
+		handle @metrics {
+			respond 404
+		}
+		handle /v1/* {
+			reverse_proxy 127.0.0.1:8001
+		}
+		handle_path /api/* {
+			reverse_proxy 127.0.0.1:8001
+		}
+		handle /recordings/* {
+			reverse_proxy 127.0.0.1:9001
+		}
+		handle {
+			reverse_proxy 127.0.0.1:3001
+		}
+	}
+	handle_errors {
+		respond "Sales Coach is temporarily unavailable." 503
+	}
+}
