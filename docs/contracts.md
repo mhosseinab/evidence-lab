@@ -90,7 +90,16 @@ never authorizes release. Provider/validation failures propagate rather than
 becoming successful verdicts. Ambient tracing stays disabled; explicit callbacks
 remain supported. Clef choice probabilities retain their uncalibrated semantics.
 
+Qualification identity includes effective embedding execution mode. Switching
+between live and deterministic query embeddings invalidates a previously matched
+policy; equivalent implicit and explicit live embedding mode remain identical.
+
 ## Browser credentials (BYOK)
+
+The application currently has a shared workspace and a shared operator credential,
+not per-user identity or document permissions. All users with workspace access
+share its files. Dashboard notices communicate this; [workspace isolation](todo.md)
+is future work. See [BYOK user setup](byok.md) for the dashboard workflow.
 
 `runtime.credentials` is `server` by default. In YAML live `browser` mode active
 provider profiles must omit all credential fields; startup never reads provider
@@ -152,7 +161,8 @@ operators use the server configuration normally.
 
 `/api/mcp/` serves stateless Streamable HTTP using MCP SDK 2.3.0. All requests
 require the configured operator bearer token, including in fixture mode. Origin
-checks and an explicit Host allowlist apply. This is a private trusted-operator
+checks use the SDK's configured allowlist after authentication; REST writes retain
+same-origin protection. An explicit Host allowlist applies. This is a private trusted-operator
 interface, not scoped OAuth delegation; token holders retain ordinary operator
 REST privileges. `agent_rag` configuration declares enabled corpora, allowed
 hosts/origins and bounded request/structured-result sizes.

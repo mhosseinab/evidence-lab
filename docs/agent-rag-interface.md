@@ -34,12 +34,12 @@ retrieval engine, database, workers, provider adapters or spending ledger.
 - `providers/transport.py` and `storage.py:reserve_call` already own inference
   retries, concurrency and persistent spending limits. MCP must reuse them.
 
-## Initial tool contract
+## Implemented tool contract
 
 | Tool | Input | Output | Boundary |
 | --- | --- | --- | --- |
 | `search_evidence` | Question, authorized corpus ID | Bounded excerpts, citation IDs/coordinates, corpus revision, embedding space, content hash, fixture labels | No generation; only configured query embedding and existing retrieval |
-| `get_evidence_source` | Authorized corpus ID, retrieved immutable evidence/source identifier | Bounded source excerpt and citation metadata | Check corpus membership and source availability; no arbitrary paths or URLs |
+| `get_evidence_source` | `corpus_id`, `version_id`, `evidence_id` from search | Bounded source excerpt and citation metadata | Check corpus membership and source availability; no arbitrary paths or URLs |
 
 Use typed structured results with explicit empty-result and error behavior.
 Preserve mock/fixture labels and indicate that returned evidence is not a
@@ -56,19 +56,6 @@ tool using existing durable run submission/polling and release rules.
 Remote integration must not weaken the established requirement that server
 credentials are usable only with operator authorization.
 
-Use MCP HTTP authorization with scoped, audience-bound access tokens representing
-access granted by an authenticated operator. Agents receive retrieval permission
-for specified corpora; the full dashboard operator token remains an operator
-credential. Provider keys stay server-side and never appear in tool arguments,
-results, model context, MCP metadata or access tokens.
-
-An HTTP MCP resource server should validate issuer, audience, expiration and
-retrieval scope on every request and enforce corpus authorization inside each
-tool. Publish the protocol's protected-resource metadata for discovery. Obtain
-tokens from an established OAuth authorization server; do not build a custom
-OAuth server as part of the retrieval adapter or silently treat the existing
-static dashboard token as a complete OAuth implementation.
-
 The implemented private interface uses a shared static operator token, not delegated
 identities or OAuth infrastructure. Choosing the authorization provider and the
 operator-to-corpus grant mapping is an implementation prerequisite for broadly
@@ -76,6 +63,17 @@ accessible remote integration. A private pilot can serve already trusted
 operator clients with explicitly configured bearer authentication, but that
 retains full operator trust and does not provide scoped delegation or automatic
 OAuth login interoperability. It must be documented as such.
+
+Every request authenticates that operator token, and each tool checks the global
+corpus allowlist. Provider keys come from server configuration and never appear in
+tool inputs/results. There are no per-user document permissions: files are shared
+by all users with workspace access. [Workspace isolation](todo.md) is planned.
+Dashboard BYOK settings are not accepted by MCP.
+
+Future untrusted-client integration needs an established OAuth authorization
+server, scoped audience-bound tokens, issuer/expiration/scope validation and
+protected-resource metadata. Those capabilities are not implemented. The static
+operator token has no per-client grants or automatic expiry.
 
 MCP routes require their own tested authorization boundary: the current middleware
 only protects paths beginning `/api/`. Mounting `/mcp` must not accidentally create
@@ -91,8 +89,8 @@ Requests must be independently authorized; session identifiers are not identity.
 
 Local clients connect through loopback. Remote clients use HTTPS with Origin/Host
 validation and request/response size limits appropriate to MCP. Keep the existing
-provider ledger caps and bound retrieval calls per client to prevent embedding
-spend or shared-capacity exhaustion. A deployment proxy may supply rate limits;
+provider ledger caps. Per-client rate limits are not implemented; a deployment
+proxy may supply rate limits to bound embedding spend/shared-capacity use.
 do not introduce another proxy when the deployed one can enforce them.
 
 No additional vector store, model host, agent framework, broker or database is
@@ -109,24 +107,15 @@ its tested version. Keep transport code separate from retrieval/application code
 | Another agent or A2A service | Useful for delegating autonomous tasks; adds responsibilities beyond supplying RAG evidence. Not required here. |
 | Full generated MCP exposure of the REST API | Exposes administrative operations and broad operator authority; use explicitly registered retrieval tools. |
 
-## Implementation sequence and acceptance evidence
+## Engineering evidence
 
-1. Extract/reuse the existing retrieval application operation behind REST and
-   MCP; preserve corpus/embedding checks, provider adapters and ledger ownership.
-2. Register only the two typed tools; add a real SDK protocol round trip proving
-   discovery, schemas and structured results.
-3. Wire authorization and corpus grants before allowing remote access. Verify
-   missing/expired/wrong-audience/wrong-scope tokens and cross-corpus identifiers
-   fail before retrieval, provider calls or source disclosure.
-4. Verify pgvector fixture retrieval and immutable citations with a dedicated
-   PostgreSQL test database. Test empty results, changed embedding spaces, source
-   deletion, invalid inputs, bounded outputs, safe errors and budget exhaustion.
-5. Document one local and one remote client configuration with secrets supplied
-   through the client's credential mechanism, plus SDK/protocol compatibility.
-6. Run repository checks, packaging checks and an isolated HTTP MCP integration
-   test. Rollback is disabling the MCP mount; REST and retrieval remain available.
-
-This implementation does not claim retrieval/model quality or deploy a public endpoint.
+`apps/evidence-lab/tests/test_mcp_api.py` covers real SDK discovery/tool calls,
+operator authentication, Host/Origin enforcement, corpus checks, bounded payloads,
+safe errors, native pgvector citations, deletion and embedding-space mismatch.
+Run the shared [CI checks](ci.md) and verify the deployed HTTP endpoint separately.
+Fixture checks do not establish retrieval/model quality or deploy a public endpoint. OAuth tests are deferred
+with OAuth itself. Remove the MCP mount to disable the interface; there is no
+runtime enable/disable flag.
 
 ## Connect to the implemented interface
 
@@ -135,10 +124,15 @@ non-empty configured `runtime.operator_token`, including in mock mode; no token
 means HTTP 401. Each request must send `Authorization: Bearer <operator token>`.
 The existing dashboard API retains its authentication behavior. No provider keys,
 mode, endpoint, model or budget overrides are accepted by MCP tools.
+Live `search_evidence` requires `runtime.credentials: server`, configured provider
+credentials, limits and positive spending caps for any paid embeddings. A live
+`browser` credential configuration returns `invalid_configuration` from search,
+including with fixture embeddings; source lookup itself needs no provider key.
 
 Local URL: `http://127.0.0.1:8000/api/mcp/`. Remote URL: the HTTPS backend origin
-plus `/api/mcp/`. Connect directly to the backend; a dashboard-only proxy does
-not automatically expose this route. Use an MCP client that supports explicitly
+plus `/api/mcp/`. Prefer the backend URL. The bundled Pages Function forwards
+`/api/*`, including MCP, but retains its own same-origin write boundary; it does
+not support arbitrary cross-origin browser MCP clients. Use an MCP client that supports explicitly
 configured HTTP bearer credentials. The default SDK client discovers the current
 2026-07-28 protocol; the 2025-11-25 initialize flow is also tested.
 
@@ -172,9 +166,10 @@ preflight/response headers are not configured by this interface.
 representation of that payload plus protocol overhead. Oversized packs fail
 explicitly rather than silently truncating excerpts. Tool errors set `isError`;
 clients must check it before using output. Empty retrieval is a successful result
-with `evidence.items: []`. Results have `verified_answer: false`; fixture embedding
-mode has `qualification: fixture_only`, including live chat configurations that
-reuse fixture vectors.
+with `evidence.items: []`. Both tools return `verified_answer: false`. Only search
+results include `mode`, `embedding_mode` and `qualification`; fixture query
+embeddings produce `qualification: fixture_only`, including live configurations
+that reuse fixture vectors. Source results contain `corpus_id` and `item` instead.
 
 The tools logically read corpus data. Search can incur a configured paid query
 embedding and records its reservation in the existing ledger. It never invokes

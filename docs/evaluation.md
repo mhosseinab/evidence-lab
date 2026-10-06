@@ -2,6 +2,12 @@
 
 The evaluator produces a paired experiment with explicit denominators and unmeasured fields. It can record a negative or incomplete result. A completed job is not automatically a qualified model policy.
 
+Dashboard BYOK live mode uses shadow verification and does not qualify a release
+policy. Use explicit CLI-selected datasets and reviewed server settings for live
+studies; HTTP evaluation is limited to the bundled mock demo. MCP returns evidence
+with `verified_answer: false` and does not execute answer verification or evaluation.
+See [BYOK](byok.md) and [MCP](agent-rag-interface.md) for these boundaries.
+
 The bundled demo is deliberately small: **four fictional documents, seven questions, and sixteen controlled claims**. Its exact-text mock behavior checks software plumbing. It establishes neither retrieval quality nor the semantic accuracy of any hosted model. No human-reviewed development or held-out benchmark is bundled.
 
 ## Run the mock demonstration

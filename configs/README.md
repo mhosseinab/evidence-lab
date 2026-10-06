@@ -9,6 +9,34 @@ Run commands from the repository root. See the root [configuration tables](../RE
 | [live.example.yaml](live.example.yaml) | Generic live-provider template; complete endpoints, models, limits and pricing |
 | [clef.example.yaml](clef.example.yaml) | Complete OpenAI embeddings/generation + native Cloudflare Clef verifier sample; supply credentials/account ID |
 
+## Dashboard setup and access
+
+The [BYOK dashboard](../docs/byok.md) can select fixture/live mode, accept LLM and
+Cloudflare keys, and configure complete endpoints, model identifiers, limits,
+JSON output settings, prices and budget without editing YAML. Browser keys remain
+in local storage and request-scoped API memory; no encrypted key database is used.
+Workspace embeddings reuse compatible pgvector vectors and the matching base query
+embedding profile. External workspace embeddings use the browser LLM key; fixture
+embeddings remain deterministic even when chat and Clef run live.
+
+Use header **Sign in** for the privately configured `runtime.operator_token`.
+While signed in the dashboard uses server settings and omits browser overrides.
+A configured token protects all `/api/` routes; server-funded API inference and
+MCP always require a nonempty token. CLI/workers use private configuration directly.
+No built-in operator token belongs in samples or frontend assets. Files are shared
+within the workspace; individual accounts and workspace isolation are not implemented.
+
+`runtime.credentials` defaults to `server`. A live YAML configuration using
+`browser` must omit all active provider credential fields. `runtime.embedding_mode`
+can explicitly retain `mock` embeddings with live generation; keep compatible
+corpus manifests and fixture labels. See the root configuration reference for defaults.
+
+For MCP, set `agent_rag.allowed_corpora` and add the remote API hostname to
+`allowed_hosts`; configure allowed browser origins when applicable. MCP uses
+server-owned configuration, not dashboard BYOK. See [MCP configuration and client
+setup](../docs/agent-rag-interface.md) and [deployment](../docs/deployment.md) for
+HTTPS/proxy settings and private VPS configuration.
+
 ## Activate Cloudflare Clef
 
 ```bash

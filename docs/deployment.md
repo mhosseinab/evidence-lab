@@ -1,5 +1,9 @@
 # GitHub Actions deployment
 
+See [CI](ci.md) for the native test/no-skip gate and local reproduction commands.
+This guide covers provisioning for the implemented workflows; adding configuration
+does not establish that either cloud target has been deployed.
+
 Successful `CI` runs for the current `main` commit trigger two deployments:
 
 - **Deploy dashboard** builds the Vue dashboard and uploads it to Cloudflare Pages.
@@ -27,7 +31,8 @@ Configure the GitHub environment **cloudflare-pages**:
 
 In the Pages project's **production runtime variables**, set
 `EVIDENCE_LAB_BACKEND_ORIGIN=https://api.example.com`. It must be an HTTPS origin,
-without credentials, a path, query, or fragment. Set it before deployment;
+without credentials, a path, query, or fragment, and must differ from the Pages
+dashboard origin. Set it before deployment;
 redeploy after changing it. No operator token or model key belongs in frontend
 build variables or this binding.
 
@@ -39,6 +44,14 @@ foreign-origin writes, block upstream redirects, and return safe transport error
 Browser requests remain on the Pages origin; backend CORS changes are unnecessary.
 API traffic passes through Cloudflare, including uploaded documents and browser
 credentials. Cloudflare Pages Functions usage is separate from static hosting.
+BYOK keys/settings are saved per browser origin; users must re-enter them when
+moving from localhost to the deployed dashboard domain. Operator tokens remain in
+page memory and are entered through **Sign in**, never frontend variables. See
+[BYOK](byok.md) for credential lifetime and server-vs-browser behavior.
+
+Files are shared by all users with workspace access. A shared operator token
+does not establish individual identities or workspace isolation. The dashboard
+displays this notice; [isolation](todo.md) remains planned.
 
 ## VPS and GHCR
 
@@ -59,7 +72,7 @@ Configure GitHub environment **backend-production**:
 | Secret | `VPS_SSH_KEY` | Private key authorized for that user |
 | Secret | `VPS_KNOWN_HOSTS` | Host key verified through a trusted channel; use `[host]:port` for a nonstandard port |
 | Variable | `VPS_PORT` | SSH port; defaults to `22` |
-| Variable | `VPS_DEPLOY_PATH` | Absolute path without spaces; defaults to `/opt/evidence-lab` |
+| Variable | `VPS_DEPLOY_PATH` | Absolute path using letters, digits, `_`, `-` and `/`; cannot be `/`; defaults to `/opt/evidence-lab` |
 
 Provision these private files on the VPS; workflows never upload or overwrite them:
 
@@ -92,6 +105,24 @@ its connecting address through `FORWARDED_ALLOW_IPS`; otherwise the existing
 origin check rejects POSTs forwarded by Pages. PostgreSQL has no published port.
 Protect direct backend access according to the existing operator contract.
 
+### Remote MCP
+
+MCP is mounted at `https://api.example.com/api/mcp/`. Configure a nonempty private
+`runtime.operator_token` and add the actual backend hostname to
+`agent_rag.allowed_hosts`. Declare permitted corpora in `allowed_corpora` and
+applicable browser origins in `allowed_origins`; defaults allow loopback hosts
+only. Preserve `Host` and correct proxy scheme handling. No provider keys or BYOK
+overrides belong in MCP tool calls.
+
+Use the direct backend URL for agents. The Pages Function forwards `/api/*`, but
+its same-origin write check can reject browser clients before the MCP SDK Origin
+allowlist runs. MCP does not configure browser CORS. Server/CLI clients without
+browser Origin headers still require bearer authentication and an allowed Host.
+See [MCP setup](agent-rag-interface.md) for a client example and request/result caps.
+The token also grants administrative REST access; this interface is for trusted
+operators, with scoped OAuth delegation deferred. Enforce any deployment rate
+limits at the existing proxy; per-client application quotas are not implemented.
+
 The workflow copies deployment files into `releases/<commit>` and runs
 `deploy-vps.sh`. The script locks deployments, validates private configuration,
 pulls images, waits for PostgreSQL, runs migrations, updates API/worker, and checks
@@ -123,8 +154,8 @@ EVIDENCE_LAB_DEPLOY_ROOT=/opt/evidence-lab \
   docker compose --env-file /opt/evidence-lab/.env -f deploy/compose.vps.yaml config --quiet
 ```
 
-Use dedicated test DSNs for native tests. See [deployment verification](deployment-verification.md)
-for actual checks performed. Credentials, public domains and a prepared VPS/Pages
+Use dedicated test DSNs for native tests. See [CI](ci.md) for the shared check gate.
+Credentials, public domains and a prepared VPS/Pages
 project are prerequisites; adding these files does not deploy either service.
 
 References: [Pages Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/),

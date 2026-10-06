@@ -4,6 +4,13 @@ OpenAI-compatible generation and verification use `ChatOpenAI`; embeddings use
 `OpenAIEmbeddings`. Native Cloudflare Clef keeps its existing adapter. No YAML
 fields or endpoint/authentication contracts change.
 
+The same adapters serve server configuration, request-scoped [dashboard BYOK](../../../../../docs/byok.md)
+and [MCP retrieval](../../../../../docs/agent-rag-interface.md). Browser keys are
+not persisted in jobs or results. MCP search only uses the configured query
+embedding role; it never invokes generation or verification. A live application
+can retain deterministic fixture embeddings through `runtime.embedding_mode`;
+those results remain labeled `fixture_only`.
+
 ## Request and spending flow
 
 ```mermaid

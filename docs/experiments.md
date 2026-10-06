@@ -2,6 +2,12 @@
 
 These commands produce separate, predeclared measurements for verifier repeatability and real API/worker latency. They do not qualify a policy. The paired A/B/C/D evaluation and human review remain in [evaluation.md](evaluation.md).
 
+Use reviewed server configuration and operator authentication for unattended live
+load runs. Dashboard BYOK jobs require browser credentials to be resupplied after
+an API restart; they are not ordinary worker recovery jobs. MCP evidence retrieval
+does not run the verified-answer workflow and is outside these answer-load studies.
+CI uses deterministic engineering fixtures, not live model-performance measurement.
+
 Run commands from the repository root after `task setup`. The examples use the application task and its forwarded experiment CLI:
 
 ```bash

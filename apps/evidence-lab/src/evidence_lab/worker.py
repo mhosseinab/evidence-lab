@@ -36,7 +36,9 @@ class Worker:
             from evidence_lab.evaluation import evaluate_dataset, run_evaluation
             payload = job["payload"]
             if "operator_dataset_path" in payload:
-                if set(payload) != {"operator_dataset_path", "split", "annotations_path", "config_fingerprint"}:
+                dataset_fields = {"operator_dataset_path", "split", "annotations_path", "config_fingerprint"}
+                if (set(payload) - {"browser_credentials"} != dataset_fields
+                        or ("browser_credentials" in payload and not isinstance(payload["browser_credentials"], bool))):
                     raise ProviderError("invalid_job", "Operator evaluation fields are invalid.")
                 if payload["config_fingerprint"] != self.config.fingerprint():
                     raise ProviderError("configuration_changed", "Evaluation configuration changed before execution.")

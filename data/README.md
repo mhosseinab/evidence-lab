@@ -14,3 +14,8 @@ The marker strings `[fixture:unsupported]` and `[fixture:conflict]` exercise det
 `templates/` contains JSON schemas and one clearly unfilled authoring scaffold. The scaffold has no reviewed labels and cannot meet the frozen study's sample requirements. It exists to show the manifest shape; replace its placeholders before running an operator study.
 
 Data remains at the repository root; run tasks there after `task setup` so relative fixture paths resolve consistently. See [docs/evaluation.md](../docs/evaluation.md) for the rubric, split protocol, commands, budget accounting, and qualification requirements. Do not promote fixture labels or generated mutation proposals to independently reviewed gold.
+
+The same ingested fixtures can be retrieved through [MCP](../docs/agent-rag-interface.md).
+Fixture query embeddings retain `qualification: fixture_only`, including when
+live dashboard chat reuses the workspace's pgvector vectors. Files in the running
+workspace are shared by everyone with access; demo data has no per-user isolation.

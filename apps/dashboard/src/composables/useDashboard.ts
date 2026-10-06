@@ -122,6 +122,7 @@ export function useDashboard() {
   let initialized = false;
   let selectionVersion = 0;
   let queryPoll = 0;
+  let submittingQuestion = false;
   let evaluationPoll = 0;
   let statusRequest = 0;
   let corporaRequest = 0;
@@ -322,7 +323,7 @@ export function useDashboard() {
     state.runs = [];
     state.status = null;
     state.notice = "";
-    state.busy.question = false;
+    state.busy.question = submittingQuestion;
     const results = await Promise.allSettled([refreshStatus(), refreshDocuments(), refreshRuns()]);
     const failure = results.find((result) => result.status === "rejected");
     if (failure?.status === "rejected" && selection === selectionVersion) notifyError(failure.reason);
@@ -359,7 +360,7 @@ export function useDashboard() {
     state.runJobId = null;
     state.evidence = [];
     state.question = "";
-    state.busy.question = false;
+    state.busy.question = submittingQuestion;
     state.notice = "";
   }
   function updateRun(run: Payload) {
@@ -368,15 +369,17 @@ export function useDashboard() {
     state.runJobId = run.job_id || state.runJobId;
     const pack = run.evidence_pack || run.evidence || run.result?.evidence_pack || run.result?.evidence;
     state.evidence = Array.isArray(pack) ? pack : listOf(pack, "items", "evidence");
-    state.busy.question = pendingStates.has(statusOf(run));
+    state.busy.question = submittingQuestion || pendingStates.has(statusOf(run));
   }
   async function submitQuestion(input: string) {
     const question = input.trim();
     if (!question || state.busy.question || state.switchingMode || disposed) return;
+    submittingQuestion = true;
     state.question = question;
     state.busy.question = true;
     state.notice = "";
     const selection = selectionVersion;
+    const poll = queryPoll;
     try {
       const result = await api("/api/queries", {
         method: "POST",
@@ -386,17 +389,19 @@ export function useDashboard() {
           ...(state.conversationId ? { conversation_id: state.conversationId } : {}),
         }),
       });
-      if (disposed || selection !== selectionVersion) return;
+      if (disposed || selection !== selectionVersion || poll !== queryPoll) return;
       const id = result.run_id ?? result.id;
       if (!id) throw new Error("The workspace did not return a run identifier.");
       updateRun({ ...result, question, status: result.status || "queued" });
       void openRun(id, result.job_id);
       void refreshRuns().catch(() => {});
     } catch (error) {
-      if (!disposed && selection === selectionVersion) {
+      if (!disposed && selection === selectionVersion && poll === queryPoll) {
         notifyError(error);
-        state.busy.question = false;
       }
+    } finally {
+      submittingQuestion = false;
+      if (!disposed) state.busy.question = Boolean(state.run && pendingStates.has(statusOf(state.run)));
     }
   }
   async function openRun(id: string | null, jobId?: string | null) {

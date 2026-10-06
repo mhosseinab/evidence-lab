@@ -302,6 +302,34 @@ def test_repair_byte_bound_change_invalidates_semantic_policy_fingerprint():
     assert semantic_policy_fingerprint(cfg) != before
 
 
+def test_embedding_execution_change_invalidates_qualified_policy(tmp_path):
+    from evidence_lab.evaluation import implementation_fingerprint
+    from evidence_lab.retrieval import space_manifest
+
+    cfg = load_config("configs/mock.yaml")
+    cfg.runtime.mode = "live"
+    cfg.verification.policy_id = "heldout-policy"
+    cfg.verification.policy_path = str(tmp_path / "policy.json")
+    artifact = {
+        "policy_id": cfg.verification.policy_id,
+        "semantic_fingerprint": semantic_policy_fingerprint(cfg),
+        "implementation_fingerprint": implementation_fingerprint(),
+        "qualified": True, "runtime_mode": "live", "human_reviewed": True,
+        "evaluation_id": "heldout-evaluation", "primary_variant": "D", "complete": True,
+    }
+    (tmp_path / "policy.json").write_text(json.dumps(artifact))
+    assert policy_state(cfg)["release_allowed"] is True
+    original_space = space_manifest(cfg)["fingerprint"]
+
+    # Explicit live mode has the same execution contract as the default.
+    cfg.runtime.embedding_mode = "live"
+    assert policy_state(cfg)["release_allowed"] is True
+    cfg.runtime.embedding_mode = "mock"
+    assert space_manifest(cfg)["fingerprint"] != original_space
+    state = policy_state(cfg)
+    assert state["release_allowed"] is False and state["state"] == "unqualified"
+
+
 @pytest.mark.parametrize("artifact", [[], None, "not an object", 12])
 def test_nonobject_policy_artifact_is_unqualified_instead_of_crashing(tmp_path, artifact):
     cfg = load_config("configs/mock.yaml")

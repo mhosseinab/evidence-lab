@@ -6,6 +6,17 @@ The default demo uses deterministic `fixture_only` answers and makes no inferenc
 
 See the [documentation index](docs/README.md) and [Cloudflare Clef activation](#cloudflare-clef-verifier).
 
+- **Dashboard BYOK:** choose fixture/live mode, enter LLM and Cloudflare keys,
+  and configure endpoints, models, limits and budget in the browser.
+- **Agent RAG:** two read-only MCP tools expose bounded evidence and citations
+  over authenticated Streamable HTTP for local and remote trusted agents.
+- **CI and deployment:** shared local/GitHub checks gate Cloudflare Pages and
+  immutable GHCR-backed VPS deployments.
+
+**Shared workspace:** files are shared with all users who can access this
+workspace. There is no per-user document isolation. The dashboard displays this
+notice on every screen; [workspace isolation](docs/todo.md) is planned.
+
 ## Names and workspace layout
 
 Names: CLI/distribution `evidence-lab`, Python package `evidence_lab`, frontend `@evidence-lab/dashboard`, Compose project `evidence-lab`, image `evidence-lab:local`. The checkout may remain `rag-poc`. Deployments use `evidence_*` tables and `EVIDENCE_LAB_*` environment variables.
@@ -372,6 +383,9 @@ current answer and conversation; custom embedding profile changes require a new 
 and re-uploaded sources. Workspace embeddings preserve the base embedding profile. Live mode starts in shadow verification and does not
 release unqualified answers.
 
+See the [BYOK guide](docs/byok.md) for required fields, embedding compatibility,
+credential handling, operator sessions and recovery.
+
 Keys, setup and mode are saved only in this browser, scoped to the server's base
 configuration. No YAML edits or server restart are needed for dashboard BYOK.
 Use **Sign in** in the dashboard header for an operator session. The separate
@@ -394,6 +408,28 @@ document to resume its queued/expired job, retry a stopped ingestion/evaluation,
 or cancel and submit a new query. Background CLI operations and unattended
 recovery require the existing server-key mode. No live endpoint performance or
 model quality is implied by the deterministic tests.
+
+## Agent RAG through MCP
+
+Connect a Streamable HTTP client to `http://127.0.0.1:8000/api/mcp/`, or the HTTPS
+backend equivalent for remote agents. Every request requires the configured
+operator bearer token, even in fixture mode; without it MCP returns 401.
+
+| Tool | Purpose |
+|---|---|
+| `search_evidence(question, corpus_id="default")` | Retrieve bounded hybrid-search evidence with immutable citations and fixture labels |
+| `get_evidence_source(corpus_id, version_id, evidence_id)` | Read a cited excerpt while checking corpus membership and source deletion |
+
+Results have `verified_answer: false`. MCP does not generate or verify answers,
+accept BYOK overrides, or expose mutation tools. Search can make a budgeted query
+embedding call using the server configuration. Source reads make no provider calls.
+Live MCP search requires `runtime.credentials: server`; browser BYOK configurations
+cannot supply keys to it.
+The global corpus allowlist is not user isolation, and the shared operator token
+also grants administrative REST access. Give it only to trusted operators/agents.
+
+See [MCP setup and client example](docs/agent-rag-interface.md) for remote Host/Origin
+configuration, payload bounds, safe errors and the deferred OAuth integration.
 
 ## Move from mock to live storage
 
@@ -420,7 +456,7 @@ Strict UTF-8 YAML, ≤1 MiB. Unknown/duplicate keys, wrong types and non-finite 
 | Root field | Default | Meaning |
 | --- | --- | --- |
 | `config_version` | `1` | Only schema version `1` is supported. |
-| `runtime`, `database`, `ingestion`, `retrieval`, `verification`, `budgets`, `evaluation`, `memory`, `langsmith` | Section defaults below | Optional sections use their schema defaults. |
+| `runtime`, `agent_rag`, `database`, `ingestion`, `retrieval`, `verification`, `budgets`, `evaluation`, `memory`, `langsmith` | Section defaults below | Optional sections use their schema defaults. |
 | `profiles` | Required | Nonempty mapping of named provider contracts. Names start with a letter or number and contain up to 96 letters, numbers, `.`, `_` or `-`. |
 | `roles` | Required | Assigns pipeline roles to profiles. |
 
@@ -429,6 +465,8 @@ Strict UTF-8 YAML, ≤1 MiB. Unknown/duplicate keys, wrong types and non-finite 
 | YAML field | Default | Meaning and constraints |
 | --- | --- | --- |
 | `runtime.mode` | `mock` | `mock` uses deterministic fixtures without remote inference or model credential resolution; `live` uses configured remote providers. Explicit LangSmith tracing is configured separately. |
+| `runtime.embedding_mode` | `null` | Embedding execution override: `mock` or `live`. Mock runtime always uses fixture embeddings; live runtime defaults to live embeddings. Existing fixture vectors remain visibly labeled when used with live generation. |
+| `runtime.credentials` | `server` | `server` resolves private provider credentials; live `browser` profiles must omit server credential fields and receive request-scoped BYOK keys. |
 | `runtime.require_openai_compatible` | `true` | Active native `cloudflare_clef` profiles require `false`. |
 | `runtime.remote_concurrency` | `4` | Global remote-call concurrency / default worker concurrency; integer 1–64. |
 | `runtime.query_deadline_seconds` | `60` | Query deadline in seconds; >0, ≤3600. |
@@ -439,8 +477,18 @@ Strict UTF-8 YAML, ≤1 MiB. Unknown/duplicate keys, wrong types and non-finite 
 | `runtime.port` | `8000` | API TCP port; 1–65535; the serve command can override it. |
 | `runtime.worker_lease_seconds` | `120` | Job lease duration in seconds; 10–3600; worker heartbeats renew leases. |
 | `runtime.poll_seconds` | `0.5` | Worker polling interval in seconds; >0, ≤60. |
-| `runtime.operator_token` | `null` | Optional secret; when nonempty, `/api/` requests require `Authorization: Bearer <token>`. Health and dashboard assets remain accessible. Enter it in the dashboard's operator-token control. |
+| `runtime.operator_token` | `null` | Nonempty shared operator secret. When configured, all `/api/` requests require `Authorization: Bearer <token>`. Server-funded API inference and MCP require it even when general access is otherwise open. Health and dashboard assets remain accessible. Use dashboard **Sign in**; blank tokens fail validation. |
 | `database.dsn` | `postgresql://evidence:evidence@localhost:5432/evidence_lab` | PostgreSQL URL with a host and database name; accepts `postgresql` or `postgres`. Credentials are redacted from public configuration. No production storage fallback. |
+
+### Agent RAG
+
+| YAML field | Default | Meaning and constraints |
+|---|---|---|
+| `agent_rag.allowed_corpora` | `[default]` | Global MCP corpus allowlist; 1–100 valid corpus IDs. Does not limit ordinary operator REST access. |
+| `agent_rag.allowed_hosts` | Loopback names/IPs with bare and wildcard-port entries | SDK Host allowlist. Add the actual public backend hostname for remote access; see the [exact defaults](apps/evidence-lab/src/evidence_lab/config.py). |
+| `agent_rag.allowed_origins` | `["http://localhost:*", "http://127.0.0.1:*"]` | SDK Origin allowlist for authenticated MCP requests. REST writes retain same-origin protection; browser CORS support is not added. |
+| `agent_rag.max_request_bytes` | `65536` | MCP request body cap; 1024–1048576 bytes. |
+| `agent_rag.max_result_bytes` | `65536` | Structured tool-result cap; 1024–1048576 bytes. The textual copy and protocol overhead also consume wire bytes. |
 
 ### Ingestion and retention
 
@@ -688,6 +736,7 @@ EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN=postgresql://evidence:evidence@127.0.0.1:5432
 
 Missing prerequisites or skipped backend tests fail this gate. Use `task test:offline`
 for checks without native PostgreSQL. Local `task ci` does not publish or deploy.
+See [CI checks and release flow](docs/ci.md) and [deployment provisioning](docs/deployment.md).
 
 ### Complete command reference
 
@@ -785,6 +834,8 @@ Roles inherit session settings; parallel delegation requires approval. Coordinat
 | `apps/evidence-lab/src/evidence_lab/ingestion.py`, `retrieval.py` | Extraction, stable chunks, embedding cache, exact hybrid retrieval |
 | `apps/evidence-lab/src/evidence_lab/engine.py`, `graph.py`, `policy.py` | LangGraph workflow, frozen evidence, release gate and bounded repair |
 | `apps/evidence-lab/src/evidence_lab/api.py`, `worker.py` | HTTP API and durable execution |
+| `apps/evidence-lab/src/evidence_lab/mcp_server.py` | Authenticated read-only MCP evidence tools and transport limits |
+| `apps/evidence-lab/src/evidence_lab/runtime_settings.py`, `byok.py` | Validated browser mode/provider overrides and request-scoped BYOK credentials |
 | `apps/evidence-lab/src/evidence_lab/integrations/`, `memory.py`, `langsmith_trace.py` | Standard model/tool interfaces, conversation context and metadata tracing |
 | `apps/dashboard/src/`, `apps/dashboard/index.html`, `apps/dashboard/public/` | Vue/TypeScript dashboard, HTML entrypoint, CSS and favicon |
 | `apps/dashboard/dist/` | Generated dashboard build served directly by FastAPI |
@@ -795,6 +846,7 @@ Roles inherit session settings; parallel delegation requires approval. Coordinat
 | `pyproject.toml`, `uv.lock` | Python workspace, shared development tools and dependency lock |
 | `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `biome.json` | Frontend workspace, shared tooling and dependency lock |
 | `Taskfile.yml`, application Taskfiles | Task orchestration for both stacks |
+| `.github/workflows/`, `deploy/`, `apps/dashboard/functions/` | CI, Pages deployment/proxy and digest-pinned VPS deployment |
 
 This PoC has not established production readiness or live model quality.
 

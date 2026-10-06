@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from evidence_lab.config import Pricing, load_config
+from evidence_lab.config import AppConfig, Pricing, load_config
 from evidence_lab.domain import (
     AnswerBlock,
     CallContext,
@@ -30,6 +30,7 @@ from evidence_lab.evaluation import (
     _artifact_binding,
     _fault_artifact_checks,
     _load_artifact_checks,
+    _live_admission,
     _repeatability_artifact_checks,
     annotation_template,
     apply_annotations,
@@ -38,6 +39,7 @@ from evidence_lab.evaluation import (
     demo_documents,
     dry_run_estimate,
     evaluate_dataset,
+    estimate_study,
     export_report,
     load_dataset,
     paired_family_difference,
@@ -566,6 +568,30 @@ def test_mutation_proposal_never_invents_an_adjudicated_label(dataset):
     assert proposal["evidence_ids"] == original.evidence_ids
     with pytest.raises(DatasetError):
         propose_mutation(original, "not present", "replacement", "number_unit", "new")
+
+
+@pytest.mark.parametrize("model", ["clef", "clef-flash"])
+def test_native_verifier_study_estimate_permits_live_admission(config, dataset, model):
+    raw = config.model_dump(mode="python")
+    raw["runtime"].update(mode="live", require_openai_compatible=False)
+    raw["verification"].update(mode="shadow", policy_id=None)
+    raw["budgets"]["total_max_estimated_cost_usd"] = 100
+    raw["budgets"]["phase_max_estimated_cost_usd"]["evaluation"] = 100
+    for name, profile in raw["profiles"].items():
+        profile.update(endpoint=f"https://unit.test/{name}", api_key="fixture-key",
+                       pricing={"input_usd_per_million": 1.0, "output_usd_per_million": 0.0,
+                                "checked_on": "2026-10-05"})
+    raw["profiles"][raw["roles"]["verifier"]].update(
+        protocol="cloudflare_clef", model=model, capabilities=None,
+        max_output_tokens=None, max_input_tokens=65536,
+        endpoint=f"https://api.cloudflare.com/client/v4/accounts/fixture/ai/run/@cf/cloudflare/{model}",
+    )
+    live_config = AppConfig.model_validate(raw)
+    estimate = estimate_study(dataset, live_config, ["demo"])
+    assert estimate["pricing_known"] is True
+    assert estimate["roles"]["verifier"]["output_token_cap_per_call"] == 0
+    assert estimate["estimated_usd_upper_bound"] > 0
+    _live_admission(live_config, estimate)
 
 
 def test_dry_run_and_exports_preserve_review_and_fixture_limitations(tmp_path, mock_report, config):

@@ -67,6 +67,40 @@ describe("workspace asynchronous boundaries", () => {
     expect(state.busy.question).toBe(false);
   });
 
+  it.each(["accepted", "failed"])("preserves history during a pending submission (%s)", async (outcome) => {
+    vi.useFakeTimers();
+    const query = deferred<Response>();
+    const fetch = vi.fn((path: string) => {
+      if (path === "/api/queries") return query.promise;
+      if (path.startsWith("/api/runs/"))
+        return Promise.resolve(
+          response({ id: path.split("/").at(-1), status: "answered", conversation_id: "history" }),
+        );
+      return Promise.resolve(response({ runs: [], mode: "mock" }));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const { state, actions } = workspace();
+    const submission = actions.submitQuestion("New question");
+    await actions.openRun("history-run");
+    const busyDuringAcceptance = state.busy.question;
+    const duplicate = actions.submitQuestion("Duplicate question");
+    query.resolve(
+      outcome === "accepted"
+        ? response({ id: "submitted-run", status: "queued" })
+        : new Response(JSON.stringify({ detail: "Acceptance failed" }), { status: 500 }),
+    );
+    await Promise.all([submission, duplicate]);
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(busyDuringAcceptance).toBe(true);
+    expect(fetch.mock.calls.filter(([path]) => path === "/api/queries")).toHaveLength(1);
+    expect(state.runId).toBe("history-run");
+    expect(state.run?.id).toBe("history-run");
+    expect(state.conversationId).toBe("history");
+    expect(state.busy.question).toBe(false);
+    expect(state.notice).toBe("");
+  });
+
   it("stops polling, aborts pending requests and erases the token on disposal", async () => {
     vi.useFakeTimers();
     const fetch = vi.fn().mockResolvedValue(response({ id: "run", job_id: "job", status: "running" }));

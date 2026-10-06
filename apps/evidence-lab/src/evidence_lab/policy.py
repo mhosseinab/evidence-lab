@@ -91,6 +91,7 @@ def semantic_policy_fingerprint(config) -> str:
         "retrieval": config.retrieval.model_dump(mode="json"),
         "ingestion": config.ingestion.model_dump(mode="json"),
         "query_runtime": {
+            "embedding_mode": config.runtime.effective_embedding_mode,
             "deadline_seconds": config.runtime.query_deadline_seconds,
             "max_remote_attempts": config.runtime.max_remote_attempts_per_query,
             "remote_concurrency": config.runtime.remote_concurrency,

@@ -25,7 +25,21 @@ Use component props/events for presentation and composables for asynchronous wor
 `WorkflowPanel.vue` displays validated LangGraph stages, execution counts,
 timings and LangSmith status. The Ask workspace retains the server-issued
 conversation ID for follow-ups. New conversation and corpus changes clear it;
-stored conversation history stays private to the backend.
+conversation snapshots are stored in PostgreSQL rather than browser storage.
+The workspace has no per-user document/history isolation. `App.vue` displays the
+persistent shared-workspace notice across Ask, Documents and Evaluations.
+
+`BrowserKeySettings.vue` and `LiveEndpointSettings.vue` provide fixture/live mode,
+LLM/Cloudflare browser keys, endpoint/model setup, explicit limits/prices and
+workspace-vs-custom embeddings. `useBrowserKeys.ts` scopes local storage to the
+base configuration. **Sign in** opens a separate operator dialog: successful
+authentication adopts server settings and omits browser overrides; tokens remain
+in memory. See the [BYOK guide](../../docs/byok.md) for key lifetime and recovery.
+
+Cloudflare Pages deployment stages the build at `/static/` and serves an entrypoint
+at `/`. `functions/[[path]].ts` forwards `/api` and `/health` to the configured
+HTTPS backend while preserving the browser write boundary. No model or operator
+keys are build inputs. See [CI](../../docs/ci.md) and [deployment](../../docs/deployment.md).
 
 From the repository root:
 

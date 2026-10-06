@@ -24,6 +24,9 @@ def _isolated_test_schema():
         return
     schema = "evidence_storage_test_" + uuid.uuid4().hex
     with psycopg.connect(base_dsn, autocommit=True) as connection:
+        # Extensions are database-scoped; keep their types visible while tables
+        # and test data remain in independent private schemas.
+        connection.execute("CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public")
         connection.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
     scoped_url = make_url(base_dsn).update_query_dict({"options": f"-csearch_path={schema},public"})
     scoped_dsn = scoped_url.render_as_string(hide_password=False)

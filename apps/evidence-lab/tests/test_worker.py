@@ -203,3 +203,101 @@ def test_unexpected_exception_is_redacted_in_logs_run_and_job(monkeypatch, caplo
     assert store.run["answer"] is None and store.job["status"] == "failed"
     assert "never-expose-this-password" not in caplog.text + json.dumps(store.run) + json.dumps(store.acknowledgments)
     assert "The worker operation could not be completed." in store.run["error"]
+
+
+@pytest.mark.parametrize("ownership", [None, False, True])
+def test_operator_evaluation_accepts_optional_boolean_ownership(monkeypatch, ownership):
+    from evidence_lab import evaluation
+
+    config = load_config("configs/mock.yaml")
+    payload = {"operator_dataset_path": "/fixture/dataset.json", "split": "test",
+               "annotations_path": None, "config_fingerprint": config.fingerprint()}
+    if ownership is not None:
+        payload["browser_credentials"] = ownership
+    job = {"id": "evaluation-fixture", "kind": "evaluation", "payload": payload, "attempts": 2}
+    captured = []
+
+    async def evaluate(path, store, hub, config_arg, **options):
+        captured.append((path, options))
+        return {"status": "incomplete", "reason": "interrupted_evaluation"}
+
+    monkeypatch.setattr(evaluation, "evaluate_dataset", evaluate)
+    result = asyncio.run(Worker(object(), object(), config).dispatch(job))
+    assert result == {"status": "incomplete", "reason": "interrupted_evaluation"}
+    assert captured == [(payload["operator_dataset_path"], {
+        "job_id": job["id"], "split": "test", "annotations_path": None, "worker_job": job,
+    })]
+
+
+@pytest.mark.parametrize("invalid", [None, "false", 0, 1, [], {}])
+def test_operator_evaluation_rejects_nonboolean_ownership(invalid):
+    config = load_config("configs/mock.yaml")
+    job = {"id": "evaluation-fixture", "kind": "evaluation", "payload": {
+        "operator_dataset_path": "/fixture/dataset.json", "split": "test",
+        "annotations_path": None, "config_fingerprint": config.fingerprint(),
+        "browser_credentials": invalid,
+    }}
+    with pytest.raises(ProviderError) as caught:
+        asyncio.run(Worker(object(), object(), config).dispatch(job))
+    assert caught.value.status == "invalid_job"
+
+
+@pytest.mark.parametrize("change", ["missing_dataset_field", "unknown_field", "changed_config"])
+def test_operator_evaluation_preserves_strict_dataset_payload_checks(change):
+    config = load_config("configs/mock.yaml")
+    payload = {"operator_dataset_path": "/fixture/dataset.json", "split": "test",
+               "annotations_path": None, "config_fingerprint": config.fingerprint(),
+               "browser_credentials": False}
+    if change == "missing_dataset_field":
+        payload.pop("split")
+    elif change == "unknown_field":
+        payload["unknown"] = "unexpected"
+    else:
+        payload["config_fingerprint"] = "different-configuration"
+    job = {"id": "evaluation-fixture", "kind": "evaluation", "payload": payload}
+    with pytest.raises(ProviderError) as caught:
+        asyncio.run(Worker(object(), object(), config).dispatch(job))
+    assert caught.value.status == ("configuration_changed" if change == "changed_config" else "invalid_job")
+
+
+@pytest.mark.integration
+@pytest.mark.native_postgres
+def test_api_retry_of_operator_evaluation_reports_interruption(isolated_storage_dsn):
+    from pathlib import Path
+
+    from fastapi.testclient import TestClient
+    from pydantic import SecretStr
+
+    from evidence_lab.api import create_app
+    from evidence_lab.storage import Store
+    from test_api import NoInferenceHub
+
+    config = load_config("configs/mock.yaml")
+    config.runtime.operator_token = SecretStr("operator-fixture-token")
+    store = Store(isolated_storage_dsn)
+    job = store.enqueue_job("evaluation", {
+        "operator_dataset_path": str(Path("data/demo/dataset.json").resolve()), "split": "demo",
+        "annotations_path": None, "config_fingerprint": config.fingerprint(),
+    })
+    original = store.claim_job("interrupted-worker")
+    assert original is not None and original["id"] == job["id"]
+    store.finish_job(job["id"], original["token"], "failed")
+
+    with TestClient(create_app(config, store=store, hub=NoInferenceHub(), initialize=False)) as client:
+        response = client.post(f"/api/jobs/{job['id']}/retry",
+                               headers={"Authorization": "Bearer operator-fixture-token"})
+        assert response.status_code == 202
+
+    assert store.get_job(job["id"])["payload"]["browser_credentials"] is False
+    result = asyncio.run(Worker(store, CountingFixtureHub(), config).run_once())
+    assert result is not None and result["status"] == "incomplete"
+    assert result["run_complete"] is False
+    questions = result["questions"]
+    assert isinstance(questions, list) and questions
+    for case in questions:
+        assert isinstance(case, dict)
+        assert case["attempted"] is False
+    persisted = store.get_job(job["id"])
+    assert persisted["attempts"] == 2 and persisted["status"] == "failed"
+    assert persisted["result"]["status"] == "incomplete"
+    assert store.get_calls() == []

@@ -65,6 +65,26 @@ describe("answer release boundary", () => {
     await wrapper.find(".citation-button").trigger("click");
     expect(wrapper.findComponent(AnswerPanel).emitted("citation")).toEqual([[0]]);
   });
+
+  it.each([
+    { workspaceMode: "mock", runMode: "live", qualification: undefined, fixture: false },
+    { workspaceMode: "live", runMode: "mock", qualification: undefined, fixture: true },
+    { workspaceMode: "live", runMode: undefined, qualification: "fixture_only", fixture: true },
+    { workspaceMode: "mock", runMode: undefined, qualification: undefined, fixture: true },
+  ])("labels historical answer provenance using $runMode / $qualification", async (scenario) => {
+    const { state, wrapper } = workspace(AnswerPanel);
+    state.status = { mode: scenario.workspaceMode };
+    state.run = {
+      status: "answered",
+      mode: scenario.runMode,
+      qualification: scenario.qualification,
+      answer: "Released historical answer",
+    };
+    await flushPromises();
+
+    expect(wrapper.get("#run-answer").text()).toContain("Released historical answer");
+    expect(wrapper.get("#run-meta").text().includes("Deterministic fixture")).toBe(scenario.fixture);
+  });
 });
 
 it("submits controlled question state and supports a suggestion", async () => {

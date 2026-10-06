@@ -17,6 +17,18 @@ stage output directly at /app/apps/dashboard/dist/.
 Model inference is external or explicitly deterministic fixtures. The fixture
 demo establishes plumbing behavior, not semantic model quality.
 
+`mcp_server.py` mounts two typed read-only evidence tools at `/api/mcp/`. Local and
+remote clients require the shared operator bearer token; remote hosts must be
+explicitly allowed. MCP uses server configuration and the existing retrieval
+ledger, not browser overrides. See [MCP setup](../../docs/agent-rag-interface.md).
+
+`runtime_settings.py` and `byok.py` validate dashboard provider/mode choices and
+request-scoped keys. Browser-owned jobs execute in API background tasks; ordinary
+workers skip them. Server-funded HTTP inference requires operator authentication.
+Files remain shared across workspace users; isolation is [planned](../../docs/todo.md).
+See [BYOK](../../docs/byok.md), [CI](../../docs/ci.md) and
+[deployment](../../docs/deployment.md) for the current access and release workflows.
+
 `graph.py` defines the LangGraph retrieval, generation, structural checks,
 verification, bounded repair and release workflow. `integrations/` provides
 LangChain model, embedding and corpus-bound tool interfaces through the existing

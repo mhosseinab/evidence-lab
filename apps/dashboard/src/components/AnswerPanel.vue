@@ -43,7 +43,11 @@ const metadata = computed(() => {
     current.timings?.repair_generation_seconds !== undefined
   )
     values.push("One repair, rechecked");
-  if (current.qualification === "fixture_only" || current.mode === "mock" || state.status?.mode === "mock")
+  if (
+    current.qualification === "fixture_only" ||
+    current.mode === "mock" ||
+    (!current.mode && !current.qualification && state.status?.mode === "mock")
+  )
     values.push("Deterministic fixture");
   return values;
 });

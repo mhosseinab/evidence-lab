@@ -28,6 +28,7 @@ from evidence_lab.domain import (
     AnswerBlock, CallContext, Contract, Draft, EvidenceItem, EvidencePack,
     ProviderError, VerificationResult, stable_hash, strict_json,
 )
+from evidence_lab.providers.transport import output_reservation
 
 EVALUATION_VERSION = "paired-abcd-v1"
 VARIANTS = ("A", "B", "C", "D")
@@ -1093,6 +1094,8 @@ def estimate_study(dataset: EvaluationDataset, config: Any, selected_splits: lis
             profile = config.role_profile("generator") if role == "repair_generator" and hasattr(config, "role_profile") else None
         input_limit = _get(profile, "max_input_tokens", default=_get(profile, "limits", "max_input_tokens"))
         output_limit = 0 if role == "embeddings" else _get(profile, "max_output_tokens", default=_get(profile, "limits", "max_output_tokens"))
+        if _get(profile, "protocol") == "cloudflare_clef":
+            output_limit = output_reservation(profile)
         input_rate = _get(profile, "pricing", "input_usd_per_million")
         output_rate = _get(profile, "pricing", "output_usd_per_million")
         attempts = _get(profile, "max_attempts", default=_get(profile, "limits", "max_attempts", default=2))
