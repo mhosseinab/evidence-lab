@@ -11,7 +11,39 @@ export interface Orchestration {
   memory: { enabled: boolean; max_turns: number };
   tracing: { provider: "langsmith"; enabled: boolean; content: "metadata_only" };
 }
+export type RuntimeMode = "mock" | "live";
+export type KeyGroup = "llm" | "cloudflare";
+export interface LiveSettings {
+  embedding_source?: "custom" | "workspace";
+  embedding_endpoint?: string;
+  embedding_model?: string;
+  embedding_dimensions?: number;
+  embedding_max_input_tokens?: number;
+  chat_endpoint: string;
+  chat_model: string;
+  chat_max_input_tokens: number;
+  chat_max_output_tokens: number;
+  structured_output: "json_schema" | "json_object" | "text_json";
+  output_limit_parameter: "max_tokens" | "max_completion_tokens";
+  cloudflare_account_id: string;
+  budget_usd: number;
+  embedding_input_usd_per_million?: number;
+  chat_input_usd_per_million: number;
+  chat_output_usd_per_million: number;
+}
+export interface ProviderProfile {
+  key_group?: KeyGroup;
+  name: string;
+  model: string;
+  roles: string[];
+}
 export interface Payload {
+  credentials?: "server" | "browser";
+  embedding_mode?: RuntimeMode;
+  embedding_source?: "custom" | "workspace";
+  byok_profiles?: ProviderProfile[];
+  config_fingerprint?: string;
+  byok_key_scope?: string;
   [key: string]: unknown;
   id?: string;
   run_id?: string;

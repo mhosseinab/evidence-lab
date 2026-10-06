@@ -137,7 +137,7 @@ class ProviderHub:
         result: list[list[float]] = []
         for batch in batches:
             body = openai.embedding_payload(profile, batch)
-            if self.config.runtime.mode == "mock":
+            if self.config.runtime.effective_embedding_mode == "mock":
                 vectors = await self.executor.invoke_mock(name, profile, body, ctx, lambda batch=batch: mock.embed(batch, dimensions, model), embedding_batch=True)
             else:
                 vectors = await self.executor.invoke(name, profile, body, ctx, lambda data, size=len(batch): openai.parse_embeddings(data, size, dimensions), embedding_batch=True)

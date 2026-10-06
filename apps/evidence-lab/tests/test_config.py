@@ -61,6 +61,13 @@ def test_live_example_deliberately_requires_operator_values():
         load_config(PROJECT / "configs/live.example.yaml")
 
 
+@pytest.mark.parametrize("token", ["", " ", "\t\n"])
+def test_configuration_rejects_empty_or_whitespace_operator_token(tmp_path, mock_data, token):
+    mock_data["runtime"]["operator_token"] = token
+    with pytest.raises(ConfigError, match="Operator token must contain non-whitespace characters"):
+        load_config(save(tmp_path, mock_data))
+
+
 def test_mock_mode_does_not_read_key_files_or_environment(tmp_path, mock_data, monkeypatch):
     profile = mock_data["profiles"][mock_data["roles"]["generator"]]
     profile["api_key_file"] = "/path/that/does/not/exist.key"
@@ -69,6 +76,29 @@ def test_mock_mode_does_not_read_key_files_or_environment(tmp_path, mock_data, m
     config = load_config(save(tmp_path, mock_data))
     assert config.runtime.mode == "mock"
     assert config.role_profile("generator").api_key is None
+
+
+@pytest.mark.parametrize("reference", ["env", "file"])
+def test_live_with_fixture_embeddings_does_not_resolve_embedding_keys(
+    tmp_path, live_data, monkeypatch, reference,
+):
+    live_data["runtime"]["embedding_mode"] = "mock"
+    embedding = live_data["profiles"][live_data["roles"]["embeddings"]]
+    embedding.pop("api_key")
+    if reference == "env":
+        embedding["api_key_env"] = "EVIDENCE_LAB_UNUSED_EMBEDDING_KEY"
+        monkeypatch.delenv("EVIDENCE_LAB_UNUSED_EMBEDDING_KEY", raising=False)
+    else:
+        embedding["api_key_file"] = "missing-embedding.key"
+
+    config = load_config(save(tmp_path, live_data))
+
+    assert config.runtime.effective_embedding_mode == "mock"
+    assert config.role_profile("embeddings").api_key is None
+    for role in ("generator", "verifier"):
+        key = config.role_profile(role).api_key
+        assert key is not None
+        assert key.get_secret_value() == "test-secret-valid-for-mocked-transport-only"
 
 
 @pytest.mark.parametrize("change", ["missing_key", "placeholder_key", "missing_limit", "placeholder_url", "missing_model", "missing_dimensions", "missing_capabilities"])

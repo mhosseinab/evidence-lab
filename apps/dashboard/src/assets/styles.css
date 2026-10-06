@@ -1498,10 +1498,12 @@ main {
   overflow-wrap: anywhere;
   max-width: 280px;
 }
-#token-form {
+#token-form,
+#browser-key-form {
   padding: 0 26px;
 }
-#token-form label {
+#token-form label,
+#browser-key-form label {
   font-size: 11px;
   font-weight: 600;
   color: #698255;
@@ -1518,7 +1520,9 @@ main {
   line-height: 1.7;
   margin: 5px 0 11px;
 }
-#operator-token {
+#operator-token,
+#browser-key-form input,
+#browser-key-form select {
   border: 1px solid #dce5d4;
   border-radius: 6px;
   width: 100%;
@@ -1527,12 +1531,33 @@ main {
   background: #fbfcf9;
   font-size: 12px;
 }
-#token-form .dialog-footer {
+#token-form .dialog-footer,
+#browser-key-form .dialog-footer {
   margin: 20px -26px 0;
   justify-content: space-between;
 }
 #token-form .field-help {
   margin-bottom: 0;
+}
+#browser-key-form .dialog-footer {
+  margin-bottom: 20px;
+}
+#browser-key-form label {
+  display: block;
+  margin: 12px 0 5px;
+}
+#live-endpoint-form fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+#live-endpoint-form summary {
+  cursor: pointer;
+  font-size: 12px;
+  margin: 14px 0;
+}
+#live-endpoint-form button {
+  margin: 18px 0;
 }
 .toast {
   position: fixed;

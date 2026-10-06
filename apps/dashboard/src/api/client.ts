@@ -1,4 +1,4 @@
-import type { GraphStep, Orchestration, Payload } from "../types/api";
+import type { GraphStep, Orchestration, Payload, RuntimeMode } from "../types/api";
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -31,6 +31,8 @@ export function parsePayload(input: unknown): Payload {
     "stage",
     "mode",
     "runtime_mode",
+    "embedding_mode",
+    "embedding_source",
     "policy_state",
     "name",
     "filename",
@@ -50,6 +52,8 @@ export function parsePayload(input: unknown): Payload {
     "abstention",
     "code",
     "variant",
+    "config_fingerprint",
+    "byok_key_scope",
   ]) {
     const field = value[key];
     if (field != null && typeof field !== "string")
@@ -195,6 +199,21 @@ export function parsePayload(input: unknown): Payload {
       throw new Error("The workspace returned an invalid graph steps list.");
     value.graph_steps = value.graph_steps.map(parseGraphStep);
   }
+  if (value.credentials != null && !["server", "browser"].includes(String(value.credentials)))
+    throw new Error("The workspace returned an invalid credential mode.");
+  if (
+    value.byok_profiles != null &&
+    (!Array.isArray(value.byok_profiles) ||
+      !value.byok_profiles.every(
+        (profile: unknown) =>
+          isRecord(profile) &&
+          typeof profile.name === "string" &&
+          typeof profile.model === "string" &&
+          strings(profile.roles) &&
+          (profile.key_group == null || ["llm", "cloudflare"].includes(String(profile.key_group))),
+      ))
+  )
+    throw new Error("The workspace returned invalid provider profiles.");
   return value as Payload;
 }
 
@@ -242,7 +261,13 @@ function parseOrchestration(value: unknown): Orchestration {
   return value as unknown as Orchestration;
 }
 
-export function createApiClient(getToken: () => string, onAccessRequired: () => void = () => {}) {
+export function createApiClient(
+  getToken: () => string,
+  onAccessRequired: () => void = () => {},
+  getProviderKeys: () => string | undefined = () => undefined,
+  getMode: () => RuntimeMode | undefined = () => undefined,
+  getLiveSettings: () => string | undefined = () => undefined,
+) {
   async function request(path: string, options: RequestInit = {}): Promise<Payload> {
     const response = await fetchResponse(path, options);
     let data: Payload;
@@ -264,7 +289,7 @@ export function createApiClient(getToken: () => string, onAccessRequired: () => 
           : isRecord(field) && typeof field.message === "string"
             ? field.message
             : response.status === 401
-              ? "An operator token is required. Open workspace connection to enter it."
+              ? "An operator token is required. Use Sign in to enter it."
               : `Request failed (${response.status}).`;
       throw new ApiError(message, response.status, data.code);
     }
@@ -272,8 +297,29 @@ export function createApiClient(getToken: () => string, onAccessRequired: () => 
   }
   async function fetchResponse(path: string, options: RequestInit = {}): Promise<Response> {
     const headers = new Headers(options.headers);
+    const needsKeys =
+      (options.method || "GET").toUpperCase() === "POST" &&
+      (["/api/queries", "/api/documents", "/api/evaluations", "/api/retrieval/preview"].includes(path) ||
+        /^\/api\/jobs\/[^/]+\/retry$/.test(path));
     const token = getToken();
-    if (token) headers.set("Authorization", `Bearer ${token}`);
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+      for (const name of [
+        "X-Evidence-Lab-Mode",
+        "X-Evidence-Lab-Live-Settings",
+        "X-Evidence-Lab-Provider-Keys",
+      ])
+        headers.delete(name);
+    } else {
+      if (needsKeys) {
+        const keys = getProviderKeys();
+        if (keys) headers.set("X-Evidence-Lab-Provider-Keys", keys);
+      }
+      const mode = getMode();
+      if (mode) headers.set("X-Evidence-Lab-Mode", mode);
+      const settings = getLiveSettings();
+      if (mode === "live" && settings) headers.set("X-Evidence-Lab-Live-Settings", settings);
+    }
     if (options.body && !(options.body instanceof FormData)) headers.set("Content-Type", "application/json");
     try {
       const response = await fetch(path, { ...options, headers, credentials: "same-origin" });

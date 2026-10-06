@@ -160,8 +160,9 @@ def _cost(value):
 
 
 class Store:
-    def __init__(self, dsn: str, limits: dict | None = None, memory: dict | None = None):
+    def __init__(self, dsn: str, limits: dict | None = None, memory: dict | None = None, *, browser_credentials: bool = False):
         self._dsn = dsn
+        self.browser_credentials = browser_credentials
         self.limits = {**DEFAULT_LIMITS, **(limits or {})}
         self.memory = {**DEFAULT_MEMORY, **(memory or {})}
 
@@ -277,14 +278,16 @@ class Store:
         if self._payload_bytes(connection) + additional > self.limits["max_retained_payload_bytes"]:
             raise StorageError("quota_exceeded", "Retained payload quota is exhausted.")
 
-    def _insert_job(self, connection: psycopg.Connection[DictRow], kind, payload) -> DictRow:
+    def _insert_job(self, connection: psycopg.Connection[DictRow], kind, payload, *, browser_credentials=None) -> DictRow:
+        if self.browser_credentials if browser_credentials is None else browser_credentials:
+            payload = {**payload, "browser_credentials": True}
         return _required_row(connection.execute(
             "INSERT INTO evidence_jobs(id,kind,payload) VALUES (%s,%s,%s) RETURNING *",
             (_id(), kind, _json(payload)),
         ).fetchone())
 
     def create_document(self, name, raw: bytes, media_type, corpus_id="default",
-                        document_id=None, pipeline_revision=PIPELINE_VERSION) -> dict:
+                        document_id=None, pipeline_revision=PIPELINE_VERSION, *, browser_credentials=None) -> dict:
         if not isinstance(raw, bytes) or not raw:
             raise StorageError("invalid_document", "An uploaded document must contain bytes.")
         if len(raw) > self.limits["max_upload_bytes"]:
@@ -330,7 +333,8 @@ class Store:
                 ).fetchone())
             version_id = _id()
             version_no = document["latest_version_no"] + 1
-            job = self._insert_job(connection, "ingest", {"version_id": version_id, "corpus_id": corpus_id})
+            job = self._insert_job(connection, "ingest", {"version_id": version_id, "corpus_id": corpus_id},
+                                   browser_credentials=browser_credentials)
             connection.execute(
                 "INSERT INTO evidence_document_versions(id,document_id,version_no,space_id,name,media_type,content_hash,"
                 "pipeline_revision,raw,job_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
@@ -633,22 +637,25 @@ class Store:
             return _json_safe({"corpus_revision": corpus["revision"], "space_id": space_id,
                                "dense": dense, "lexical": lexical})
 
-    def enqueue_job(self, kind, payload) -> dict:
+    def enqueue_job(self, kind, payload, *, browser_credentials=None) -> dict:
         if not isinstance(kind, str) or not kind or not isinstance(payload, dict):
             raise StorageError("invalid_data", "A job kind and JSON payload are required.")
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
             self._check_quota(connection)
-            return _json_safe(self._insert_job(connection, kind, payload))
+            return _json_safe(self._insert_job(connection, kind, payload, browser_credentials=browser_credentials))
 
-    def claim_job(self, worker_id, lease_seconds=120) -> dict | None:
+    def claim_job(self, worker_id, lease_seconds=120, *, browser_job_id: str | None = None) -> dict | None:
         if not isinstance(worker_id, str) or not worker_id or not 0 < lease_seconds <= 86400:
             raise StorageError("invalid_data", "A worker ID and positive bounded lease are required.")
         with self._transaction() as connection:
             job = connection.execute(
-                "SELECT id FROM evidence_jobs WHERE status='queued' OR "
-                "(status='running' AND lease_until<=clock_timestamp()) "
-                "ORDER BY created_at,id FOR UPDATE SKIP LOCKED LIMIT 1"
+                "SELECT id FROM evidence_jobs WHERE (status='queued' OR "
+                "(status='running' AND lease_until<=clock_timestamp())) "
+                "AND ((%s::text IS NULL AND COALESCE(payload->>'browser_credentials','false') <> 'true') "
+                "OR (id=%s AND payload->>'browser_credentials'='true')) "
+                "ORDER BY created_at,id FOR UPDATE SKIP LOCKED LIMIT 1",
+                (browser_job_id, browser_job_id),
             ).fetchone()
             if not job:
                 return None
@@ -732,13 +739,16 @@ class Store:
             return {"id": job_id, "status": "cancelled" if job["status"] in {"queued", "running"}
                     else job["status"]}
 
-    def retry_job(self, job_id) -> dict:
+    def retry_job(self, job_id, *, browser_credentials=None) -> dict:
         with self._transaction() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
             row = connection.execute(
                 "UPDATE evidence_jobs SET status='queued',token=NULL,lease_until=NULL,worker_id=NULL,"
-                "finished_at=NULL,error=NULL,updated_at=clock_timestamp() WHERE id=%s "
-                "AND status IN ('failed','cancelled','needs_review','needs_ocr') RETURNING *", (job_id,),
+                "finished_at=NULL,error=NULL,updated_at=clock_timestamp(),"
+                "payload=CASE WHEN %s::boolean IS NULL THEN payload ELSE "
+                "jsonb_set(payload,'{browser_credentials}',to_jsonb(%s::boolean)) END WHERE id=%s "
+                "AND status IN ('failed','cancelled','needs_review','needs_ocr') RETURNING *",
+                (browser_credentials, browser_credentials, job_id),
             ).fetchone()
             if not row:
                 raise StorageError("invalid_state", "Only stopped ingestion or evaluation jobs can be retried.")
@@ -746,7 +756,7 @@ class Store:
                 raise StorageError("invalid_state", "Create a new query run to retry a terminal query.")
             return _json_safe(row)
 
-    def create_run(self, question, corpus_id="default", settings=None) -> dict:
+    def create_run(self, question, corpus_id="default", settings=None, *, browser_credentials=None) -> dict:
         if not isinstance(question, str) or not question.strip():
             raise StorageError("invalid_data", "A nonempty question is required.")
         if len(question.encode("utf-8")) > 65536:
@@ -790,7 +800,8 @@ class Store:
             serialized_settings = _json(accepted_settings, redact=True)
             self._check_quota(connection, len(json.dumps(serialized_settings.obj).encode("utf-8")))
             run_id = _id()
-            job = self._insert_job(connection, "query", {"run_id": run_id, "corpus_id": corpus_id})
+            job = self._insert_job(connection, "query", {"run_id": run_id, "corpus_id": corpus_id},
+                                   browser_credentials=browser_credentials)
             row = _required_row(connection.execute(
                 "INSERT INTO evidence_runs(id,job_id,corpus_id,space_id,question,settings,conversation_id) "
                 "VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING *",

@@ -89,3 +89,61 @@ The graph consumes the artifact and applies `evaluate_checks`; tool output alone
 never authorizes release. Provider/validation failures propagate rather than
 becoming successful verdicts. Ambient tracing stays disabled; explicit callbacks
 remain supported. Clef choice probabilities retain their uncalibrated semantics.
+
+## Browser credentials (BYOK)
+
+`runtime.credentials` is `server` by default. In YAML live `browser` mode active
+provider profiles must omit all credential fields; startup never reads provider
+secrets. `GET /api/status` includes `credentials`, `byok_key_scope` (the base
+configuration fingerprint), `spending_limit_usd` and `byok_profiles`, a list of
+`{name, model, roles, key_group}` for every active profile. Key groups are `llm`
+and `cloudflare`; native Clef uses the latter.
+
+The dashboard sends `X-Evidence-Lab-Mode: mock|live` with requests. Unsigned browser live requests
+also carry bounded JSON `X-Evidence-Lab-Live-Settings`: complete embedding/chat
+endpoints and model IDs, embedding dimensions, embedding/chat input limits, chat
+output limit, JSON output format, output token parameter, Cloudflare account ID,
+nonnegative budget and embedding input/chat input/chat output prices per million
+tokens. `embedding_source` is `custom` by default (including older saved setup),
+or `workspace` to preserve the base embedding profile and vector manifest.
+Workspace setup omits custom embedding fields. Query embeddings use the base
+profile's effective execution mode; generation and Clef remain live. The status
+reports `embedding_mode` and `embedding_source`. Mock embedding profiles are
+excluded from required browser credentials and stay visibly labeled fixtures. Strict validation rejects incomplete setup with safe errors. A request
+selects an isolated runtime without mutating the server configuration. Selected
+live mode uses browser credentials, Clef verification and an unqualified shadow
+policy. Mode validation only reads status metadata and makes no model calls.
+Operator sessions omit mode/setup/key headers and use the server configuration.
+Server-funded API inference requires a configured operator token and an authenticated
+request. Missing or incorrect tokens return 401 before inference or job mutation.
+Configured operator tokens must contain non-whitespace characters. Empty or blank
+tokens are rejected during configuration validation; the inference guard also
+rejects them when an explicit configuration object bypasses validation.
+Omitting the token from a live server-credential configuration also returns 401
+for queries, uploads, evaluations, retrieval previews and retries. Mock fixtures
+and browser-owned credentials do not acquire server keys. CLI and workers remain
+trusted operator processes, independent of dashboard sign-in.
+Operator tokens stay in page memory, validated before adopting server mode;
+failed sign-in restores previous browser state. Sign-out removes the token and
+restores saved browser preferences if access is available.
+
+Inference POSTs (document upload, query, retrieval preview, evaluation and job
+retry) require `X-Evidence-Lab-Provider-Keys`, a bounded JSON object containing
+`llm` and, when required, `cloudflare` printable non-placeholder keys. Legacy
+per-profile payloads remain accepted. Validation fails before enqueuing work.
+API tasks use isolated config copies and existing worker dispatch, leases,
+adapters and budget ledger. Credentials do not change configuration or policy
+fingerprints and never enter durable payloads. The dashboard saves keys, setup
+and mode locally per base configuration fingerprint. Keys only accompany
+inference endpoints, never status/trace/source requests.
+
+Per-insertion browser credential options (or `Store(..., browser_credentials=True)`) atomically mark newly inserted job payloads with
+`browser_credentials: true`. General `claim_job` skips them;
+`claim_job(..., browser_job_id=id)` leases only that named browser job, including
+expired leases. API-created background tasks discard their scoped keys after
+completion. Recovery requires a browser request to resupply credentials.
+
+Retaining an external workspace embedding profile in browser BYOK mode strips
+its server credential references and authenticates it with the browser LLM key.
+Separate server and browser provider credentials are not combined. Signed-in
+operators use the server configuration normally.

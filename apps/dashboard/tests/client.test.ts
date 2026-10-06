@@ -105,3 +105,70 @@ it("validates workflow metadata and rejects unsafe or malformed execution fields
   ).toThrow(/workflow metadata/);
   expect(() => parsePayload({ conversation_id: 1 })).toThrow(/conversation_id/);
 });
+
+it("sends browser keys only to inference operations", async () => {
+  const fetch = vi.fn(async (_path: string, _options?: RequestInit) => new Response("{}"));
+  vi.stubGlobal("fetch", fetch);
+  const client = createApiClient(
+    () => "",
+    () => {},
+    () => '{"llm":"browser-secret"}',
+    () => "live",
+    () => '{"chat_model":"selected-model"}',
+  );
+  await client.request("/api/status");
+  await client.request("/api/jobs/123/cancel", { method: "POST" });
+  await client.request("/api/queries", { method: "POST", body: '{"question":"Question?"}' });
+  for (const [, options] of fetch.mock.calls) {
+    expect(new Headers(options?.headers).get("X-Evidence-Lab-Mode")).toBe("live");
+    expect(new Headers(options?.headers).get("X-Evidence-Lab-Live-Settings")).toContain("selected-model");
+  }
+  expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).has("X-Evidence-Lab-Provider-Keys")).toBe(false);
+  expect(new Headers(fetch.mock.calls[1]?.[1]?.headers).has("X-Evidence-Lab-Provider-Keys")).toBe(false);
+  expect(new Headers(fetch.mock.calls[2]?.[1]?.headers).get("X-Evidence-Lab-Provider-Keys")).toBe(
+    '{"llm":"browser-secret"}',
+  );
+});
+
+it("includes selected mode on fixture metadata and downloads without attaching keys", async () => {
+  const fetch = vi.fn(async (_path: string, _options?: RequestInit) => new Response("{}"));
+  vi.stubGlobal("fetch", fetch);
+  const keys = vi.fn(() => '{"llm":"secret"}');
+  const client = createApiClient(
+    () => "",
+    () => {},
+    keys,
+    () => "mock",
+  );
+  await client.request("/api/status");
+  await client.download("/api/source-versions/id/download");
+  expect(keys).not.toHaveBeenCalled();
+  for (const [, options] of fetch.mock.calls) {
+    const headers = new Headers(options?.headers);
+    expect(headers.get("X-Evidence-Lab-Mode")).toBe("mock");
+    expect(headers.has("X-Evidence-Lab-Provider-Keys")).toBe(false);
+    expect(headers.has("X-Evidence-Lab-Live-Settings")).toBe(false);
+  }
+});
+
+it("uses only server configuration when an operator token is supplied", async () => {
+  const fetch = vi.fn(async (_path: string, _options?: RequestInit) => new Response("{}"));
+  vi.stubGlobal("fetch", fetch);
+  const browserValue = vi.fn(() => {
+    throw new Error("Browser setup must not be read");
+  });
+  const client = createApiClient(
+    () => "operator-token",
+    () => {},
+    browserValue,
+    browserValue,
+    browserValue,
+  );
+  await client.request("/api/queries", { method: "POST" });
+  const headers = new Headers(fetch.mock.calls[0]?.[1]?.headers);
+  expect(headers.get("Authorization")).toBe("Bearer operator-token");
+  expect(headers.has("X-Evidence-Lab-Mode")).toBe(false);
+  expect(headers.has("X-Evidence-Lab-Live-Settings")).toBe(false);
+  expect(headers.has("X-Evidence-Lab-Provider-Keys")).toBe(false);
+  expect(browserValue).not.toHaveBeenCalled();
+});

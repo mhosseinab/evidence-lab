@@ -49,6 +49,8 @@ class _StrictConfig(BaseModel):
 
 class RuntimeConfig(_StrictConfig):
     mode: Literal["mock", "live"] = "mock"
+    embedding_mode: Literal["mock", "live"] | None = None
+    credentials: Literal["server", "browser"] = "server"
     require_openai_compatible: bool = True
     remote_concurrency: int = Field(default=4, ge=1, le=64)
     query_deadline_seconds: float = Field(default=60, gt=0, le=3600)
@@ -60,6 +62,17 @@ class RuntimeConfig(_StrictConfig):
     worker_lease_seconds: int = Field(default=120, ge=10, le=3600)
     poll_seconds: float = Field(default=0.5, gt=0, le=60)
     operator_token: SecretStr | None = Field(default=None, repr=False)
+
+    @field_validator("operator_token")
+    @classmethod
+    def nonempty_operator_token(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is not None and not value.get_secret_value().strip():
+            raise _SettingError("Operator token must contain non-whitespace characters.")
+        return value
+
+    @property
+    def effective_embedding_mode(self) -> Literal["mock", "live"]:
+        return "mock" if self.mode == "mock" else self.embedding_mode or self.mode
 
 
 class DatabaseConfig(_StrictConfig):
@@ -403,7 +416,10 @@ class AppConfig(_StrictConfig):
                     raise _SettingError("Native Clef profiles do not support a max_output_tokens parameter.")
                 if name == self.roles.verifier and profile.max_questions < self.verification.max_answer_blocks + 3:
                     raise _SettingError("The active native verifier must fit all answer-block and three global checks in one batch.")
-            if self.runtime.mode != "live":
+            if self.runtime.mode == "live" and self.runtime.credentials == "browser":
+                if any(value is not None for value in (profile.api_key, profile.api_key_env, profile.api_key_file)):
+                    raise _SettingError("Browser credentials must not be configured on the server.")
+            if self.runtime.mode != "live" or (profile.protocol == "embeddings" and self.runtime.effective_embedding_mode == "mock"):
                 continue
             _validate_live_endpoint(profile.endpoint)
             if _placeholder(profile.model):
@@ -412,6 +428,8 @@ class AppConfig(_StrictConfig):
                 raise _SettingError("An active live embedding profile requires a non-placeholder space identifier.")
             if cost_configured and profile.pricing is None:
                 raise _SettingError("Every active live profile requires dated pricing when any spending cap is nonzero.")
+            if self.runtime.credentials == "browser":
+                continue
             supplied = sum(value is not None for value in (profile.api_key, profile.api_key_env, profile.api_key_file))
             if supplied != 1:
                 raise _SettingError("Active live profiles require exactly one API key source: direct, environment or file.")
@@ -446,7 +464,7 @@ class AppConfig(_StrictConfig):
         for name, profile in self.profiles.items():
             item = data["profiles"][name]
             for key in ("api_key", "api_key_env", "api_key_file"):
-                item[key] = REDACTED if getattr(profile, key) is not None else None
+                item[key] = None if self.runtime.credentials == "browser" else (REDACTED if getattr(profile, key) is not None else None)
             item["endpoint"] = _safe_endpoint(profile.endpoint)
         return data
 
@@ -534,10 +552,12 @@ def _safe_validation_message(exc: ValidationError) -> str:
 
 
 def _resolve_keys(config: AppConfig, directory: Path) -> None:
-    if config.runtime.mode == "mock":
+    if config.runtime.mode == "mock" or config.runtime.credentials == "browser":
         return
     for name in config.active_profile_names():
         profile = config.profiles[name]
+        if profile.protocol == "embeddings" and config.runtime.effective_embedding_mode == "mock":
+            continue
         if profile.api_key_env is not None:
             value = os.environ.get(profile.api_key_env)
             if value is None or _placeholder(value):

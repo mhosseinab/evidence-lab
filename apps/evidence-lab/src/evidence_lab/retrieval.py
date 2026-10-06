@@ -21,7 +21,7 @@ def space_manifest(config) -> dict:
         "dimensions": profile.dimensions,
         "endpoint": profile.endpoint,
         "protocol": profile.protocol,
-        "runtime": config.runtime.mode,
+        "runtime": config.runtime.effective_embedding_mode,
         "preprocessing": "nfc-lf-exact-chunk-v1",
         "pipeline_revision": pipeline_revision(config),
         "distance": "cosine",

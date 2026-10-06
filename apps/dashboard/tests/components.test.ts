@@ -8,6 +8,7 @@ import type { Payload } from "../src/types/api";
 import AskView from "../src/views/AskView.vue";
 import DocumentsView from "../src/views/DocumentsView.vue";
 import EvaluationsView from "../src/views/EvaluationsView.vue";
+import { liveSettings } from "./fixtures/liveSettings";
 
 const cleanups: (() => void)[] = [];
 afterEach(() => {
@@ -163,4 +164,236 @@ it("shows actual graph execution and offers a fresh conversation without exposin
   await wrapper.find("#new-conversation").trigger("click");
   expect(state.conversationId).toBeNull();
   expect(wrapper.text()).toContain("New conversation");
+});
+
+describe("browser key management", () => {
+  it("saves a masked key locally and removes it without a server request", async () => {
+    const { default: BrowserKeySettings } = await import("../src/components/BrowserKeySettings.vue");
+    const { state, credentials, wrapper } = workspace(BrowserKeySettings);
+    state.status = { mode: "live", credentials: "browser" };
+    credentials.configure("component-test", [{ name: "chat", model: "chat-v1", roles: ["generator"] }]);
+    await flushPromises();
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    await wrapper.get("#llm-key").setValue("client-only-secret");
+    expect(wrapper.get("#llm-key").attributes("type")).toBe("password");
+    await wrapper.get("#browser-key-form form").trigger("submit");
+    expect(wrapper.text()).toContain("Key saved in this browser");
+    expect((wrapper.get("#llm-key").element as HTMLInputElement).value).toBe("");
+    expect(wrapper.text()).not.toContain("client-only-secret");
+    await wrapper.get("#remove-llm-key").trigger("click");
+    expect(wrapper.text()).toContain("Key removed");
+    expect(credentials.saved.llm).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+    localStorage.clear();
+  });
+});
+
+it("shows BYOK settings in workspace connection during fixture mode", async () => {
+  const { default: WorkspaceDialogs } = await import("../src/components/WorkspaceDialogs.vue");
+  const { state, credentials, wrapper } = workspace(WorkspaceDialogs);
+  state.status = { mode: "mock", credentials: "server" };
+  credentials.configure("fixture-visibility", [
+    { name: "fixture-chat", model: "fixture", roles: ["generator"] },
+  ]);
+  const dialog = wrapper.get("#connection-dialog").element as HTMLDialogElement;
+  Object.defineProperty(dialog, "showModal", {
+    value: () => {
+      dialog.open = true;
+    },
+  });
+  state.dialog = "connection";
+  await flushPromises();
+  expect(wrapper.get("#browser-key-form").text()).toContain("Mode and provider keys");
+  expect(wrapper.get("#browser-key-form").text()).toContain("Fixture mode");
+  expect(wrapper.get("#llm-key").attributes("disabled")).toBeUndefined();
+  expect(wrapper.get("#cloudflare-key").attributes("disabled")).toBeUndefined();
+  expect(wrapper.find("#workspace-mode").exists()).toBe(true);
+});
+
+it("saves both keys and live setup in fixture mode without calling the server", async () => {
+  const { default: BrowserKeySettings } = await import("../src/components/BrowserKeySettings.vue");
+  const { state, credentials, wrapper } = workspace(BrowserKeySettings);
+  state.status = { mode: "mock", byok_key_scope: "form-setup" };
+  state.mode = "mock";
+  credentials.configure("form-setup", []);
+  await flushPromises();
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  expect(wrapper.findAll('input[type="password"]')).toHaveLength(2);
+  await wrapper.get("#llm-key").setValue("llm-secret");
+  await wrapper.get("#browser-key-form form").trigger("submit");
+  await wrapper.get("#cloudflare-key").setValue("cf-secret");
+  await wrapper.findAll("#browser-key-form form")[1]?.trigger("submit");
+  expect(credentials.saved).toEqual({ llm: true, cloudflare: true });
+  await wrapper.get("#embedding-endpoint").setValue("https://provider.example/v1/embeddings");
+  await wrapper.get("#embedding-model").setValue("embedding-model");
+  await wrapper.get("#chat-endpoint").setValue("https://provider.example/v1/chat/completions");
+  await wrapper.get("#chat-model").setValue("chat-model");
+  await wrapper.get("#cloudflare-account").setValue("a".repeat(32));
+  await wrapper.get("#live-endpoint-form").trigger("submit");
+  expect(wrapper.text()).toContain("Enter all three provider prices");
+  for (const field of [
+    "embedding_input_usd_per_million",
+    "chat_input_usd_per_million",
+    "chat_output_usd_per_million",
+  ])
+    await wrapper.get(`#${field}`).setValue("0");
+  for (const [id, value] of [
+    ["embedding-dimensions", "1536"],
+    ["embedding-input-limit", "8192"],
+    ["chat-input-limit", "65536"],
+    ["chat-output-limit", "1200"],
+  ])
+    await wrapper.get(`#${id}`).setValue(value);
+  await wrapper.get("#output-limit-parameter").setValue("max_tokens");
+  await wrapper.get("#live-endpoint-form").trigger("submit");
+  expect(wrapper.text()).toContain("Live setup saved in this browser");
+  expect(credentials.settings.value?.budget_usd).toBe(0);
+  expect(fetch).not.toHaveBeenCalled();
+  expect(wrapper.text()).not.toContain("llm-secret");
+  await wrapper.get("#remove-cloudflare-key").trigger("click");
+  expect(credentials.saved.cloudflare).toBe(false);
+  expect(credentials.saved.llm).toBe(true);
+  localStorage.clear();
+});
+
+it("removes saved live setup in fixture mode, resets the form and retains keys", async () => {
+  const { default: LiveEndpointSettings } = await import("../src/components/LiveEndpointSettings.vue");
+  const { state, credentials, wrapper } = workspace(LiveEndpointSettings);
+  state.status = { mode: "mock" };
+  credentials.configure("remove-setup", []);
+  credentials.save("llm", "llm-secret");
+  credentials.save("cloudflare", "cf-secret");
+  credentials.savePreferences("live", { ...liveSettings, budget_usd: 5 });
+  state.mode = "live";
+  await flushPromises();
+  expect(wrapper.get("#remove-live-setup").attributes("disabled")).toBeDefined();
+  expect((wrapper.get("#embedding-endpoint").element as HTMLInputElement).value).toContain(
+    "provider.example",
+  );
+  state.mode = "mock";
+  await flushPromises();
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  await wrapper.get("#remove-live-setup").trigger("click");
+  expect(wrapper.text()).toContain("Live setup removed");
+  expect(wrapper.find("#remove-live-setup").exists()).toBe(false);
+  expect((wrapper.get("#embedding-endpoint").element as HTMLInputElement).value).toBe("");
+  expect((wrapper.get("#live-budget").element as HTMLInputElement).value).toBe("0");
+  expect((wrapper.get("#embedding_input_usd_per_million").element as HTMLInputElement).value).toBe("");
+  expect(credentials.settings.value).toBeUndefined();
+  expect(localStorage.getItem("evidence-lab:connection:remove-setup")).toBeNull();
+  expect(credentials.saved).toEqual({ llm: true, cloudflare: true });
+  expect(localStorage.getItem("evidence-lab:provider-keys:remove-setup")).toContain("llm-secret");
+  expect(fetch).not.toHaveBeenCalled();
+  localStorage.clear();
+});
+
+it("requires provider-specific limits and pricing instead of guessing model defaults", async () => {
+  const { default: BrowserKeySettings } = await import("../src/components/BrowserKeySettings.vue");
+  const { state, credentials, wrapper } = workspace(BrowserKeySettings);
+  state.status = { mode: "mock" };
+  credentials.configure("explicit-limits", []);
+  await flushPromises();
+  for (const id of [
+    "embedding-dimensions",
+    "embedding-input-limit",
+    "chat-input-limit",
+    "chat-output-limit",
+    "embedding_input_usd_per_million",
+    "chat_input_usd_per_million",
+    "chat_output_usd_per_million",
+  ]) {
+    expect((wrapper.get(`#${id}`).element as HTMLInputElement).value).toBe("");
+    expect(wrapper.get(`label[for="${id}"]`).text()).toContain("*");
+    expect(wrapper.get(`#${id}`).attributes("required")).toBeDefined();
+  }
+  expect((wrapper.get("#live-budget").element as HTMLInputElement).value).toBe("0");
+  expect((wrapper.get("#structured-output").element as HTMLSelectElement).value).toBe("text_json");
+  expect((wrapper.get("#output-limit-parameter").element as HTMLSelectElement).value).toBe("");
+  expect(wrapper.text()).toContain("Required for live mode");
+  expect(wrapper.get('label[for="llm-key"]').text()).toContain("*");
+  expect(wrapper.get('label[for="cloudflare-key"]').text()).toContain("*");
+  for (const id of [
+    "embedding_input_usd_per_million",
+    "chat_input_usd_per_million",
+    "chat_output_usd_per_million",
+  ])
+    await wrapper.get(`#${id}`).setValue("0");
+  await wrapper.get("#live-endpoint-form").trigger("submit");
+  expect(wrapper.text()).toContain("Enter embedding dimensions and all token limits");
+  expect(credentials.settings.value).toBeUndefined();
+  for (const [id, value] of [
+    ["embedding-dimensions", "768"],
+    ["embedding-input-limit", "4096"],
+    ["chat-input-limit", "8192"],
+    ["chat-output-limit", "512"],
+  ])
+    await wrapper.get(`#${id}`).setValue(value);
+  await wrapper.get("#live-endpoint-form").trigger("submit");
+  expect(wrapper.text()).toContain("Select the output limit parameter supported by your chat model");
+  expect(credentials.settings.value).toBeUndefined();
+  for (const id of [
+    "embedding-endpoint",
+    "embedding-model",
+    "chat-endpoint",
+    "chat-model",
+    "cloudflare-account",
+    "live-budget",
+    "structured-output",
+    "output-limit-parameter",
+  ]) {
+    expect(wrapper.get(`label[for="${id}"]`).text()).toContain("*");
+    expect(wrapper.get(`#${id}`).attributes("required")).toBeDefined();
+  }
+  localStorage.clear();
+});
+
+it("separates operator sign-in from connection setup and hides browser overrides for operators", async () => {
+  const { default: WorkspaceDialogs } = await import("../src/components/WorkspaceDialogs.vue");
+  const { state, wrapper } = workspace(WorkspaceDialogs);
+  state.status = { mode: "mock" };
+  state.dialog = "connection";
+  const dialog = wrapper.get("#connection-dialog").element as HTMLDialogElement;
+  Object.defineProperty(dialog, "showModal", {
+    value: () => {
+      dialog.open = true;
+    },
+  });
+  await flushPromises();
+  expect(wrapper.get("#connection-dialog").find("#operator-token").exists()).toBe(false);
+  expect(wrapper.find("#operator-login-dialog #operator-token").exists()).toBe(true);
+  state.token = "operator-token";
+  await flushPromises();
+  expect(wrapper.get("#connection-dialog").find("#browser-key-form").exists()).toBe(false);
+  expect(wrapper.get("#connection-dialog").text()).toContain("Using server configuration");
+});
+
+it("saves live chat setup using workspace embeddings without requesting embedding fields", async () => {
+  const { default: LiveEndpointSettings } = await import("../src/components/LiveEndpointSettings.vue");
+  const { state, credentials, wrapper } = workspace(LiveEndpointSettings);
+  state.status = { mode: "mock", profiles: { embeddings: { model: "fixture-hash-embeddings-v1" } } };
+  credentials.configure("workspace-vectors", []);
+  await flushPromises();
+  await wrapper.get("#embedding-source").setValue("workspace");
+  expect(wrapper.find("#embedding-endpoint").exists()).toBe(false);
+  expect(wrapper.find("#embedding-dimensions").exists()).toBe(false);
+  expect(wrapper.find("#embedding_input_usd_per_million").exists()).toBe(false);
+  expect(wrapper.text()).toContain("Reuse the workspace's pgvector vectors");
+  await wrapper.get("#chat-endpoint").setValue(liveSettings.chat_endpoint);
+  await wrapper.get("#chat-model").setValue(liveSettings.chat_model);
+  await wrapper.get("#cloudflare-account").setValue(liveSettings.cloudflare_account_id);
+  await wrapper.get("#chat-input-limit").setValue("8192");
+  await wrapper.get("#chat-output-limit").setValue("512");
+  await wrapper.get("#output-limit-parameter").setValue("max_tokens");
+  await wrapper.get("#chat_input_usd_per_million").setValue("0");
+  await wrapper.get("#chat_output_usd_per_million").setValue("0");
+  await wrapper.get("#live-endpoint-form").trigger("submit");
+  expect(wrapper.text()).toContain("Live setup saved in this browser");
+  const saved = JSON.parse(credentials.settingsHeader());
+  expect(saved.embedding_source).toBe("workspace");
+  expect(saved.embedding_endpoint).toBeUndefined();
+  expect(saved.embedding_dimensions).toBeUndefined();
+  localStorage.clear();
 });

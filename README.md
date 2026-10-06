@@ -344,6 +344,54 @@ task dev CONFIG=configs/private.yaml
 
 Use a new corpus when switching from fixture embeddings. In `shadow` mode, checked candidates appear only in the operator trace; public answers require a matching qualification artifact and `verification.mode: gated`. Restart API/worker after changing verifier settings.
 
+## Bring your own key (BYOK)
+
+Open **Workspace connection** using the runtime badge or sidebar connection button.
+Select **Fixture mode** for deterministic demos or **Live mode** for your providers.
+Enter two keys: **LLM provider key** (shared by embeddings and chat) and
+**Cloudflare key** (Clef verifier). Save or remove each key in the browser.
+
+In **Live endpoint setup**, choose **Workspace embeddings** to reuse existing
+compatible PostgreSQL/pgvector vectors and the server-configured query embedding
+setup. This keeps demo fixture embeddings deterministic while chat and Clef use
+live endpoints. Alternatively choose **Custom embedding endpoint** and enter its
+complete URL, model, dimensions, limits and price; changing that profile requires
+a new corpus and re-upload. Enter your chat endpoint, model and Cloudflare account ID. Confirm
+embedding dimensions, token limits, chat output format and all three provider
+prices. Model dimensions, token limits, output-limit parameter and provider prices
+start unset because they depend on your selected models. Plain JSON text is the
+initial output format; structured formats require model support. Fields marked
+`*` are required for live mode; the operator token remains optional unless access
+protection is enabled. Set your spending budget; zero prevents live calls. Save setup, then select
+live mode. Saving keys, saving setup and changing modes make no model calls.
+Select fixture mode to edit or remove saved setup. Switching modes clears the
+current answer and conversation; custom embedding profile changes require a new corpus
+and re-uploaded sources. Workspace embeddings preserve the base embedding profile. Live mode starts in shadow verification and does not
+release unqualified answers.
+
+Keys, setup and mode are saved only in this browser, scoped to the server's base
+configuration. No YAML edits or server restart are needed for dashboard BYOK.
+Use **Sign in** in the dashboard header for an operator session. The separate
+sign-in dialog accepts the server's operator token. While signed in, mode,
+providers, keys, models, limits and budget come from the server; browser overrides
+are omitted and their form is hidden. The token stays in page memory. **Sign out**
+clears it and restores saved browser setup, if workspace access permits it.
+Existing private YAML server-key configurations continue to work for CLI workers.
+
+Keys stay in local storage for this browser and configuration. They are sent in
+an inference request header and used by a request-scoped API task, never written
+to YAML, PostgreSQL jobs/results, logs or traces. The existing provider adapters,
+budget ledger and verification gate remain in use. No inference is triggered by
+saving a key. Use HTTPS when accessing the application remotely; browser storage
+is accessible to scripts running on the application’s origin.
+
+BYOK ingestion, queries and evaluations execute in the API process. Ordinary
+workers skip these jobs. An API restart interrupts that work: re-upload the same
+document to resume its queued/expired job, retry a stopped ingestion/evaluation,
+or cancel and submit a new query. Background CLI operations and unattended
+recovery require the existing server-key mode. No live endpoint performance or
+model quality is implied by the deterministic tests.
+
 ## Move from mock to live storage
 
 After changing the embedding space, create a new corpus and re-upload sources. Existing vectors cannot be mixed with the new space. Compose database hostname: `db`.

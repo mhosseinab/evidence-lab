@@ -1,6 +1,6 @@
 import { reactive } from "vue";
 import { ApiError, createApiClient } from "../api/client";
-import type { Payload, View } from "../types/api";
+import type { Payload, RuntimeMode, View } from "../types/api";
 import {
   dateText,
   documentStatus,
@@ -15,6 +15,7 @@ import {
   statusOf,
   textValue,
 } from "../utils/presentation";
+import { useBrowserKeys } from "./useBrowserKeys";
 
 export interface UploadRecord {
   id: number;
@@ -26,6 +27,10 @@ export interface UploadRecord {
 }
 export interface DashboardState {
   token: string;
+  mode: RuntimeMode | undefined;
+  modeError: string;
+  connectionError: string;
+  switchingMode: boolean;
   status: Payload | null;
   corpusId: string;
   conversationId: string | null;
@@ -43,7 +48,7 @@ export interface DashboardState {
   question: string;
   notice: string;
   toast: string;
-  dialog: "source" | "trace" | "connection" | "new-corpus" | null;
+  dialog: "source" | "trace" | "connection" | "operator-login" | "new-corpus" | null;
   uploading: boolean;
   uploads: UploadRecord[];
   corpusError: string;
@@ -71,8 +76,13 @@ export interface DashboardState {
 }
 
 export function useDashboard() {
+  const credentials = useBrowserKeys();
   const state = reactive<DashboardState>({
     token: "",
+    mode: "mock",
+    modeError: "",
+    connectionError: "",
+    switchingMode: false,
     status: null,
     corpusId: "default",
     conversationId: null,
@@ -131,6 +141,12 @@ export function useDashboard() {
     () => {
       if (!disposed) state.accessRequired = true;
     },
+    () =>
+      state.status?.credentials === "browser" && state.status?.mode === "live"
+        ? credentials.header()
+        : undefined,
+    () => state.mode,
+    () => (state.mode === "live" ? credentials.settingsHeader() : undefined),
   );
   async function api(path: string, options: RequestInit = {}) {
     const controller = new AbortController();
@@ -178,6 +194,11 @@ export function useDashboard() {
     try {
       const result = await api(corpusPath("/api/status", corpusId));
       if (disposed || corpusId !== state.corpusId || request !== statusRequest) return;
+      credentials.configure(
+        result.byok_key_scope || result.config_fingerprint || "",
+        result.byok_profiles || [],
+      );
+      if (!state.mode && (result.mode === "mock" || result.mode === "live")) state.mode = result.mode;
       state.status = result;
       state.connected = true;
       state.accessRequired = false;
@@ -186,6 +207,72 @@ export function useDashboard() {
       state.connected = false;
       state.accessRequired = error instanceof ApiError && [401, 403].includes(error.status);
       throw error;
+    }
+  }
+  function stopWorkspaceRequests() {
+    selectionVersion++;
+    queryPoll++;
+    evaluationPoll++;
+    documentsRequest++;
+    runsRequest++;
+    evaluationsRequest++;
+    sourceRequest++;
+    traceRequest++;
+    uploadPolls.clear();
+    for (const controller of controllers) controller.abort();
+  }
+  function clearWorkspaceResults() {
+    state.conversationId = null;
+    state.run = null;
+    state.runId = null;
+    state.runJobId = null;
+    state.evidence = [];
+    state.evaluation = null;
+    state.evaluationId = null;
+    state.documents = [];
+    state.runs = [];
+    state.evaluations = [];
+  }
+  async function switchMode(mode: RuntimeMode) {
+    if (
+      disposed ||
+      state.token ||
+      state.switchingMode ||
+      state.uploading ||
+      state.busy.question ||
+      state.busy.evaluation
+    )
+      return;
+    const previousMode = state.mode;
+    const previousStatus = state.status;
+    state.switchingMode = true;
+    state.modeError = "";
+    stopWorkspaceRequests();
+    state.mode = mode;
+    try {
+      await refreshStatus();
+      if (disposed) return;
+      if (state.status?.mode !== mode)
+        throw new Error("The API did not activate the requested mode. Check the workspace configuration.");
+      credentials.savePreferences(mode);
+      clearWorkspaceResults();
+      const results = await Promise.allSettled([refreshDocuments(), refreshRuns(), refreshEvaluations()]);
+      const failure = results.find((result) => result.status === "rejected");
+      if (failure?.status === "rejected") notifyError(failure.reason);
+    } catch (error) {
+      if (!disposed) {
+        state.mode = previousMode;
+        state.status = previousStatus;
+        state.connected = !!previousStatus;
+        if (previousStatus)
+          credentials.configure(
+            previousStatus.byok_key_scope || previousStatus.config_fingerprint || "",
+            previousStatus.byok_profiles || [],
+          );
+        state.modeError = errorText(error);
+      }
+    } finally {
+      if (!disposed) state.switchingMode = false;
     }
   }
   async function refreshDocuments() {
@@ -222,7 +309,7 @@ export function useDashboard() {
       state.evaluations = listOf(result, "evaluations", "jobs", "items");
   }
   async function selectCorpus(corpusId: string) {
-    if (disposed || corpusId === state.corpusId) return;
+    if (disposed || state.switchingMode || corpusId === state.corpusId) return;
     state.corpusId = corpusId;
     state.conversationId = null;
     const selection = ++selectionVersion;
@@ -285,7 +372,7 @@ export function useDashboard() {
   }
   async function submitQuestion(input: string) {
     const question = input.trim();
-    if (!question || state.busy.question || disposed) return;
+    if (!question || state.busy.question || state.switchingMode || disposed) return;
     state.question = question;
     state.busy.question = true;
     state.notice = "";
@@ -379,7 +466,7 @@ export function useDashboard() {
     corpusId = state.corpusId,
   ) {
     const list = Array.from(files || []);
-    if (!list.length || disposed) return;
+    if (!list.length || state.switchingMode || disposed) return;
     if (state.uploading) {
       toast("Wait for the current upload to finish.");
       return;
@@ -567,7 +654,7 @@ export function useDashboard() {
     state.dialog = "trace";
   }
   async function startEvaluation() {
-    if (state.busy.evaluation || disposed) return;
+    if (state.busy.evaluation || state.switchingMode || disposed) return;
     state.busy.evaluation = true;
     try {
       const result = await api("/api/evaluations", {
@@ -633,21 +720,85 @@ export function useDashboard() {
         `evaluation-${shortId(state.evaluationId)}.json`,
       );
   }
+  function sessionChangeBlocked() {
+    return (
+      disposed ||
+      state.busy.connection ||
+      state.switchingMode ||
+      state.uploading ||
+      state.busy.question ||
+      state.busy.evaluation
+    );
+  }
   async function connect(token: string) {
-    state.token = token.trim();
+    if (sessionChangeBlocked()) return;
+    const value = token.trim();
+    if (!value) {
+      state.connectionError = "Enter your operator token to sign in.";
+      return;
+    }
+    const previous = {
+      token: state.token,
+      mode: state.mode,
+      status: state.status,
+      connected: state.connected,
+    };
     state.busy.connection = true;
+    state.connectionError = "";
+    state.notice = "";
+    stopWorkspaceRequests();
+    state.token = value;
+    state.mode = undefined;
     try {
       await refreshStatus();
+      if (disposed) return;
+      clearWorkspaceResults();
+      const results = await Promise.allSettled([
+        refreshCorpora(),
+        refreshDocuments(),
+        refreshRuns(),
+        refreshEvaluations(),
+      ]);
+      const failure = results.find((result) => result.status === "rejected");
+      if (failure?.status === "rejected") notifyError(failure.reason);
+      if (!disposed) {
+        state.dialog = null;
+        toast("Signed in. Using server configuration.");
+      }
+    } catch (error) {
+      if (!disposed) {
+        Object.assign(state, previous);
+        state.connectionError = errorText(error);
+      }
+    } finally {
+      if (!disposed) state.busy.connection = false;
+    }
+  }
+  async function signOut() {
+    if (sessionChangeBlocked()) return;
+    state.busy.connection = true;
+    state.connectionError = "";
+    stopWorkspaceRequests();
+    clearWorkspaceResults();
+    state.token = "";
+    state.mode = "mock";
+    state.status = null;
+    state.connected = false;
+    try {
+      await refreshStatus();
+      if (disposed) return;
+      if (credentials.mode.value && credentials.mode.value !== state.mode)
+        await switchMode(credentials.mode.value);
       await Promise.all([refreshCorpora(), refreshDocuments(), refreshRuns(), refreshEvaluations()]);
       if (!disposed) {
         state.dialog = null;
-        state.notice = "";
-        toast("Workspace connected.");
+        toast("Signed out. Browser settings restored.");
       }
     } catch (error) {
       notifyError(error);
+      if (!disposed) state.dialog = state.accessRequired ? "operator-login" : null;
     } finally {
-      state.busy.connection = false;
+      if (!disposed) state.busy.connection = false;
     }
   }
   function setView(view: View) {
@@ -668,6 +819,8 @@ export function useDashboard() {
     const results = await Promise.allSettled([refreshCorpora(), refreshStatus(), refreshDocuments()]);
     const failure = results.find((result) => result.status === "rejected");
     if (failure?.status === "rejected") notifyError(failure.reason);
+    if (credentials.mode.value && credentials.mode.value !== state.mode)
+      await switchMode(credentials.mode.value);
   }
   function dispose() {
     disposed = true;
@@ -687,12 +840,15 @@ export function useDashboard() {
     for (const url of blobUrls) URL.revokeObjectURL(url);
     blobUrls.clear();
     state.token = "";
+    credentials.dispose();
     state.conversationId = null;
   }
   return {
     state,
+    credentials,
     actions: {
       refreshStatus,
+      switchMode,
       refreshCorpora,
       refreshDocuments,
       refreshRuns,
@@ -715,6 +871,7 @@ export function useDashboard() {
       cancelEvaluation,
       exportEvaluation,
       connect,
+      signOut,
       notifyError,
       toast,
       setView,

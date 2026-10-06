@@ -78,7 +78,7 @@ class APIStore:
     def list_runs(self, limit=30):
         return [self.get_run("r1")]
 
-    def create_run(self, question, corpus_id="default", settings=None):
+    def create_run(self, question, corpus_id="default", settings=None, *, browser_credentials=None):
         self.run = {
             "id": "new-run",
             "job_id": "query-job",
@@ -95,7 +95,7 @@ class APIStore:
         return deepcopy(self.calls)
 
     def create_document(
-        self, name, raw, media_type, corpus_id="default", document_id=None, pipeline_revision=None
+        self, name, raw, media_type, corpus_id="default", document_id=None, pipeline_revision=None, *, browser_credentials=None
     ):
         self.created_documents.append(
             {
@@ -131,7 +131,7 @@ class APIStore:
             raise ProviderError("not_found", "Job not found")
         return deepcopy(self.jobs[job_id])
 
-    def enqueue_job(self, kind, payload):
+    def enqueue_job(self, kind, payload, *, browser_credentials=None):
         self.enqueued.append({"kind": kind, "payload": deepcopy(payload)})
         job = {
             "id": "eval-job",
@@ -149,7 +149,7 @@ class APIStore:
     def cancel_job(self, job_id):
         return {"id": job_id, "status": "cancelled"}
 
-    def retry_job(self, job_id):
+    def retry_job(self, job_id, *, browser_credentials=None):
         return {"id": job_id, "status": "queued", "token": "internal-lease"}
 
 

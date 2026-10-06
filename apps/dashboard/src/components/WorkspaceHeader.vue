@@ -33,7 +33,15 @@ const label = computed(() =>
         @click="state.dialog = 'connection'"
       >
         {{ label }}
-      </button><span class="avatar" role="img" aria-label="Local operator">L</span>
+      </button><button
+        id="operator-login-open"
+        type="button"
+        class="button secondary"
+        :disabled="state.busy.connection"
+        @click="state.dialog = 'operator-login'"
+      >
+        {{ state.token ? "Operator session" : "Sign in" }}
+      </button>
     </div>
   </header>
 </template>

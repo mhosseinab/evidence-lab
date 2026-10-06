@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -17,7 +17,10 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
 
 from evidence_lab import __version__
-from evidence_lab.config import load_config
+from evidence_lab.config import ConfigError, load_config
+from evidence_lab.byok import KEY_HEADER, request_config
+from evidence_lab.runtime_settings import select_runtime
+from evidence_lab.worker import Worker
 from evidence_lab.domain import CallContext, ProviderError
 from evidence_lab.ingestion import admit_document, pipeline_revision
 from evidence_lab.policy import policy_state
@@ -85,7 +88,8 @@ def public_job(job: dict) -> dict:
 
 
 def make_store(config) -> Store:
-    return Store(config.database.dsn, limits=config.ingestion.model_dump(mode="json"), memory=config.memory.model_dump())
+    return Store(config.database.dsn, limits=config.ingestion.model_dump(mode="json"), memory=config.memory.model_dump(),
+                 browser_credentials=config.runtime.mode == "live" and config.runtime.credentials == "browser")
 
 
 def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
@@ -156,9 +160,48 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
             response.headers["Cache-Control"] = "no-store"
         return response
 
+    @app.exception_handler(ConfigError)
+    async def invalid_credentials(request, exc):
+        return JSONResponse({"detail": str(exc), "code": "invalid_configuration"}, status_code=422)
+
+    async def execute_browser_job(job_id, scoped_config):
+        scoped_hub = ProviderHub(scoped_config, store=store)
+        try:
+            job = await run_in_threadpool(store.claim_job, "browser:" + str(uuid.uuid4()),
+                                          config.runtime.worker_lease_seconds, browser_job_id=job_id)
+            if job:
+                await Worker(store, scoped_hub, scoped_config, concurrency=1).process(job)
+        finally:
+            await scoped_hub.aclose()
+            for profile in scoped_config.profiles.values():
+                profile.api_key = None
+
+    def runtime_config(request):
+        return select_runtime(config, request.headers.get("X-Evidence-Lab-Mode"),
+                              request.headers.get("X-Evidence-Lab-Live-Settings"))
+
+    def browser_config(request):
+        selected = runtime_config(request)
+        # Middleware authenticates configured tokens. Missing tokens must never
+        # make server-funded inference available to unauthenticated callers.
+        token = config.runtime.operator_token
+        if (selected.runtime.mode == "live" and selected.runtime.credentials == "server"
+                and (token is None or not token.get_secret_value().strip())):
+            raise ProviderError("unauthorized", "Server credentials require sign-in with a configured operator token.")
+        return request_config(selected, request.headers.get(KEY_HEADER))
+
+    def job_options(scoped_config):
+        # Per-request execution must be reserved in the insertion transaction,
+        # before an ordinary worker can claim the job.
+        return {"browser_credentials": scoped_config is not config}
+
+    def schedule_browser_job(tasks, job_id, scoped_config):
+        if scoped_config is not config:
+            tasks.add_task(execute_browser_job, job_id, scoped_config)
+
     @app.exception_handler(ProviderError)
     async def provider_error(request, exc):
-        codes = {"not_found": 404, "invalid_data": 422, "invalid_state": 409,
+        codes = {"unauthorized": 401, "not_found": 404, "invalid_data": 422, "invalid_state": 409,
                  "space_changed": 409, "space_mismatch": 409, "unsupported_type": 415,
                  "unsupported_file": 415, "upload_too_large": 413, "quota_exceeded": 409,
                  "unsupported_document": 415, "invalid_document": 422,
@@ -195,55 +238,69 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
                             status_code=200 if ready else 503)
 
     @app.get("/api/status")
-    def status(corpus_id: str = "default"):
+    def status(request: Request, corpus_id: str = "default"):
+        selected = runtime_config(request)
         docs = store.list_documents(corpus_id)
         corpus = store.get_corpus(corpus_id)
-        state = policy_state(config)
+        state = policy_state(selected)
         profiles = {
-            role: {"profile": config.role_name(role), "model": config.role_profile(role).model,
-                   "protocol": config.role_profile(role).protocol}
+            role: {"profile": selected.role_name(role), "model": selected.role_profile(role).model,
+                   "protocol": selected.role_profile(role).protocol}
             for role in ("embeddings", "generator", "verifier")
         }
-        return {"version": __version__, "mode": config.runtime.mode,
+        return {"version": __version__, "mode": selected.runtime.mode,
+                "credentials": selected.runtime.credentials,
+                "embedding_mode": selected.runtime.effective_embedding_mode,
+                "embedding_source": "workspace" if selected is config or selected.runtime.embedding_mode is not None else "custom",
+                "byok_key_scope": config.fingerprint(),
+                "spending_limit_usd": selected.budgets.total_max_estimated_cost_usd,
+                "byok_profiles": [{"name": name, "model": selected.profiles[name].model,
+                                   "key_group": "cloudflare" if selected.profiles[name].protocol == "cloudflare_clef" else "llm",
+                                   "roles": [role for role, selected in selected.roles.model_dump().items() if selected == name]}
+                                  for name in sorted(selected.active_profile_names())
+                                  if not (name == selected.roles.embeddings and selected.runtime.effective_embedding_mode == "mock")],
                 "orchestration": {"engine": "langgraph", "nodes": graph_descriptor()["nodes"],
                                   "edges": [[edge["source"], edge["target"]] for edge in graph_descriptor()["edges"]],
                                   "tools": ["retrieve_corpus_evidence", "preview_evidence_source"],
-                                  "memory": {"enabled": config.memory.enabled, "max_turns": config.memory.max_turns},
-                                  "tracing": {"provider": "langsmith", "enabled": config.langsmith.enabled, "content": "metadata_only"}},
+                                  "memory": {"enabled": selected.memory.enabled, "max_turns": selected.memory.max_turns},
+                                  "tracing": {"provider": "langsmith", "enabled": selected.langsmith.enabled, "content": "metadata_only"}},
                 "policy_state": state["state"], "policy": state, "profiles": profiles,
                 "corpus_id": corpus_id, "corpus": corpus,
-                "embedding_space_matches": corpus["space_id"] == space_manifest(config)["id"],
+                "embedding_space_matches": corpus["space_id"] == space_manifest(selected)["id"],
                 "counts": {"documents": len(docs), "ready": sum(d.get("state") == "ready" for d in docs),
                            "chunks": sum(d.get("chunk_count", 0) for d in docs)},
-                "limits": {"max_file_bytes": config.ingestion.max_upload_bytes,
-                           "max_pdf_pages": config.ingestion.max_pdf_pages},
-                "budgets": store.budget_summary(), "config_fingerprint": config.fingerprint()}
+                "limits": {"max_file_bytes": selected.ingestion.max_upload_bytes,
+                           "max_pdf_pages": selected.ingestion.max_pdf_pages},
+                "budgets": store.budget_summary(), "config_fingerprint": selected.fingerprint()}
 
     @app.get("/api/corpora")
     def corpora():
         return {"corpora": store.list_corpora()}
 
     @app.post("/api/corpora", status_code=201)
-    def create_corpus(payload: CorpusRequest):
-        return store.ensure_corpus(payload.corpus_id, space_manifest(config))
+    def create_corpus(payload: CorpusRequest, request: Request):
+        return store.ensure_corpus(payload.corpus_id, space_manifest(runtime_config(request)))
 
     @app.get("/api/documents")
     def documents(corpus_id: str = "default"):
         return {"documents": store.list_documents(corpus_id)}
 
     @app.post("/api/documents", status_code=202)
-    async def upload(file: Annotated[UploadFile, File()], corpus_id: Annotated[str, Form()] = "default",
+    async def upload(request: Request, background_tasks: BackgroundTasks, file: Annotated[UploadFile, File()], corpus_id: Annotated[str, Form()] = "default",
                      document_id: Annotated[str | None, Form()] = None):
+        scoped_config = browser_config(request)
         try:
             raw = await file.read(config.ingestion.max_upload_bytes + 1)
         finally:
             await file.close()
         name = (file.filename or "upload.txt").replace("\\", "/").split("/")[-1]
         media_type = file.content_type or "application/octet-stream"
-        admit_document(raw, name, media_type, config)
-        await run_in_threadpool(store.ensure_corpus, corpus_id, space_manifest(config))
-        return await run_in_threadpool(store.create_document, name, raw, media_type,
-                                      corpus_id, document_id, pipeline_revision(config))
+        admit_document(raw, name, media_type, scoped_config)
+        await run_in_threadpool(store.ensure_corpus, corpus_id, space_manifest(scoped_config))
+        result = await run_in_threadpool(store.create_document, name, raw, media_type,
+                                        corpus_id, document_id, pipeline_revision(scoped_config), **job_options(scoped_config))
+        schedule_browser_job(background_tasks, result["job_id"], scoped_config)
+        return result
 
     @app.delete("/api/documents/{document_id}")
     def delete_document(document_id: str):
@@ -269,30 +326,46 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
         return store.cancel_job(job_id)
 
     @app.post("/api/jobs/{job_id}/retry", status_code=202)
-    def retry(job_id: str):
-        return public_job(store.retry_job(job_id))
+    def retry(job_id: str, request: Request, background_tasks: BackgroundTasks):
+        scoped_config = browser_config(request)
+        result = store.retry_job(job_id, **job_options(scoped_config))
+        schedule_browser_job(background_tasks, result["id"], scoped_config)
+        return public_job(result)
 
     @app.post("/api/queries", status_code=202)
-    def query(payload: QueryRequest):
+    def query(payload: QueryRequest, request: Request, background_tasks: BackgroundTasks):
+        scoped_config = browser_config(request)
         if not payload.question.strip():
             raise ProviderError("invalid_data", "A nonempty question is required.")
-        state = policy_state(config)
-        if config.runtime.mode == "live" and config.verification.mode == "gated" and not state["release_allowed"]:
+        state = policy_state(scoped_config)
+        if scoped_config.runtime.mode == "live" and scoped_config.verification.mode == "gated" and not state["release_allowed"]:
             raise ProviderError("policy_not_ready", state["reason"])
-        settings = {"config_fingerprint": config.fingerprint()}
+        settings = {"config_fingerprint": scoped_config.fingerprint()}
         if payload.conversation_id is not None:
             settings["conversation_id"] = payload.conversation_id
-        return public_run(store.create_run(payload.question, payload.corpus_id, settings))
+        result = store.create_run(payload.question, payload.corpus_id, settings, **job_options(scoped_config))
+        schedule_browser_job(background_tasks, result["job_id"], scoped_config)
+        return public_run(result)
 
     @app.post("/api/retrieval/preview")
-    async def retrieval_preview(payload: QueryRequest):
+    async def retrieval_preview(payload: QueryRequest, request: Request):
+        scoped_config = browser_config(request)
         run_id = "preview:" + str(uuid.uuid4())
-        ctx = CallContext.for_seconds(run_id, "queries", config.runtime.query_deadline_seconds,
-                                      config.runtime.max_remote_attempts_per_query)
+        ctx = CallContext.for_seconds(run_id, "queries", scoped_config.runtime.query_deadline_seconds,
+                                      scoped_config.runtime.max_remote_attempts_per_query)
         started = time.monotonic()
-        evidence = await retrieve_evidence(payload.question, payload.corpus_id, store, hub, config, ctx)
+        if scoped_config is config:
+            evidence = await retrieve_evidence(payload.question, payload.corpus_id, store, hub, config, ctx)
+        else:
+            scoped_hub = ProviderHub(scoped_config, store=store)
+            try:
+                evidence = await retrieve_evidence(payload.question, payload.corpus_id, store, scoped_hub, scoped_config, ctx)
+            finally:
+                await scoped_hub.aclose()
+                for profile in scoped_config.profiles.values():
+                    profile.api_key = None
         return {"run_id": run_id, "evidence": evidence.model_dump(mode="json"),
-                "seconds": time.monotonic() - started, "mode": config.runtime.mode}
+                "seconds": time.monotonic() - started, "mode": scoped_config.runtime.mode}
 
     @app.get("/api/runs")
     def runs(limit: int = 30, corpus_id: str | None = None):
@@ -309,10 +382,12 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
                 "unverified": True, "run": store.get_run(run_id), "calls": store.get_calls(run_id)}
 
     @app.post("/api/evaluations", status_code=202)
-    def start_evaluation(payload: EvaluationRequest):
+    def start_evaluation(payload: EvaluationRequest, request: Request, background_tasks: BackgroundTasks):
+        scoped_config = browser_config(request)
         if payload.dataset not in config.evaluation.allowlisted_datasets:
             raise ProviderError("invalid_data", "Choose a configured evaluation dataset.")
-        value = store.enqueue_job("evaluation", {"dataset": payload.dataset})
+        value = store.enqueue_job("evaluation", {"dataset": payload.dataset}, **job_options(scoped_config))
+        schedule_browser_job(background_tasks, value["id"], scoped_config)
         return {"id": value["id"], "job_id": value["id"], "status": value["status"]}
 
     @app.get("/api/evaluations")

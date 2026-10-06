@@ -2,11 +2,13 @@
 import { computed, ref, watch } from "vue";
 import { useDashboardContext } from "../composables/dashboardContext";
 import { readable } from "../utils/presentation";
+import BrowserKeySettings from "./BrowserKeySettings.vue";
 
 const { state, actions } = useDashboardContext();
 const sourceDialog = ref<HTMLDialogElement>();
 const traceDialog = ref<HTMLDialogElement>();
 const connectionDialog = ref<HTMLDialogElement>();
+const operatorDialog = ref<HTMLDialogElement>();
 const corpusDialog = ref<HTMLDialogElement>();
 const token = ref("");
 const corpusId = ref("");
@@ -14,6 +16,7 @@ const dialogs = {
   source: sourceDialog,
   trace: traceDialog,
   connection: connectionDialog,
+  "operator-login": operatorDialog,
   "new-corpus": corpusDialog,
 };
 watch(
@@ -23,7 +26,7 @@ watch(
       if (name === active && dialog.value && !dialog.value.open) dialog.value.showModal();
       else if (name !== active && dialog.value?.open) dialog.value.close();
     }
-    if (active !== "connection") token.value = "";
+    if (active !== "operator-login") token.value = "";
     if (active !== "new-corpus") corpusId.value = "";
     else state.corpusError = "";
   },
@@ -48,6 +51,12 @@ const connectionRows = computed(() => {
   const rows: [string, string | number][] = [
     ["Connection", state.connected ? "Connected" : "Unavailable"],
     ["Execution mode", readable(status?.mode || status?.runtime?.mode || "unknown")],
+    [
+      "Embedding execution",
+      status?.embedding_mode === "mock"
+        ? "Deterministic fixture · local pgvector"
+        : "Configured embedding endpoint",
+    ],
     ["Policy", readable(status?.policy_state || status?.policy?.state || "Not reported")],
   ];
   for (const [role, profile] of Object.entries(status?.profiles || {}))
@@ -162,22 +171,69 @@ const connectionRows = computed(() => {
         <span>{{ label }}</span><strong>{{ value }}</strong>
       </div>
     </div>
-    <form id="token-form" @submit.prevent="connect">
-      <label for="operator-token">Operator token <span class="optional">optional</span></label>
-      <p class="field-help">
-        If access protection is enabled, enter the token from your private configuration.
+    <div v-if="state.token" class="source-notice">
+      <strong>Using server configuration</strong>
+      <p>
+        Mode, providers, models, limits and budget come from the server. Your browser setup is saved for when
+        you sign out.
       </p>
+      <button type="button" class="button secondary" @click="state.dialog = 'operator-login'">
+        Manage operator session
+      </button>
+    </div>
+    <BrowserKeySettings v-else-if="state.dialog === 'connection'" />
+  </dialog>
+  <dialog
+    id="operator-login-dialog"
+    ref="operatorDialog"
+    class="dialog connection-dialog"
+    aria-labelledby="operator-login-title"
+    @click="backdrop"
+    @keydown.esc.prevent="close"
+    @cancel.prevent="close"
+    @close="state.dialog === 'operator-login' && close()"
+  >
+    <div class="dialog-heading">
+      <h2 id="operator-login-title">{{ state.token ? "Operator session" : "Operator sign-in" }}</h2>
+      <button type="button" class="icon-button" aria-label="Close operator sign-in" @click="close">×</button>
+    </div>
+    <p class="field-help">
+      Signing in uses the server's configured mode, provider keys, models, limits and budget. Your token is
+      kept only for this page session.
+    </p>
+    <p v-if="state.connectionError" role="alert" class="field-error">{{ state.connectionError }}</p>
+    <p v-if="state.uploading || state.busy.question || state.busy.evaluation" class="field-help">
+      Wait for active work to finish before changing operator session.
+    </p>
+    <div v-if="state.token" class="dialog-footer">
+      <button
+        type="button"
+        class="button secondary"
+        :disabled="state.busy.connection || state.uploading || state.busy.question || state.busy.evaluation"
+        @click="actions.signOut"
+      >
+        Sign out
+      </button>
+    </div>
+    <form v-else id="token-form" @submit.prevent="connect">
+      <label for="operator-token">Operator token <span aria-hidden="true">*</span></label>
+      <p class="field-help">Enter the operator token from the server configuration.</p>
       <input
         id="operator-token"
         v-model="token"
         type="password"
         autocomplete="off"
+        required
         placeholder="Enter operator token"
       >
       <div class="dialog-footer">
         <span class="field-help">Used for this page session.</span
-        ><button type="submit" class="button primary" :disabled="state.busy.connection">
-          {{ state.busy.connection ? "Connecting…" : "Connect" }}
+        ><button
+          type="submit"
+          class="button primary"
+          :disabled="state.busy.connection || state.uploading || state.busy.question || state.busy.evaluation"
+        >
+          {{ state.busy.connection ? "Signing in…" : "Sign in" }}
         </button>
       </div>
     </form>

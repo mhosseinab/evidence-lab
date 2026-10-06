@@ -52,6 +52,15 @@ onUnmounted(() => {
             }}</span>
           </div>
         </div>
+        <div
+          v-if="!fixture && state.status?.embedding_mode === 'mock'"
+          id="embedding-fixture-banner"
+          class="notice"
+          role="status"
+        >
+          Live generation uses existing local pgvector vectors with deterministic fixture embeddings.
+          Retrieval quality has not been evaluated.
+        </div>
         <AskView v-show="state.view === 'ask'" /><DocumentsView v-show="state.view === 'documents'" />
         <EvaluationsView v-show="state.view === 'evaluations'" />
         <footer class="main-footer">

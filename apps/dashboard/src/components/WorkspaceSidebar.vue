@@ -80,7 +80,7 @@ const { state, actions } = useDashboardContext();
         id="connection-open"
         type="button"
         class="connection-button"
-        @click="state.dialog = 'connection'"
+        @click="state.dialog = state.accessRequired ? 'operator-login' : 'connection'"
       >
         <span id="connection-dot" class="status-dot" :class="state.connected ? 'online' : 'offline'"></span
         ><span id="connection-label">{{

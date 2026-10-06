@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useDashboard } from "../src/composables/useDashboard";
+import { liveSettings } from "./fixtures/liveSettings";
 
 const cleanups: (() => void)[] = [];
 afterEach(() => {
   for (const cleanup of cleanups.splice(0)) cleanup();
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  localStorage.clear();
 });
 function workspace() {
   const dashboard = useDashboard();
@@ -237,4 +239,141 @@ it("does not restore conversation memory from a submission completed after reset
   await submission;
   expect(state.conversationId).toBeNull();
   expect(state.run).toBeNull();
+});
+
+it("validates mode with key-free metadata, keeps scoped keys, and clears the old conversation", async () => {
+  const fetch = vi.fn(async (path: string, options?: RequestInit) => {
+    const mode = new Headers(options?.headers).get("X-Evidence-Lab-Mode") || "mock";
+    return response(
+      path.startsWith("/api/status")
+        ? {
+            mode,
+            credentials: "browser",
+            config_fingerprint: mode,
+            byok_key_scope: "stable",
+            byok_profiles: [{ name: "chat", model: "chat", roles: ["generator"], key_group: "llm" }],
+            embedding_space_matches: false,
+          }
+        : { items: [] },
+    );
+  });
+  vi.stubGlobal("fetch", fetch);
+  const { state, actions, credentials } = workspace();
+  await actions.refreshStatus();
+  credentials.save("llm", "browser-secret");
+  credentials.savePreferences(undefined, liveSettings);
+  state.conversationId = "old-conversation";
+  state.run = { id: "old", status: "answered" };
+  await actions.switchMode("live");
+  expect(state.mode).toBe("live");
+  expect(state.status?.embedding_space_matches).toBe(false);
+  expect(state.conversationId).toBeNull();
+  expect(state.run).toBeNull();
+  expect(credentials.saved.llm).toBe(true);
+  expect(credentials.mode.value).toBe("live");
+  const validation = fetch.mock.calls.find(
+    ([path, options]) =>
+      path.startsWith("/api/status") && new Headers(options?.headers).get("X-Evidence-Lab-Mode") === "live",
+  );
+  expect(validation).toBeDefined();
+  const headers = new Headers(validation?.[1]?.headers);
+  expect(headers.has("X-Evidence-Lab-Provider-Keys")).toBe(false);
+  expect(JSON.parse(headers.get("X-Evidence-Lab-Live-Settings") || "{}")).toEqual(liveSettings);
+  expect(fetch.mock.calls.every(([path]) => !path.includes("queries"))).toBe(true);
+});
+it("reverts failed mode selection without persisting it or losing the existing answer", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (_path: string, options?: RequestInit) => {
+      return new Headers(options?.headers).get("X-Evidence-Lab-Mode") === "live"
+        ? new Response(JSON.stringify({ detail: "Embedding endpoint is not configured correctly." }), {
+            status: 422,
+          })
+        : response({ mode: "mock", byok_key_scope: "stable" });
+    }),
+  );
+  const { state, actions, credentials } = workspace();
+  await actions.refreshStatus();
+  credentials.savePreferences(undefined, liveSettings);
+  state.run = { id: "existing", status: "answered" };
+  await actions.switchMode("live");
+  expect(state.mode).toBe("mock");
+  expect(state.status?.mode).toBe("mock");
+  expect(state.run?.id).toBe("existing");
+  expect(state.modeError).toContain("Embedding endpoint");
+  expect(credentials.mode.value).toBeUndefined();
+});
+
+it("operator sign-in adopts server mode, clears the current answer and preserves browser setup", async () => {
+  const fetch = vi.fn(async (_path: string, options?: RequestInit) => {
+    const headers = new Headers(options?.headers);
+    return response({
+      mode: headers.has("Authorization") ? "mock" : "live",
+      credentials: "server",
+      byok_key_scope: "login",
+      corpora: [],
+      documents: [],
+      runs: [],
+      evaluations: [],
+    });
+  });
+  vi.stubGlobal("fetch", fetch);
+  const { state, credentials, actions } = workspace();
+  credentials.configure("login", []);
+  credentials.savePreferences("live", liveSettings);
+  state.mode = "live";
+  state.run = { status: "answered", answer: "Previous browser answer" };
+  state.conversationId = "previous";
+  await actions.connect("operator-token");
+  expect(state.token).toBe("operator-token");
+  expect(state.mode).toBe("mock");
+  expect(state.run).toBeNull();
+  expect(state.conversationId).toBeNull();
+  expect(credentials.settings.value).toEqual(liveSettings);
+  expect(credentials.mode.value).toBe("live");
+  for (const [, options] of fetch.mock.calls)
+    expect(new Headers(options?.headers).has("X-Evidence-Lab-Mode")).toBe(false);
+  await actions.switchMode("live");
+  expect(state.mode).toBe("mock");
+});
+
+it("failed operator sign-in restores browser mode and discards the rejected token", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => new Response(JSON.stringify({ detail: "Invalid token" }), { status: 401 })),
+  );
+  const { state, actions } = workspace();
+  state.mode = "live";
+  state.status = { mode: "live", credentials: "browser" };
+  await actions.connect("rejected-token");
+  expect(state.token).toBe("");
+  expect(state.mode).toBe("live");
+  expect(state.connectionError).toContain("Invalid token");
+});
+
+it("sign-out clears the session token and restores saved browser mode", async () => {
+  const fetch = vi.fn(async (_path: string, options?: RequestInit) => {
+    const headers = new Headers(options?.headers);
+    return response({
+      mode: headers.get("X-Evidence-Lab-Mode") || "mock",
+      credentials: headers.get("X-Evidence-Lab-Mode") === "live" ? "browser" : "server",
+      byok_key_scope: "logout",
+      corpora: [],
+      documents: [],
+      runs: [],
+      evaluations: [],
+    });
+  });
+  vi.stubGlobal("fetch", fetch);
+  const { state, credentials, actions } = workspace();
+  credentials.configure("logout", []);
+  credentials.savePreferences("live", liveSettings);
+  state.token = "operator-token";
+  state.mode = "mock";
+  await actions.signOut();
+  expect(state.token).toBe("");
+  expect(state.mode).toBe("live");
+  expect(state.status?.credentials).toBe("browser");
+  for (const [, options] of fetch.mock.calls)
+    expect(new Headers(options?.headers).has("Authorization")).toBe(false);
 });
