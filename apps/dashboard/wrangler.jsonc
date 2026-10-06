@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "evidence-lab",
+  "pages_build_output_dir": "./dist-pages",
+  "compatibility_date": "2026-10-06",
+  "vars": {
+    "EVIDENCE_LAB_BACKEND_ORIGIN": "${EVIDENCE_LAB_BACKEND_ORIGIN}"
+  }
+}

@@ -17,3 +17,6 @@ artifacts/
 node_modules/
 .task/
 .playwright-mcp/
+apps/dashboard/dist-pages/
+**/.wrangler/
+**/.dev.vars*

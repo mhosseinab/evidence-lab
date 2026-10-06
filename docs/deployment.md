@@ -18,8 +18,18 @@ required reviewers. Environment approval applies before using deployment secrets
 
 ## Cloudflare Pages
 
-Create a **Direct Upload** Pages project with production branch `main`.
-Use Wrangler to upload Functions; dashboard drag-and-drop does not deploy them.
+The checked-in [Wrangler configuration](../apps/dashboard/wrangler.jsonc) defines
+the Pages output directory and compatibility date. Wrangler is pinned in the
+dashboard's development dependencies and installed by `task setup`.
+CI uses `task dashboard:pages:build` and `task dashboard:pages:deploy`.
+The deploy task fills the backend variable with a single `jq` assignment and runs
+native `wrangler pages deploy`. The Direct Upload project must use production
+branch `main`. Wrangler 4.147.0 can create projects interactively, but a missing
+project fails in noninteractive CI. Create it once with the native command:
+
+```sh
+pnpm --filter @evidence-lab/dashboard exec wrangler pages project create "$CLOUDFLARE_PAGES_PROJECT" --production-branch main
+```
 
 Configure the GitHub environment **cloudflare-pages**:
 
@@ -28,13 +38,25 @@ Configure the GitHub environment **cloudflare-pages**:
 | Secret | `CLOUDFLARE_API_TOKEN` | Account-scoped token with Cloudflare Pages Edit permission |
 | Variable | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
 | Variable | `CLOUDFLARE_PAGES_PROJECT` | Existing Direct Upload project name |
+| Variable | `EVIDENCE_LAB_BACKEND_ORIGIN` | VPS backend HTTPS origin, e.g. `https://api.example.com` |
 
-In the Pages project's **production runtime variables**, set
-`EVIDENCE_LAB_BACKEND_ORIGIN=https://api.example.com`. It must be an HTTPS origin,
+Wrangler reads the account ID and API token from its supported environment
+variables; `--project-name` selects the GitHub-configured project and overrides
+the config's default name. Before deployment, `jq` fills
+`vars.EVIDENCE_LAB_BACKEND_ORIGIN` in `wrangler.jsonc` from the GitHub variable.
+Wrangler deploys it as a plain runtime variable. The placeholder is replaced
+explicitly because Wrangler does not expand `${...}`. This changes the local
+working copy of the config when running the deploy task outside CI.
+The origin must be an HTTPS origin,
 without credentials, a path, query, or fragment, and must differ from the Pages
-dashboard origin. Set it before deployment;
-redeploy after changing it. No operator token or model key belongs in frontend
+dashboard origin. No Cloudflare dashboard variable edits are needed;
+rerun CI after changing the GitHub variable. No operator token or model key belongs in frontend
 build variables or this binding.
+
+For a local deployment, run `task dashboard:pages:build`, then
+`task dashboard:pages:deploy` with the same four environment values plus
+`DEPLOY_SHA` set to the full tested commit SHA. The deploy task requires `jq`.
+The GitHub workflow provides these inputs and deploys only after successful CI.
 
 The workflow stages assets under `/static/`, matching the existing Vite build,
 and serves the entrypoint at `/`. Pages Functions proxy `/api`, `/api/*`,
@@ -159,5 +181,6 @@ Credentials, public domains and a prepared VPS/Pages
 project are prerequisites; adding these files does not deploy either service.
 
 References: [Pages Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/),
+[Wrangler Pages configuration](https://developers.cloudflare.com/pages/functions/wrangler-configuration/),
 [GHCR authentication](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry),
 and [Uvicorn proxy settings](https://www.uvicorn.org/settings/#http).

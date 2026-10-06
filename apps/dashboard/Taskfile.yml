@@ -37,6 +37,29 @@ tasks:
     desc: Build and serve the dashboard with its FastAPI API on one origin
     cmds:
     - task: :app:serve
+  pages:build:
+    desc: Build and stage dashboard assets for Cloudflare Pages
+    cmds:
+    - task: build
+    - rm -rf apps/dashboard/dist-pages
+    - mkdir -p apps/dashboard/dist-pages/static
+    - cp -a apps/dashboard/dist/. apps/dashboard/dist-pages/static/
+    - cp apps/dashboard/dist/index.html apps/dashboard/dist-pages/index.html
+    - cp apps/dashboard/pages/_routes.json apps/dashboard/dist-pages/_routes.json
+  pages:deploy:
+    desc: Deploy Pages using native Wrangler commands
+    dir: apps/dashboard
+    preconditions:
+    - sh: test -n "$CLOUDFLARE_API_TOKEN" && test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CLOUDFLARE_PAGES_PROJECT" && test -n "$EVIDENCE_LAB_BACKEND_ORIGIN" && test -n "$DEPLOY_SHA"
+      msg: Set Cloudflare credentials, project name, backend origin and DEPLOY_SHA before deploying.
+    - sh: command -v jq >/dev/null
+      msg: Install jq to fill the backend-origin variable in the Wrangler config.
+    cmds:
+    - |
+      set -eu
+      jq '.vars.EVIDENCE_LAB_BACKEND_ORIGIN = env.EVIDENCE_LAB_BACKEND_ORIGIN' wrangler.jsonc > wrangler.jsonc.tmp
+      mv wrangler.jsonc.tmp wrangler.jsonc
+      pnpm exec wrangler pages deploy --project-name "$CLOUDFLARE_PAGES_PROJECT" --branch main --commit-hash "$DEPLOY_SHA"
   dev:
     desc: Start Vite with hot reload and proxy API requests to localhost port 8000
     cmds:

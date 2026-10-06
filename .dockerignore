@@ -15,6 +15,9 @@ configs/secrets
 **/.env.*
 **/node_modules
 **/dist
+apps/dashboard/dist-pages
+**/.wrangler
+**/.dev.vars*
 artifacts
 build
 dist

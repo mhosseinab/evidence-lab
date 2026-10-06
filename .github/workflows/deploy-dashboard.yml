@@ -37,15 +37,13 @@ jobs:
         run: |
           npm install --global "$(node -p 'require("./package.json").packageManager')"
           pnpm install --frozen-lockfile
+      - name: Set up Task
+        uses: arduino/setup-task@c0bc642852239c2689f73f4ea6459c29405f3c52 # v3.0.0
+        with:
+          version: '3.53.1'
+          repo-token: ${{ github.token }}
       - name: Build dashboard and stage Pages assets
-        run: |
-          pnpm --filter @evidence-lab/dashboard run build
-          mkdir -p "$RUNNER_TEMP/dashboard-pages/static"
-          cp -a apps/dashboard/dist/. "$RUNNER_TEMP/dashboard-pages/static/"
-          cp apps/dashboard/dist/index.html "$RUNNER_TEMP/dashboard-pages/index.html"
-          cp apps/dashboard/pages/_routes.json "$RUNNER_TEMP/dashboard-pages/_routes.json"
-      - name: Install pinned Wrangler CLI
-        run: npm install --prefix "$RUNNER_TEMP/cloudflare-cli" --no-audit --no-fund wrangler@4.147.0
+        run: task dashboard:pages:build
       - name: Skip superseded commits
         id: current
         env:
@@ -63,18 +61,12 @@ jobs:
           appendFileSync(process.env.GITHUB_OUTPUT, `current=${current}\n`);
           if (!current) console.log('Skipping a commit superseded on main.');
           JS
-      - name: Deploy Pages assets and Functions
+      - name: Deploy Pages from Wrangler configuration
         if: steps.current.outputs.current == 'true'
-        working-directory: apps/dashboard
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          EVIDENCE_LAB_BACKEND_ORIGIN: ${{ vars.EVIDENCE_LAB_BACKEND_ORIGIN }}
           DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
-        run: |
-          : "${CLOUDFLARE_API_TOKEN:?Set the Cloudflare Pages API token secret}"
-          : "${CLOUDFLARE_ACCOUNT_ID:?Set the Cloudflare account ID variable}"
-          : "${CLOUDFLARE_PAGES_PROJECT:?Set the Pages project name variable}"
-          "$RUNNER_TEMP/cloudflare-cli/node_modules/.bin/wrangler" pages deploy \
-            "$RUNNER_TEMP/dashboard-pages" --project-name "$CLOUDFLARE_PAGES_PROJECT" \
-            --branch main --commit-hash "$DEPLOY_SHA"
+        run: task dashboard:pages:deploy

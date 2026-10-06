@@ -53,3 +53,40 @@ frontend/backend rollout or automatic database rollback.
 Local fixture checks do not establish hosted workflow success, live endpoint
 performance or production readiness. Keep execution logs locally or as CI
 artifacts; Git records source and validation history.
+
+## Wrangler configuration verification (2026-10-06)
+
+The Pages workflow now uses the checked-in `apps/dashboard/wrangler.jsonc` and
+the native Wrangler deployment command. No custom provisioning
+script remains; `jq` fills the plain backend-origin variable from GitHub before
+deployment. `wrangler pages functions build` with locked
+Wrangler 4.147.0 compiled the Worker successfully using the checked-in config.
+`task dashboard:pages:build`, a dry run of `task dashboard:pages:deploy`,
+Actionlint, Biome and `git diff --check` passed.
+
+The full `task ci` passed against a dedicated PostgreSQL/pgvector container:
+542 backend tests, 62 dashboard tests, 5 deployment-script tests, no skipped
+backend tests, and successful dashboard/wheel/source builds. The runnable command
+was:
+
+```sh
+UV_CACHE_DIR=/tmp/evidence-lab-ci-uv-cache \
+EVIDENCE_LAB_TEST_DSN=postgresql://evidence:evidence@127.0.0.1:32775/evidence_ci_test \
+EVIDENCE_LAB_TEST_NATIVE_ADMIN_DSN=postgresql://evidence:evidence@127.0.0.1:32775/evidence_ci_test \
+  task ci
+```
+
+The task-created container `evidence-wrangler-ci-20261006` was removed after the
+run. Native tests used their existing isolated schema/database fixtures; no
+application data was used. Logs are in `/tmp/evidence-pages-native-ci.log` and
+`/tmp/evidence-pages-native-wrangler.log`. Initial dependency installation required
+explicit pnpm build approval for esbuild/workerd; the approved native build tools
+then installed successfully. No authenticated Cloudflare command or deployment
+was executed; live provisioning and runtime variable updates remain unverified.
+
+The subsequent plain-variable change was verified with `jq` and Wrangler's
+installed config parser: the GitHub-provided URL resolves as a plain `vars`
+binding. Actionlint, Biome and `git diff --check` passed. `task check` passed with
+495 backend tests and 62 dashboard tests, with 47 backend prerequisite skips.
+Native backend prerequisites were not supplied for this follow-up; the skips are recorded in
+`/tmp/evidence-pages-vars-check.log` rather than claimed as a complete native run.
