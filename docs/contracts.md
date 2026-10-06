@@ -6,6 +6,37 @@ Completed ingestion jobs return `result.chunks` as a nonnegative integer count;
 source previews return `chunks` as a list of chunk objects. The dashboard validates
 both forms and refreshes documents after observing a terminal ingestion job.
 
+## Operator approval
+
+`POST /api/runs/{run_id}/operator-release` accepts only
+`{"action":"release"|"revoke","reason":"nonempty operator explanation"}` and
+returns the updated public run directly. It requires a configured operator bearer
+token and the server operator session; browser mode, setup and provider-key headers
+are rejected. No provider calls occur and no configuration or policy artifact changes.
+Missing/incorrect authentication returns 401, invalid input 422, missing run 404,
+and an ineligible run, failed verification or stale source returns 409.
+
+Release is limited to `shadow` runs with `code=policy_not_qualified`. It revalidates
+the last typed draft and verification round, answer/evidence hashes, structural
+checks, complete verification coverage and the current score threshold. Every stored
+evidence chunk must still exactly match its active source version in that corpus.
+The run becomes `answered`, publishes the original checked text/blocks, retains its
+original mock/live mode and receives `qualification=operator_approved` and
+`code=operator_approved_release`. This is per-run operator approval, not evaluation
+qualification. The `operator_release` audit event records the action, redacted reason,
+previous state, hashes and threshold, explicitly declaring `policy_qualified=false`.
+
+Revoke applies only to operator-approved answers: it returns the run to `shadow`,
+clears public answer/blocks, keeps the checked draft in its diagnostic events and
+records the operator's reason. Copied conversation turns referencing the revoked
+run are removed; dependent queued/running queries are cancelled and their workers
+fenced, while unrelated turns and work survive. Repeated identical actions are
+idempotent. Ordinary terminal worker writes remain forbidden.
+
+`Store.operator_release(run_id, action, reason, *, threshold=None)` implements these
+changes under the existing payload-quota lock and row/source locks in one PostgreSQL
+transaction; quota failures roll back publication and audit together.
+
 ## Configuration and providers
 
 `evidence_lab.config.load_config(path) -> AppConfig`; Pydantic object with runtime, database, ingestion, retrieval, verification, budgets, profiles, roles, evaluation settings from plan. `config.safe_dict()` returns redacted config; `config.fingerprint()` returns sanitized hash. Database DSN is configurable, default `postgresql://evidence:evidence@localhost:5432/evidence_lab` (local sample only). Mock config must be complete and runnable; provider profiles still describe real contracts, runtime.mode=mock selects deterministic fixtures without HTTP/model downloads.
@@ -46,7 +77,7 @@ per-option probabilities; they remain uncalibrated model outputs.
 * `activate_version(version_id, space_id, lease: dict)` guards current job lease, intended source version and complete valid vectors.
 * `retrieve(corpus_id, space_id, query, vector, dense_limit=40, lexical_limit=40) -> dict` with corpus_revision, dense, lexical. Each candidate has EvidenceItem fields plus rank and score. One repeatable-read snapshot and same active source/space filters. Raises if space changed.
 * `create_run(question, corpus_id="default", settings=None) -> dict` creates query run and query job, returns id and job_id.
-* `update_run(run_id, fields: dict, lease: dict | None = None)` lease required to publish any worker-owned result. Root API never publishes answers.
+* `update_run(run_id, fields: dict, lease: dict | None = None)` lease required to publish any worker-owned result. Ordinary API writes never publish answers; explicit operator approval uses the separate transaction below.
 * `get_run(run_id) -> dict`, `list_runs(limit=30, corpus_id=None) -> list[dict]`, `append_event(run_id,event:dict,lease=None)`, `list_corpora() -> list[dict]`.
 * `enqueue_job(kind,payload) -> dict`, `claim_job(worker_id,lease_seconds=120) -> dict|None`, `renew_job(job_id,token,lease_seconds=120) -> bool`, `finish_job(job_id,token,status,result=None,error=None)`, `get_job(job_id)`, `cancel_job(job_id)`. Claimed job contains id, token, kind, payload, created_at, attempts. All state writes use lease fencing; stale workers cannot publish.
 * `reserve_call(run_id,phase,profile,estimated_cost,limits:dict) -> str` call ID. Limits keys total_cap, phase_caps, run_attempt_cap, remote_concurrency, optional profile_concurrency (defaults to the global cap), mock(bool), timeout_seconds. Serialize reservations with advisory lock; count unknown costs conservatively, enforce attempts and global/per-profile active concurrency across workers. Throw safe errors; no waiting while holding transaction.

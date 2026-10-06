@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useDashboardContext } from "../composables/dashboardContext";
-import { answerState, releasedAnswer } from "../utils/answers";
+import { answerState, operatorReleaseAction, releasedAnswer } from "../utils/answers";
 import { pendingStates, progressLabels, shortId, statusOf } from "../utils/presentation";
 import StatusPill from "./StatusPill.vue";
 
@@ -9,6 +9,11 @@ const emit = defineEmits<{ citation: [index: number] }>();
 const { state, actions } = useDashboardContext();
 const run = computed(() => state.run ?? {});
 const status = computed(() => statusOf(state.run));
+const operatorAction = computed(() =>
+  state.token && !state.accessRequired && state.status?.credentials === "server"
+    ? operatorReleaseAction(state.run)
+    : null,
+);
 const active = computed(() => pendingStates.has(status.value));
 const progress = computed(
   () =>
@@ -88,6 +93,17 @@ async function copyAnswer() {
     </div>
     <div id="run-answer" class="answer-body">
       <template v-if="hasAnswer">
+        <div
+          v-if="run.qualification === 'operator_approved'"
+          class="trace-warning"
+          id="operator-approved-label"
+        >
+          <strong>Operator-approved release</strong>
+          <p>
+            This answer was published by an operator after passing its checks. The evaluation policy remains
+            unqualified.
+          </p>
+        </div>
         <div v-for="block in blocks" :key="block.key" class="answer-block">
           <span class="answer-text">{{ block.text }}</span>
           <span v-if="block.citations.length" class="citations">
@@ -117,6 +133,16 @@ async function copyAnswer() {
       <template v-if="!active"><span v-for="value in metadata" :key="value">{{ value }}</span></template>
     </div>
     <div class="run-actions">
+      <button
+        v-if="operatorAction"
+        id="operator-release-action"
+        type="button"
+        class="text-button"
+        :disabled="state.busy.operatorRelease"
+        @click="actions.requestOperatorRelease(operatorAction)"
+      >
+        {{ operatorAction === "release" ? "Release with operator approval" : "Revoke operator release" }}
+      </button>
       <button v-if="hasAnswer" id="copy-answer" class="text-button" type="button" @click="copyAnswer">
         Copy answer
       </button>

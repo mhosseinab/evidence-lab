@@ -506,3 +506,41 @@ def test_public_graph_progress_omits_private_memory():
     assert result.json()["graph_steps"][0]["node"] == "verify"
     assert result.json()["conversation_id"]
     assert "private prior answer" not in result.text
+
+
+@pytest.mark.parametrize("token", [None, "operator-secret"])
+def test_operator_release_requires_configured_authenticated_token(token):
+    config = load_config("configs/mock.yaml")
+    config.runtime.operator_token = SecretStr(token) if token else None
+    client, _ = make_client(config=config)
+    with client:
+        response = client.post("/api/runs/r1/operator-release", json={"action": "release", "reason": "Reviewed"})
+    assert response.status_code == 401
+
+
+def test_operator_release_returns_public_result_and_rejects_browser_override(monkeypatch):
+    config = load_config("configs/mock.yaml")
+    config.runtime.operator_token = SecretStr("operator-secret")
+    config.runtime.credentials = "server"
+    storage = APIStore()
+    calls = []
+    def approve(run_id, action, reason, *, threshold):
+        calls.append((run_id, action, reason, threshold))
+        return {**storage.run, "status": "answered", "qualification": "operator_approved", "answer": "Checked answer"}
+    monkeypatch.setattr(storage, "operator_release", approve, raising=False)
+    client, _ = make_client(config=config, store=storage)
+    auth = {"Authorization": "Bearer operator-secret"}
+    with client:
+        response = client.post("/api/runs/r1/operator-release", headers=auth,
+                               json={"action": "release", "reason": "Reviewed"})
+        assert response.status_code == 200
+        assert response.json()["qualification"] == "operator_approved"
+        assert "draft" not in response.json() and "events" not in response.json()
+        for header in ("X-Evidence-Lab-Mode", "X-Evidence-Lab-Live-Settings", "X-Evidence-Lab-Provider-Keys"):
+            rejected = client.post("/api/runs/r1/operator-release", headers={**auth, header: "mock"},
+                                   json={"action": "revoke", "reason": "Withdraw"})
+            assert rejected.status_code == 409
+        invalid = client.post("/api/runs/r1/operator-release", headers=auth,
+                              json={"action": "release", "reason": "Reviewed", "answer": "Unchecked"})
+        assert invalid.status_code == 422
+    assert len(calls) == 1

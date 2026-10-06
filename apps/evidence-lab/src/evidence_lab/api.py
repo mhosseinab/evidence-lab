@@ -6,7 +6,7 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
@@ -64,6 +64,12 @@ class QueryRequest(BaseModel):
     question: str = Field(min_length=1, max_length=16000)
     corpus_id: str = Field(default="default", pattern=r"^[A-Za-z0-9_-]{1,64}$")
     conversation_id: str | None = Field(default=None, pattern=r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+
+
+class OperatorReleaseRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    action: Literal["release", "revoke"]
+    reason: str = Field(min_length=1, max_length=2000)
 
 
 class EvaluationRequest(BaseModel):
@@ -389,6 +395,18 @@ def create_app(config, *, store=None, hub=None, initialize=True) -> FastAPI:
     @app.get("/api/runs/{run_id}")
     def run(run_id: str):
         return public_run(store.get_run(run_id))
+
+    @app.post("/api/runs/{run_id}/operator-release")
+    def operator_release(run_id: str, payload: OperatorReleaseRequest, request: Request):
+        token = config.runtime.operator_token
+        if token is None or not token.get_secret_value().strip():
+            raise ProviderError("unauthorized", "Operator approval requires a configured operator token.")
+        if config.runtime.credentials != "server" or any(request.headers.get(header) is not None for header in (
+            "X-Evidence-Lab-Mode", "X-Evidence-Lab-Live-Settings", KEY_HEADER,
+        )):
+            raise ProviderError("invalid_state", "Operator approval requires the server operator session.")
+        return public_run(store.operator_release(run_id, payload.action, payload.reason,
+                                                threshold=config.verification.score_threshold))
 
     @app.get("/api/runs/{run_id}/trace")
     def trace(run_id: str):

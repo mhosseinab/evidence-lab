@@ -1,6 +1,7 @@
 import { reactive } from "vue";
 import { ApiError, createApiClient } from "../api/client";
-import type { Payload, RuntimeMode, View } from "../types/api";
+import type { OperatorReleaseAction, Payload, RuntimeMode, View } from "../types/api";
+import { operatorReleaseAction } from "../utils/answers";
 import {
   dateText,
   documentStatus,
@@ -48,17 +49,27 @@ export interface DashboardState {
   question: string;
   notice: string;
   toast: string;
-  dialog: "source" | "trace" | "connection" | "operator-login" | "new-corpus" | "delete-corpus" | null;
+  dialog:
+    | "source"
+    | "trace"
+    | "connection"
+    | "operator-login"
+    | "new-corpus"
+    | "delete-corpus"
+    | "operator-release"
+    | null;
   uploading: boolean;
   uploads: UploadRecord[];
   corpusError: string;
   deleteCorpusId: string;
+  operatorRelease: { runId: string; action: OperatorReleaseAction; reason: string; error: string };
   connected: boolean;
   accessRequired: boolean;
   busy: {
     question: boolean;
     corpus: boolean;
     deleteCorpus: boolean;
+    operatorRelease: boolean;
     evaluation: boolean;
     cancelRun: boolean;
     cancelEvaluation: boolean;
@@ -107,12 +118,14 @@ export function useDashboard() {
     uploads: [],
     corpusError: "",
     deleteCorpusId: "",
+    operatorRelease: { runId: "", action: "release", reason: "", error: "" },
     connected: false,
     accessRequired: false,
     busy: {
       question: false,
       corpus: false,
       deleteCorpus: false,
+      operatorRelease: false,
       evaluation: false,
       cancelRun: false,
       cancelEvaluation: false,
@@ -135,6 +148,7 @@ export function useDashboard() {
   let evaluationsRequest = 0;
   let sourceRequest = 0;
   let traceRequest = 0;
+  let operatorReleaseRequest = 0;
   let uploadId = 0;
   let toastTimer: ReturnType<typeof setTimeout> | undefined;
   const uploadPolls = new Map<string, UploadRecord | undefined>();
@@ -227,6 +241,7 @@ export function useDashboard() {
     }
   }
   function stopWorkspaceRequests() {
+    resetOperatorRelease();
     selectionVersion++;
     queryPoll++;
     evaluationPoll++;
@@ -481,6 +496,7 @@ export function useDashboard() {
   }
   async function openRun(id: string | null, jobId?: string | null) {
     if (!id || disposed) return;
+    resetOperatorRelease();
     const token = ++queryPoll;
     state.runId = id;
     state.runJobId = jobId || null;
@@ -509,6 +525,74 @@ export function useDashboard() {
         }
       }
       await sleep(failures ? 2500 : 1200);
+    }
+  }
+  function resetOperatorRelease() {
+    operatorReleaseRequest++;
+    state.busy.operatorRelease = false;
+    if (state.dialog === "operator-release") state.dialog = null;
+    state.operatorRelease = { runId: "", action: "release", reason: "", error: "" };
+  }
+  function requestOperatorRelease(action: OperatorReleaseAction) {
+    if (
+      disposed ||
+      !state.token ||
+      state.accessRequired ||
+      state.status?.credentials !== "server" ||
+      !state.runId ||
+      state.busy.operatorRelease ||
+      operatorReleaseAction(state.run) !== action
+    )
+      return;
+    state.operatorRelease = { runId: state.runId, action, reason: "", error: "" };
+    state.dialog = "operator-release";
+  }
+  async function changeOperatorRelease() {
+    const { runId, action } = state.operatorRelease;
+    const reason = state.operatorRelease.reason.trim();
+    if (
+      disposed ||
+      state.busy.operatorRelease ||
+      state.dialog !== "operator-release" ||
+      !reason ||
+      !state.token ||
+      state.accessRequired ||
+      state.status?.credentials !== "server" ||
+      !runId ||
+      runId !== state.runId ||
+      operatorReleaseAction(state.run) !== action
+    )
+      return;
+    const request = ++operatorReleaseRequest;
+    const selection = selectionVersion;
+    const sessionToken = state.token;
+    state.busy.operatorRelease = true;
+    state.operatorRelease.error = "";
+    const current = () =>
+      !disposed &&
+      request === operatorReleaseRequest &&
+      selection === selectionVersion &&
+      state.runId === runId &&
+      state.token === sessionToken;
+    try {
+      const run = await api(`/api/runs/${encodeURIComponent(runId)}/operator-release`, {
+        method: "POST",
+        body: JSON.stringify({ action, reason }),
+      });
+      if (!current()) return;
+      if (run.id !== runId || (run.corpus_id && run.corpus_id !== state.corpusId))
+        throw new Error("The workspace returned a different run. Refresh before trying again.");
+      queryPoll++;
+      runsRequest++;
+      updateRun(run);
+      state.runs = state.runs.map((item) => (idOf(item) === runId ? run : item));
+      state.dialog = null;
+      state.operatorRelease.reason = "";
+      toast(action === "release" ? "Answer released with operator approval." : "Operator release revoked.");
+    } catch (error) {
+      if (current()) state.operatorRelease.error = errorText(error);
+    } finally {
+      if (current()) state.busy.operatorRelease = false;
     }
   }
   async function cancelRun() {
@@ -947,6 +1031,8 @@ export function useDashboard() {
       refreshEvaluations,
       selectCorpus,
       createCorpus,
+      requestOperatorRelease,
+      changeOperatorRelease,
       requestCorpusDeletion,
       deleteCorpus,
       submitQuestion,

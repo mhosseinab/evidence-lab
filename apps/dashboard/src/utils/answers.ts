@@ -1,4 +1,4 @@
-import type { Payload } from "../types/api";
+import type { OperatorReleaseAction, Payload } from "../types/api";
 import { pendingStates, statusOf, textValue } from "./presentation";
 
 const releasedStates = new Set([
@@ -68,4 +68,11 @@ export function answerState(run: Payload): {
     symbol: semantic || shadow ? "↳" : "!",
     error: !semantic && !cancelled && !shadow,
   };
+}
+
+/** Availability only; the server revalidates checks and active sources before publishing. */
+export function operatorReleaseAction(run: Payload | null): OperatorReleaseAction | null {
+  if (run?.status === "shadow" && run.code === "policy_not_qualified") return "release";
+  if (run?.status === "answered" && run.qualification === "operator_approved") return "revoke";
+  return null;
 }

@@ -11,6 +11,7 @@ export interface Orchestration {
   memory: { enabled: boolean; max_turns: number };
   tracing: { provider: "langsmith"; enabled: boolean; content: "metadata_only" | "provider_payloads" };
 }
+export type OperatorReleaseAction = "release" | "revoke";
 export type RuntimeMode = "mock" | "live";
 export type KeyGroup = "llm" | "cloudflare";
 export interface LiveSettings {

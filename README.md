@@ -652,6 +652,14 @@ The release flow above checks citations, every answer block and `global.task_sco
 
 Incomplete verification is a technical failure. Public endpoints hide drafts; documents and model output render as text without tools or instruction execution.
 
+Signed-in operators can use **Release with operator approval** on a checked shadow run and enter
+a reason. The server rechecks the stored draft, verification bindings and active
+sources before publishing it as **Operator-approved**. This exception applies to
+that run only; it does not qualify the evaluation policy or change future runs.
+Use **Revoke operator release** to hide an operator-approved answer again. Both actions
+are audited, make no model calls, and require the configured operator token.
+Revocation also removes that answer from copied conversation context.
+
 Input: English UTF-8 text, Markdown and readable PDFs. OCR is external; ambiguous extraction requires review. Source offsets use normalized Unicode code points.
 
 ## Evaluate the system

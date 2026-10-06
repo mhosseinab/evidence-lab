@@ -10,6 +10,7 @@ const traceDialog = ref<HTMLDialogElement>();
 const connectionDialog = ref<HTMLDialogElement>();
 const operatorDialog = ref<HTMLDialogElement>();
 const corpusDialog = ref<HTMLDialogElement>();
+const operatorReleaseDialog = ref<HTMLDialogElement>();
 const deleteCorpusDialog = ref<HTMLDialogElement>();
 const deleteConfirmation = ref("");
 const token = ref("");
@@ -21,6 +22,7 @@ const dialogs = {
   "operator-login": operatorDialog,
   "new-corpus": corpusDialog,
   "delete-corpus": deleteCorpusDialog,
+  "operator-release": operatorReleaseDialog,
 };
 watch(
   () => state.dialog,
@@ -37,7 +39,7 @@ watch(
   { flush: "post" },
 );
 function close() {
-  if (!state.busy.deleteCorpus) state.dialog = null;
+  if (!state.busy.deleteCorpus && !state.busy.operatorRelease) state.dialog = null;
 }
 function backdrop(event: MouseEvent) {
   if (event.target === event.currentTarget) close();
@@ -347,6 +349,89 @@ const connectionRows = computed(() => {
           :disabled="state.busy.deleteCorpus || deleteConfirmation !== state.deleteCorpusId"
         >
           {{ state.busy.deleteCorpus ? "Deleting…" : "Permanently delete workspace" }}
+        </button>
+      </div>
+    </form>
+  </dialog>
+  <dialog
+    id="operator-release-dialog"
+    ref="operatorReleaseDialog"
+    class="dialog connection-dialog"
+    aria-labelledby="operator-release-title"
+    aria-describedby="operator-release-description"
+    @click="backdrop"
+    @keydown.esc.prevent="close"
+    @cancel.prevent="close"
+    @close="state.dialog === 'operator-release' && close()"
+  >
+    <div class="dialog-heading">
+      <h2 id="operator-release-title">
+        {{ state.operatorRelease.action === "release" ? "Release this answer?" : "Revoke this release?" }}
+      </h2>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Close release confirmation"
+        :disabled="state.busy.operatorRelease"
+        @click="close"
+      >
+        ×
+      </button>
+    </div>
+    <form
+      id="operator-release-form"
+      class="connection-form"
+      @submit.prevent="actions.changeOperatorRelease()"
+    >
+      <p id="operator-release-description" class="form-help">
+        <template v-if="state.operatorRelease.action === 'release'"
+          >Review the checked draft and evidence in the operator trace before confirming. The server requires
+          passing checks and active sources. This publishes only this run with an operator-approved label; the
+          evaluation policy remains unqualified.</template
+        >
+        <template v-else
+          >This removes the public answer for this run and returns it to shadow mode. The approval history and
+          checks remain in the operator trace.</template
+        >
+      </p>
+      <p v-if="state.operatorRelease.error" class="notice error" role="alert">
+        {{ state.operatorRelease.error }}
+      </p>
+      <label for="operator-release-reason"
+        >Reason for {{ state.operatorRelease.action === "release" ? "approval" : "revocation" }}</label
+      >
+      <textarea
+        id="operator-release-reason"
+        v-model="state.operatorRelease.reason"
+        rows="3"
+        maxlength="2000"
+        required
+        :disabled="state.busy.operatorRelease"
+        autofocus
+      ></textarea>
+      <div class="dialog-footer">
+        <button
+          id="operator-release-cancel"
+          type="button"
+          class="button secondary"
+          :disabled="state.busy.operatorRelease"
+          @click="close"
+        >
+          Cancel
+        </button>
+        <button
+          id="operator-release-submit"
+          type="submit"
+          class="button primary"
+          :disabled="state.busy.operatorRelease || !state.operatorRelease.reason.trim()"
+        >
+          {{
+            state.busy.operatorRelease
+              ? "Saving…"
+              : state.operatorRelease.action === "release"
+                ? "Confirm operator release"
+                : "Confirm revocation"
+          }}
         </button>
       </div>
     </form>

@@ -20,7 +20,10 @@ import psycopg
 from psycopg.rows import DictRow, dict_row
 from psycopg.types.json import Jsonb
 
-from .domain import PIPELINE_VERSION, ProviderError
+from pydantic import ValidationError
+
+from .domain import PIPELINE_VERSION, Draft, EvidencePack, ProviderError, VerificationResult
+from .policy import evaluate_checks
 from .memory import DEFAULT_MEMORY, bounded_turns
 
 
@@ -860,6 +863,118 @@ class Store:
                 (status, _json(payload, redact=True), status in TERMINAL_RUNS, run_id),
             ).fetchone()
             return self._run_dict(row)
+
+    def operator_release(self, run_id, action, reason, *, threshold=None):
+        """Explicit per-run approval; verification and source identity remain mandatory."""
+        if action not in {"release", "revoke"} or not isinstance(reason, str) or not reason.strip() or len(reason) > 2000:
+            raise StorageError("invalid_data", "A release action and nonempty reason are required.")
+        with self._transaction() as connection:
+            connection.execute("SELECT pg_advisory_xact_lock(%s)", (_QUOTA_LOCK,))
+            row = connection.execute("SELECT * FROM evidence_runs WHERE id=%s FOR UPDATE", (run_id,)).fetchone()
+            if not row:
+                raise StorageError("not_found", "Query run not found.")
+            data = dict(row["data"] or {})
+            approved = row["status"] == "answered" and data.get("qualification") == "operator_approved"
+            if action == "release" and approved:
+                return self._run_dict(row)
+            events = [item["event"] for item in connection.execute(
+                "SELECT event FROM evidence_run_events WHERE run_id=%s ORDER BY id", (run_id,),
+            ).fetchall()]
+            previous = {"status": row["status"], "qualification": data.get("qualification"), "code": data.get("code")}
+            audit = {"type": "operator_release", "action": action, "reason": reason.strip(), "previous": previous, "policy_qualified": False}
+            if action == "release":
+                if row["status"] != "shadow" or data.get("code") != "policy_not_qualified":
+                    raise StorageError("invalid_state", "Only a checked shadow draft can be operator approved.")
+                draft, evidence, verdict = self._checked_operator_draft(connection, row, events, threshold)
+                data.update(answer=draft.render(), blocks=[b.model_dump(mode="json") for b in draft.blocks],
+                            checks=verdict["checks"], evidence=evidence.model_dump(mode="json"),
+                            qualification="operator_approved", code="operator_approved_release", error=None,
+                            message="Released by operator approval; the policy remains unqualified.")
+                audit.update(answer_hash=draft.content_hash, evidence_hash=evidence.content_hash,
+                             score_threshold=threshold)
+                status = "answered"
+            else:
+                if not approved:
+                    if row["status"] == "shadow" and any(e.get("action") == "revoke" and e.get("type") == "operator_release" for e in events):
+                        return self._run_dict(row)
+                    raise StorageError("invalid_state", "Only an operator-approved answer can be revoked.")
+                data.update(answer=None, blocks=[], qualification="shadow", code="policy_not_qualified",
+                            message="Operator approval revoked; the checked draft remains in the operator trace.")
+                status = "shadow"
+                # Fence workers that may already hold the revoked turn in their accepted snapshot.
+                dependent = connection.execute(
+                    "SELECT id,job_id FROM evidence_runs WHERE corpus_id=%s AND status<>ALL(%s) "
+                    "AND settings->'memory' @> %s FOR UPDATE",
+                    (row["corpus_id"], list(TERMINAL_RUNS), _json([{"run_id": run_id}])),
+                ).fetchall()
+                if dependent:
+                    connection.execute(
+                        "UPDATE evidence_jobs SET status='cancelled',token=NULL,lease_until=NULL,"
+                        "finished_at=clock_timestamp(),updated_at=clock_timestamp() WHERE id=ANY(%s)",
+                        ([item["job_id"] for item in dependent],),
+                    )
+                    connection.execute(
+                        "UPDATE evidence_runs SET status='cancelled',finished_at=clock_timestamp(),"
+                        "updated_at=clock_timestamp() WHERE id=ANY(%s)",
+                        ([item["id"] for item in dependent],),
+                    )
+                audit["cancelled_dependent_runs"] = len(dependent)
+                # Remove acceptance-time copies so future queries cannot reuse the revoked answer.
+                connection.execute(
+                    "UPDATE evidence_runs r SET settings=jsonb_set(settings,'{memory}', "
+                    "COALESCE((SELECT jsonb_agg(turn) FROM jsonb_array_elements(r.settings->'memory') turn "
+                    "WHERE turn->>'run_id'<>%s),'[]'::jsonb)) "
+                    "WHERE corpus_id=%s AND jsonb_typeof(settings->'memory')='array' "
+                    "AND settings->'memory' @> %s",
+                    (run_id, row["corpus_id"], _json([{"run_id": run_id}])),
+                )
+            old_size = len(json.dumps(row["data"], ensure_ascii=False).encode())
+            serialized, serialized_audit = _json(data, redact=True), _json(audit, redact=True)
+            additional = len(json.dumps(serialized.obj, ensure_ascii=False).encode()) - old_size
+            additional += len(json.dumps(serialized_audit.obj, ensure_ascii=False).encode())
+            self._check_quota(connection, max(0, additional))
+            result = connection.execute(
+                "UPDATE evidence_runs SET status=%s,data=%s,updated_at=clock_timestamp() WHERE id=%s RETURNING *",
+                (status, serialized, run_id),
+            ).fetchone()
+            connection.execute("INSERT INTO evidence_run_events(run_id,event) VALUES (%s,%s)",
+                               (run_id, serialized_audit))
+            return self._run_dict(result)
+
+    def _checked_operator_draft(self, connection, row, events, threshold):
+        drafts = [e for e in events if e.get("type") == "draft"]
+        verifications = [e for e in events if e.get("type") == "verification"]
+        try:
+            last_draft, last_verification = drafts[-1], verifications[-1]
+            draft = Draft.model_validate(last_draft["draft"])
+            evidence = EvidencePack.model_validate(row["data"]["evidence"])
+            verification = VerificationResult.model_validate(last_verification["result"])
+        except (IndexError, KeyError, TypeError, ValidationError):
+            raise StorageError("invalid_state", "A complete stored draft and verification are required.") from None
+        if (events.index(last_verification) < events.index(last_draft)
+                or last_draft.get("answer_hash") != draft.content_hash
+                or last_draft.get("round_id") != last_verification.get("round_id")):
+            raise StorageError("invalid_state", "Stored draft and verification identities do not match.")
+        verdict = evaluate_checks(draft, evidence, verification, threshold,
+                                  expected_round_id=last_draft.get("round_id"))
+        if not evidence.items or not verdict["accepted"]:
+            raise StorageError("invalid_state", "Stored verification does not pass the current checks.")
+        corpus = connection.execute("SELECT * FROM evidence_corpora WHERE id=%s FOR SHARE", (row["corpus_id"],)).fetchone()
+        if not corpus or evidence.corpus_id != row["corpus_id"] or evidence.space_id != row["space_id"] or corpus["space_id"] != evidence.space_id:
+            raise StorageError("invalid_state", "Stored evidence does not match this corpus.")
+        for item in evidence.items:
+            source = connection.execute(
+                'SELECT ch.text,ch.text_hash,ch.page,ch.start_offset AS "start",ch.end_offset AS "end",v.name AS title '
+                "FROM evidence_chunks ch JOIN evidence_document_versions v ON v.id=ch.version_id "
+                "JOIN evidence_documents d ON d.id=v.document_id "
+                "WHERE ch.id=%s AND v.id=%s AND d.id=%s AND d.corpus_id=%s "
+                "AND d.deleted_at IS NULL AND d.active_version_id=v.id AND v.state='ready' FOR SHARE OF ch,v,d",
+                (item.id, item.version_id, item.document_id, row["corpus_id"]),
+            ).fetchone()
+            expected = item.model_dump()
+            if not source or any(source[key] != expected[key] for key in source):
+                raise StorageError("invalid_state", "An evidence source changed or is no longer active.")
+        return draft, evidence, verdict
 
     def get_run(self, run_id) -> dict:
         with self._transaction(readonly=True) as connection:

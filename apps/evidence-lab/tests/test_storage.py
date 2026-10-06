@@ -640,3 +640,76 @@ class TestNativeMultiSessionConcurrency:
         fresh = store.retrieve("test", SPACE["id"], "source policy", [0, 1, 0])
         assert fresh["corpus_revision"] > frozen["corpus_revision"]
         assert {row["version_id"] for branch in ("dense", "lexical") for row in fresh[branch]} == {new["version_id"]}
+
+
+def _checked_shadow(store):
+    from evidence_lab.domain import GLOBAL_IDS, Draft, EvidencePack
+    document, _, chunks, _ = _stage(store, ["Supported fact."], vectors=[[1., 0., 0.]], activate=True, finish=True)
+    run = store.create_run("Question?", "test")
+    lease = store.claim_job("operator-test")
+    evidence = EvidencePack.model_validate({
+        "corpus_id": "test", "space_id": SPACE["id"], "corpus_revision": 1,
+        "items": [store.get_evidence_item("test", document["version_id"], chunks[0]["id"])],
+    })
+    draft = Draft.model_validate({"blocks": [
+        {"block_id": "b1", "text": "Supported fact.", "citation_ids": [chunks[0]["id"]]},
+    ]})
+    checks = [{"id": "b1", "kind": "block_support", "support_status": "supported", "support_score": .95}]
+    checks += [{"id": name, "kind": "global", "check_status": "pass", "support_score": .95} for name in GLOBAL_IDS]
+    store.append_event(run["id"], {"type": "draft", "round_id": "initial", "draft": draft.model_dump(mode="json"),
+                                   "answer_hash": draft.content_hash}, lease)
+    store.append_event(run["id"], {"type": "verification", "round_id": "initial", "result": {
+        "checks": checks, "answer_hash": draft.content_hash, "evidence_hash": evidence.content_hash,
+        "round_id": "initial", "execution_status": "ok",
+    }}, lease)
+    store.update_run(run["id"], {"status": "shadow", "code": "policy_not_qualified", "qualification": "shadow",
+                                "checks": checks, "evidence": evidence.model_dump(mode="json")}, lease)
+    store.finish_job(lease["id"], lease["token"], "succeeded")
+    return store.get_run(run["id"]), document
+
+
+def test_operator_release_revoke_preserves_draft_and_removes_copied_memory(store):
+    run, _ = _checked_shadow(store)
+    approved = store.operator_release(run["id"], "release", "Reviewed source", threshold=.9)
+    assert approved["status"] == "answered" and approved["qualification"] == "operator_approved"
+    assert approved["answer"] == "Supported fact." and approved["blocks"][0]["block_id"] == "b1"
+    assert store.operator_release(run["id"], "release", "Duplicate")["status"] == "answered"
+    with pytest.raises(StorageError):
+        store.update_run(run["id"], {"answer": "Changed", "status": "answered"})
+    followup = store.create_run("Follow up?", "test", {"conversation_id": run["conversation_id"]})
+    assert followup["settings"]["memory"][0]["run_id"] == run["id"]
+    active = store.claim_job("dependent-worker")
+    unrelated = store.create_run("Unrelated question", "test")
+    revoked = store.operator_release(run["id"], "revoke", "Withdraw approval")
+    assert revoked["status"] == "shadow" and revoked["answer"] is None and revoked["blocks"] == []
+    assert store.get_run(followup["id"])["settings"]["memory"] == []
+    assert store.get_run(followup["id"])["status"] == "cancelled"
+    assert store.get_run(unrelated["id"])["status"] == "queued"
+    with pytest.raises(StorageError):
+        store.update_run(followup["id"], {"status": "answered", "answer": "Stale memory"}, active)
+    events = store.get_run(run["id"])["events"]
+    assert [e["event"]["action"] for e in events if e["event"]["type"] == "operator_release"] == ["release", "revoke"]
+    assert len([e for e in events if e["event"]["type"] == "draft"]) == 1
+    assert store.operator_release(run["id"], "revoke", "Duplicate")["status"] == "shadow"
+
+
+@pytest.mark.parametrize("damage", ["threshold", "hash", "round", "missing", "stale", "content", "failed"])
+def test_operator_release_rejects_invalid_or_stale_checks(store, damage):
+    run, document = _checked_shadow(store)
+    with psycopg.connect(store._dsn) as connection:
+        if damage == "hash":
+            connection.execute("UPDATE evidence_run_events SET event=jsonb_set(event,'{result,answer_hash}', '\"wrong\"') WHERE run_id=%s AND event->>'type'='verification'", (run["id"],))
+        elif damage == "round":
+            connection.execute("UPDATE evidence_run_events SET event=jsonb_set(event,'{result,round_id}', '\"repair\"') WHERE run_id=%s AND event->>'type'='verification'", (run["id"],))
+        elif damage == "missing":
+            connection.execute("DELETE FROM evidence_run_events WHERE run_id=%s AND event->>'type'='verification'", (run["id"],))
+        elif damage == "stale":
+            connection.execute("UPDATE evidence_documents SET active_version_id=NULL WHERE id=%s", (document["document_id"],))
+        elif damage == "content":
+            connection.execute("UPDATE evidence_chunks SET text='Changed' WHERE version_id=%s", (document["version_id"],))
+        elif damage == "failed":
+            connection.execute("UPDATE evidence_run_events SET event=jsonb_set(event,'{result,checks,0,support_status}', '\"not_supported\"') WHERE run_id=%s AND event->>'type'='verification'", (run["id"],))
+    with pytest.raises(StorageError) as error:
+        store.operator_release(run["id"], "release", "Review", threshold=.99 if damage == "threshold" else .9)
+    assert error.value.status == "invalid_state"
+    assert store.get_run(run["id"])["status"] == "shadow"
