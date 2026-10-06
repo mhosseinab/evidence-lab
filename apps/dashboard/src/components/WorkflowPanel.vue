@@ -68,7 +68,11 @@ const steps = computed(() =>
     </ol>
     <p v-if="graph.tools.length" class="graph-note">Tools: {{ graph.tools.map(readable).join(" · ") }}</p>
     <p v-if="graph.tracing.enabled" class="graph-note">
-      LangSmith records execution metadata only; question, answer and document text stay private.
+      {{
+        graph.tracing.content === "provider_payloads"
+          ? "LangSmith records provider request payloads and responses, which may include question, answer and document text."
+          : "LangSmith records execution metadata only; question, answer and document text stay private."
+      }}
     </p>
   </section>
 </template>

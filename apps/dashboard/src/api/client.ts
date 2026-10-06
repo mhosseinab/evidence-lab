@@ -255,7 +255,7 @@ function parseOrchestration(value: unknown): Orchestration {
     !isRecord(value.tracing) ||
     value.tracing.provider !== "langsmith" ||
     typeof value.tracing.enabled !== "boolean" ||
-    value.tracing.content !== "metadata_only"
+    (value.tracing.content !== "metadata_only" && value.tracing.content !== "provider_payloads")
   )
     invalidWorkflow();
   return value as unknown as Orchestration;

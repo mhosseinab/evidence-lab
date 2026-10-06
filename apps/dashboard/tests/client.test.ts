@@ -89,6 +89,14 @@ it("validates workflow metadata and rejects unsafe or malformed execution fields
   });
   expect(payload.orchestration?.engine).toBe("langgraph");
   expect(payload.graph_steps?.[0]?.elapsed_seconds).toBe(0.2);
+  expect(
+    parsePayload({
+      orchestration: {
+        ...orchestration,
+        tracing: { provider: "langsmith", enabled: true, content: "provider_payloads" },
+      },
+    }).orchestration?.tracing.content,
+  ).toBe("provider_payloads");
   expect(() =>
     parsePayload({
       orchestration: { ...orchestration, tracing: { provider: "langsmith", enabled: true, content: "full" } },

@@ -169,6 +169,10 @@ it("shows actual graph execution and offers a fresh conversation without exposin
   expect(wrapper.text()).toContain("LangGraph workflow");
   expect(wrapper.text()).toContain("LangSmith active");
   expect(wrapper.text()).toContain("metadata only");
+  if (state.status.orchestration) state.status.orchestration.tracing.content = "provider_payloads";
+  await flushPromises();
+  expect(wrapper.text()).toContain("records provider request payloads and responses");
+  expect(wrapper.text()).not.toContain("text stay private");
   expect(wrapper.findAll('[data-status="completed"]')).toHaveLength(2);
   expect(wrapper.find('[aria-current="step"]').text()).toContain("Verify claims");
   expect(wrapper.find('[data-status="waiting"]').text()).toContain("Not run");

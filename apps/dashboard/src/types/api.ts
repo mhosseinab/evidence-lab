@@ -9,7 +9,7 @@ export interface Orchestration {
   edges: [string, string][];
   tools: string[];
   memory: { enabled: boolean; max_turns: number };
-  tracing: { provider: "langsmith"; enabled: boolean; content: "metadata_only" };
+  tracing: { provider: "langsmith"; enabled: boolean; content: "metadata_only" | "provider_payloads" };
 }
 export type RuntimeMode = "mock" | "live";
 export type KeyGroup = "llm" | "cloudflare";
