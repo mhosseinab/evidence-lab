@@ -2,6 +2,10 @@
 
 Domain models in `apps/evidence-lab/src/evidence_lab/domain.py` (imported as `evidence_lab.domain`) are authoritative. The application is the `apps/evidence-lab` member of the root uv workspace; run commands from the repository root after `task setup`. Use JSON-safe dictionaries at persistence boundaries. All IDs are strings. Times returned by Store must be JSON serializable ISO timestamps or epoch values.
 
+Completed ingestion jobs return `result.chunks` as a nonnegative integer count;
+source previews return `chunks` as a list of chunk objects. The dashboard validates
+both forms and refreshes documents after observing a terminal ingestion job.
+
 ## Configuration and providers
 
 `evidence_lab.config.load_config(path) -> AppConfig`; Pydantic object with runtime, database, ingestion, retrieval, verification, budgets, profiles, roles, evaluation settings from plan. `config.safe_dict()` returns redacted config; `config.fingerprint()` returns sanitized hash. Database DSN is configurable, default `postgresql://evidence:evidence@localhost:5432/evidence_lab` (local sample only). Mock config must be complete and runnable; provider profiles still describe real contracts, runtime.mode=mock selects deterministic fixtures without HTTP/model downloads.

@@ -5,6 +5,16 @@ import { ApiError, createApiClient, parsePayload } from "../src/api/client";
 afterEach(() => vi.unstubAllGlobals());
 
 describe("validated API boundary", () => {
+  it("accepts ingestion chunk counts and source chunk lists while rejecting malformed chunks", () => {
+    expect(
+      parsePayload({ status: "succeeded", result: { status: "ready", chunks: 16 } }).result?.chunks,
+    ).toBe(16);
+    expect(parsePayload({ chunks: [{ page: 1, text: "Source text" }] }).chunks).toEqual([
+      { page: 1, text: "Source text" },
+    ]);
+    for (const chunks of [-1, 1.5, "16", {}, Number.POSITIVE_INFINITY])
+      expect(() => parsePayload({ chunks })).toThrow(/invalid chunks/);
+  });
   it("attaches only the in-memory token and validates successful payloads", async () => {
     const fetch = vi.fn().mockResolvedValue(new Response('{"id":42}'));
     vi.stubGlobal("fetch", fetch);

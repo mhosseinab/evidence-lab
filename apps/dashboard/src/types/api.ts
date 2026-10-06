@@ -136,7 +136,7 @@ export interface Payload {
   version?: string | Payload;
   blocks?: Payload[];
   answer_blocks?: Payload[];
-  chunks?: Payload[];
+  chunks?: Payload[] | number;
   pages?: number | Payload[];
   extracted_pages?: Payload[];
   errors?: (string | Payload)[];

@@ -657,7 +657,7 @@ export function useDashboard() {
       state.source.title = source.name ?? source.filename ?? source.title ?? title;
       state.source.meta = `Version ${versionId} · ${readable(source.state || source.status || "source")} · ${dateText(source.created_at)}`;
       let pages = listOf(source, "pages", "extracted_pages");
-      if (!pages.length && source.chunks)
+      if (!pages.length && Array.isArray(source.chunks))
         pages = source.chunks.map((chunk) => ({ page: chunk.page, text: chunk.text }));
       if (!pages.length && typeof source.text === "string") pages = [{ page: 1, text: source.text }];
       state.source.pages = pages;

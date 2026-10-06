@@ -192,6 +192,44 @@ describe("workspace asynchronous boundaries", () => {
   });
 });
 
+it("finishes upload polling when ingestion returns a numeric chunk count", async () => {
+  vi.useFakeTimers();
+  let completed = false;
+  const fetch = vi.fn(async (path: string) => {
+    if (path === "/api/documents") return response({ job_id: "ingest-job" });
+    if (path === "/api/jobs/ingest-job") {
+      completed = true;
+      return response({
+        id: "ingest-job",
+        kind: "ingest",
+        status: "succeeded",
+        result: { status: "ready", chunks: 16 },
+      });
+    }
+    if (path.startsWith("/api/documents?"))
+      return response({
+        documents: [
+          {
+            id: "document",
+            state: completed ? "ready" : "queued",
+            job_id: "ingest-job",
+            job_status: completed ? "succeeded" : "queued",
+          },
+        ],
+      });
+    return response({ mode: "mock" });
+  });
+  vi.stubGlobal("fetch", fetch);
+  const { state, actions } = workspace();
+  await actions.uploadFiles([new File(["Source"], "source.md")]);
+  await vi.advanceTimersByTimeAsync(1400);
+  expect(state.uploads[0]?.status).toBe("Complete");
+  expect(state.uploads[0]?.error).toBe(false);
+  expect(state.documents[0]?.state).toBe("ready");
+  await vi.advanceTimersByTimeAsync(10000);
+  expect(fetch.mock.calls.filter(([path]) => path === "/api/jobs/ingest-job")).toHaveLength(1);
+});
+
 it("recovers an upload notice when a later refresh observes completed ingestion", async () => {
   vi.stubGlobal(
     "fetch",

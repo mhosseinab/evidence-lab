@@ -130,6 +130,12 @@ export function parsePayload(input: unknown): Payload {
   if (pageCount != null && !Array.isArray(pageCount) && typeof pageCount !== "number")
     throw new Error("The workspace returned an invalid pages field.");
   if (Array.isArray(pageCount)) value.pages = pageCount.map(parsePayload);
+  const chunks = value.chunks;
+  if (chunks != null) {
+    if (Array.isArray(chunks)) value.chunks = chunks.map(parsePayload);
+    else if (typeof chunks !== "number" || !Number.isSafeInteger(chunks) || chunks < 0)
+      throw new Error("The workspace returned an invalid chunks field.");
+  }
   const errors = value.errors;
   if (errors != null) {
     if (!Array.isArray(errors)) throw new Error("The workspace returned an invalid errors list.");
@@ -142,7 +148,6 @@ export function parsePayload(input: unknown): Payload {
   for (const key of [
     "blocks",
     "answer_blocks",
-    "chunks",
     "extracted_pages",
     "items",
     "documents",
