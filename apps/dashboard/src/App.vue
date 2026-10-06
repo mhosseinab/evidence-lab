@@ -31,6 +31,15 @@ onUnmounted(() => {
     <div class="main-shell">
       <WorkspaceHeader />
       <main id="main" tabindex="-1">
+        <div id="shared-workspace-notice" class="mode-banner">
+          <span class="banner-icon" aria-hidden="true">◈</span>
+          <div>
+            <strong>Shared workspace</strong>
+            <span
+              >Files are shared with all users in this workspace. Files are not private to your account.</span
+            >
+          </div>
+        </div>
         <div v-if="state.notice" id="global-notice" class="notice" role="alert">{{ state.notice }}</div>
         <div
           v-if="state.status?.embedding_space_matches === false"
