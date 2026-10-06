@@ -1,0 +1,80 @@
+name: Deploy dashboard
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-dashboard-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: cloudflare-pages
+    steps:
+      - name: Checkout the commit validated by CI
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.21.0'
+      - name: Install locked dashboard dependencies
+        run: |
+          npm install --global "$(node -p 'require("./package.json").packageManager')"
+          pnpm install --frozen-lockfile
+      - name: Build dashboard and stage Pages assets
+        run: |
+          pnpm --filter @evidence-lab/dashboard run build
+          mkdir -p "$RUNNER_TEMP/dashboard-pages/static"
+          cp -a apps/dashboard/dist/. "$RUNNER_TEMP/dashboard-pages/static/"
+          cp apps/dashboard/dist/index.html "$RUNNER_TEMP/dashboard-pages/index.html"
+          cp apps/dashboard/pages/_routes.json "$RUNNER_TEMP/dashboard-pages/_routes.json"
+      - name: Install pinned Wrangler CLI
+        run: npm install --prefix "$RUNNER_TEMP/cloudflare-cli" --no-audit --no-fund wrangler@4.147.0
+      - name: Skip superseded commits
+        id: current
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          node --input-type=module <<'JS'
+          import { appendFileSync } from 'node:fs';
+          const response = await fetch(`${process.env.GITHUB_API_URL}/repos/${process.env.GITHUB_REPOSITORY}/git/ref/heads/main`, {
+            headers: { Authorization: `Bearer ${process.env.GH_TOKEN}`, Accept: 'application/vnd.github+json' },
+          });
+          if (!response.ok) throw new Error(`Cannot verify main branch: HTTP ${response.status}`);
+          const ref = await response.json();
+          const current = ref.object.sha === process.env.DEPLOY_SHA;
+          appendFileSync(process.env.GITHUB_OUTPUT, `current=${current}\n`);
+          if (!current) console.log('Skipping a commit superseded on main.');
+          JS
+      - name: Deploy Pages assets and Functions
+        if: steps.current.outputs.current == 'true'
+        working-directory: apps/dashboard
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          : "${CLOUDFLARE_API_TOKEN:?Set the Cloudflare Pages API token secret}"
+          : "${CLOUDFLARE_ACCOUNT_ID:?Set the Cloudflare account ID variable}"
+          : "${CLOUDFLARE_PAGES_PROJECT:?Set the Pages project name variable}"
+          "$RUNNER_TEMP/cloudflare-cli/node_modules/.bin/wrangler" pages deploy \
+            "$RUNNER_TEMP/dashboard-pages" --project-name "$CLOUDFLARE_PAGES_PROJECT" \
+            --branch main --commit-hash "$DEPLOY_SHA"

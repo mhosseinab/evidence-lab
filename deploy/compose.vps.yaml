@@ -1,0 +1,62 @@
+name: evidence-lab-production
+
+x-app: &app
+  image: ${EVIDENCE_LAB_IMAGE:?An immutable GHCR digest is required}
+  init: true
+  volumes:
+    - type: bind
+      source: ${EVIDENCE_LAB_DEPLOY_ROOT:?A deployment directory is required}/runtime.yaml
+      target: /app/configs/runtime.yaml
+      read_only: true
+      bind:
+        create_host_path: false
+    - artifacts:/app/artifacts
+    - policies:/app/policies
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.2-pg17-bookworm@sha256:feb68f4f15446397d8cac7f4fe48fe4586de83160d1fc48b46283312d1a33966
+    environment:
+      POSTGRES_DB: evidence_lab
+      POSTGRES_USER: evidence
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set the existing database password in the private VPS .env}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evidence -d evidence_lab"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    <<: *app
+    command: ["evidence-lab", "migrate", "--config", "/app/configs/runtime.yaml"]
+    restart: "no"
+
+  api:
+    <<: *app
+    environment:
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:?Set the trusted reverse proxy addresses in the private VPS .env}
+    command: ["evidence-lab", "serve", "--config", "/app/configs/runtime.yaml", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  worker:
+    <<: *app
+    command: ["evidence-lab", "worker", "--config", "/app/configs/runtime.yaml"]
+    restart: unless-stopped
+    stop_grace_period: 60s
+
+volumes:
+  postgres:
+  artifacts:
+  policies:

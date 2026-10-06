@@ -11,6 +11,10 @@ configs/*.yaml
 !configs/*.example.yaml
 configs/secrets
 .env
+**/.env
+**/.env.*
+**/node_modules
+**/dist
 artifacts
 build
 dist

@@ -79,6 +79,8 @@ jobs:
           uv pip check
       - name: Lint and test both apps
         run: task check
+      - name: Check VPS deployment failure paths
+        run: .venv/bin/python deploy/test_deploy_vps.py
       - name: Require complete test coverage
         run: |
           .venv/bin/python - <<'PY'

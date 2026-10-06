@@ -10,6 +10,7 @@ charts, configuration variables and Cloudflare Clef activation.
 | [Experiments](experiments.md) | Repeatability and API load measurement commands |
 | [Approved plan](implementation-plan.md) | Original design and evaluation requirements; current behavior is documented in the guides above |
 | [Container pins](container-images.json) | Recorded image digests and their sources |
+| [Deployment](deployment.md) | Cloudflare Pages dashboard and GHCR-backed VPS deployment |
 | [Provider integrations](../apps/evidence-lab/src/evidence_lab/providers/README.md) | Guarded OpenAI SDK transport and the Clef verification tool |
 | [Configurations](../configs/README.md) | Sample selection, credentials and Clef activation |
 

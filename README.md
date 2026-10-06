@@ -10,6 +10,9 @@ See the [documentation index](docs/README.md) and [Cloudflare Clef activation](#
 
 Names: CLI/distribution `evidence-lab`, Python package `evidence_lab`, frontend `@evidence-lab/dashboard`, Compose project `evidence-lab`, image `evidence-lab:local`. The checkout may remain `rag-poc`. Deployments use `evidence_*` tables and `EVIDENCE_LAB_*` environment variables.
 
+For GitHub Actions deployment to Cloudflare Pages and a GHCR-backed VPS, see
+[deployment setup](docs/deployment.md).
+
 ```text
 .
 ├── apps/
