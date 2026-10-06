@@ -20,6 +20,13 @@ def mock_data():
     return yaml.safe_load((PROJECT / "configs/mock.yaml").read_text())
 
 
+def test_verified_release_mode_loads_from_yaml(tmp_path, mock_data):
+    mock_data["verification"]["mode"] = "verified"
+    path = tmp_path / "verified.yaml"
+    path.write_text(yaml.safe_dump(mock_data))
+    assert load_config(path).verification.mode == "verified"
+
+
 @pytest.fixture
 def live_data(mock_data):
     data = copy.deepcopy(mock_data)

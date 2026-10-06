@@ -112,8 +112,11 @@ def semantic_policy_fingerprint(config) -> str:
 def policy_state(config) -> dict:
     """Mock qualification is never transferable to live mode."""
     if config.runtime.mode == "mock":
-        return {"state": "fixture_only", "release_allowed": config.verification.mode == "gated",
+        return {"state": "fixture_only", "release_allowed": config.verification.mode in {"verified", "gated"},
                 "qualified": False, "reason": "Deterministic fixtures test plumbing, not model quality."}
+    if config.verification.mode == "verified":
+        return {"state": "verified", "release_allowed": True, "qualified": False,
+                "reason": "Automatic release after passing all checks; policy quality is not qualified."}
     if config.verification.mode != "gated":
         return {"state": config.verification.mode, "release_allowed": False,
                 "qualified": False, "reason": "Candidate policy; drafts are diagnostic only."}

@@ -180,7 +180,7 @@ class RetrievalConfig(_StrictConfig):
 
 
 class VerificationConfig(_StrictConfig):
-    mode: Literal["shadow", "evaluation", "gated"] = "shadow"
+    mode: Literal["shadow", "evaluation", "verified", "gated"] = "shadow"
     policy_id: str | None = None
     policy_path: str | None = None
     score_threshold: float | None = Field(default=None, ge=0, le=1)

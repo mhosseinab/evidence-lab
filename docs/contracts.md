@@ -8,6 +8,15 @@ both forms and refreshes documents after observing a terminal ingestion job.
 
 ## Operator approval
 
+`verification.mode=verified` enables automatic publication only after all normal
+structural and semantic checks pass, including hash/round/coverage and configured
+score-threshold checks. Live policy status is `state=verified`,
+`release_allowed=true`, `qualified=false`; published runs retain
+`qualification=verified`. Mock runs retain `fixture_only` provenance. No
+qualification artifact is required in this mode. Provider/schema errors and failed
+checks still cannot publish an answer. `shadow`, `evaluation` and qualified `gated`
+behavior remain unchanged; this setting does not republish historical runs.
+
 `POST /api/runs/{run_id}/operator-release` accepts only
 `{"action":"release"|"revoke","reason":"nonempty operator explanation"}` and
 returns the updated public run directly. It requires a configured operator bearer

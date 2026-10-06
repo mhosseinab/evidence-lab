@@ -33,6 +33,14 @@ function workspace(component: Component) {
 }
 
 describe("answer release boundary", () => {
+  it("labels automatically verified answers without claiming policy qualification", async () => {
+    const { state, wrapper } = workspace(AnswerPanel);
+    state.run = { status: "answered", mode: "live", qualification: "verified", answer: "Checked answer" };
+    await flushPromises();
+    expect(wrapper.get("#run-answer").text()).toContain("Checked answer");
+    expect(wrapper.get("#run-meta").text()).toContain("Checks passed · Policy unqualified");
+    expect(wrapper.find("#operator-approved-label").exists()).toBe(false);
+  });
   it.each([
     "running",
     "failed",

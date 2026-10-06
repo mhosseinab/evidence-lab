@@ -269,6 +269,48 @@ def test_shadow_policy_keeps_draft_only_in_operator_diagnostics(monkeypatch):
     assert "draft" not in public_run(store.data)
 
 
+def test_verified_mode_releases_live_answer_without_claiming_qualification(monkeypatch):
+    cfg = load_config("configs/mock.yaml")
+    cfg.runtime.mode = "live"
+    cfg.verification.mode = "verified"
+    state = policy_state(cfg)
+    assert state["release_allowed"] is True and state["qualified"] is False
+    store = ObservingStore()
+    hub = ScriptedHub(store)
+    result, _ = run_engine(monkeypatch, store, hub, config=cfg)
+    assert result["status"] == "answered"
+    assert store.data["qualification"] == "verified"
+    assert public_run(store.data)["answer"] == draft().render()
+    assert all(public_run(row)["answer"] is None for row in store.history[:-1])
+
+
+@pytest.mark.parametrize("failure", ["unsupported", "incomplete", "generation", "verification"])
+def test_verified_mode_never_releases_failed_checks_or_provider_errors(monkeypatch, failure):
+    cfg = load_config("configs/mock.yaml")
+    cfg.runtime.mode = "live"
+    cfg.verification.mode = "verified"
+    store = ObservingStore()
+    hub = ScriptedHub(store)
+    if failure == "unsupported":
+        hub.results = [lambda answer, pack, round_id: verdict(answer, pack, round_id, rejected=("b1",))]
+    elif failure == "incomplete":
+        def incomplete(answer, pack, round_id):
+            result = verdict(answer, pack, round_id)
+            result.checks.pop()
+            return result
+        hub.results = [incomplete]
+    elif failure == "verification":
+        hub.results = [ProviderError("invalid_response", "Invalid verification")]
+    else:
+        async def invalid_generation(*args, **kwargs):
+            raise ProviderError("invalid_response", "Provider answer failed schema validation")
+        monkeypatch.setattr(hub, "generate", invalid_generation)
+    result, _ = run_engine(monkeypatch, store, hub, config=cfg)
+    assert result["status"] != "answered"
+    assert public_run(store.data)["answer"] is None
+    assert all(public_run(row)["answer"] is None for row in store.history)
+
+
 def test_unknown_citation_fails_before_any_semantic_call(monkeypatch):
     invalid = draft()
     invalid.blocks[0].citation_ids = ["foreign"]

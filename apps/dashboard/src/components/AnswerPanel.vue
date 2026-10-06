@@ -36,6 +36,7 @@ const blocks = computed(() =>
 const metadata = computed(() => {
   const values = [`Run ${shortId(state.runId)}`];
   const current = run.value;
+  if (current.qualification === "verified") values.push("Checks passed · Policy unqualified");
   const elapsed =
     current.elapsed_seconds ??
     current.duration_seconds ??

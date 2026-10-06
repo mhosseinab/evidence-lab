@@ -356,7 +356,7 @@ task app:migrate CONFIG=configs/private.yaml
 task dev CONFIG=configs/private.yaml
 ```
 
-Use a new corpus when switching from fixture embeddings. In `shadow` mode, checked candidates appear only in the operator trace; public answers require a matching qualification artifact and `verification.mode: gated`. Restart API/worker after changing verifier settings.
+Use a new corpus when switching from fixture embeddings. In `shadow` mode, checked candidates appear only in the operator trace. Set `verification.mode: verified` to automatically publish answers after every check passes, without claiming policy qualification. Use `verification.mode: gated` with a matching qualification artifact for evaluated release. Restart API/worker after changing verifier settings.
 
 ## Bring your own key (BYOK)
 
@@ -453,6 +453,14 @@ Schema: [config.py](apps/evidence-lab/src/evidence_lab/config.py). Select YAML w
 
 Strict UTF-8 YAML, ≤1 MiB. Unknown/duplicate keys, wrong types and non-finite values fail validation. Required fields have no default; `null` means unset.
 
+The tables below cover every application YAML field. Enum values are listed
+explicitly; numeric fields accept values within their documented bounds. Boolean
+fields accept YAML `true` and `false`: `true` enables the described behavior,
+`false` disables it. Strings and mappings use the stated format rather than a
+fixed list of values. Only fields described as optional accept `null`; omitting a
+field uses its default. Credential environment references are explicit
+`api_key_env` settings, not `${...}` interpolation throughout the YAML.
+
 | Root field | Default | Meaning |
 | --- | --- | --- |
 | `config_version` | `1` | Only schema version `1` is supported. |
@@ -519,7 +527,7 @@ Retention runs through explicit CLI `cleanup`; it is not scheduled automatically
 | `retrieval.rrf_constant` | `60` | Reciprocal rank fusion constant; integer ≥1. |
 | `retrieval.evidence_chunks` | `8` | Maximum selected evidence chunks; 1–64, further constrained by context packing. |
 | `retrieval.search_mode` | `exact` | Only exact vector search is supported. |
-| `verification.mode` | `shadow` | `shadow`, `evaluation` or `gated`; see the answer-release flow. |
+| `verification.mode` | `shadow` | `shadow`, `evaluation`, `verified` or `gated`; `verified` auto-releases checked answers without policy qualification. |
 | `verification.policy_id` | `null` | Identifier of the selected qualification policy. |
 | `verification.policy_path` | `null` | Path to its qualification artifact. Setting an ID/path alone does not qualify a live gate. |
 | `verification.score_threshold` | `null` | Optional scalar verifier threshold; 0–1. |
@@ -528,6 +536,23 @@ Retention runs through explicit CLI `cleanup`; it is not scheduled automatically
 | `verification.max_repair_bytes` | `16384` | Repair payload size limit in bytes; 512–128000. |
 | `verification.max_content_repairs` | `1` | Content repair count; 0 or 1. |
 | `verification.evidence_policy` | `frozen` | Only frozen evidence is supported; repair uses the original evidence pack. |
+
+Every verification mode still runs structural and semantic checks before deciding
+whether to publish. These are the complete supported mode values:
+
+| `verification.mode` value | Publication behavior |
+| --- | --- |
+| `shadow` | Keep checked candidates in operator diagnostics. A signed-in operator may approve an individual passing run. Default for live setup. |
+| `evaluation` | Keep interactive candidates diagnostic-only, like `shadow`; this value does not automatically start an evaluation study. Use evaluation jobs or CLI commands to run a study. |
+| `verified` | Automatically publish each answer after all required checks pass. Does not require a qualification artifact or claim evaluated model quality. Failed checks and technical errors still block release. |
+| `gated` | In live mode, require a matching qualified policy artifact before inference and release. In mock mode, passing deterministic fixture answers may publish, explicitly labeled as fixtures. |
+
+`verification.max_content_repairs: 0` disables content repair; `1` allows one
+repair after a complete semantic rejection, followed by all checks again. It does
+not repair provider/schema failures. `score_threshold: null` uses categorical
+verdicts; a number from `0` to `1` additionally requires every check to report a
+score meeting that threshold. `evidence_policy: frozen` is the only supported
+value: repairs cannot replace the retrieved evidence.
 
 ### Budgets and evaluation
 
@@ -595,6 +620,26 @@ Replace `<name>` with a profile key.
 | `pricing.output_usd_per_million` | `0` | Nonnegative USD per million output tokens. |
 | `pricing.checked_on` | Required | Quoted ISO date string `YYYY-MM-DD`; record when the operator checked the price. |
 
+The complete protocol and chat capability choices are:
+
+| Field and value | Behavior |
+| --- | --- |
+| `protocol: embeddings` | OpenAI-compatible embedding requests and vector responses; used by the embeddings role. PostgreSQL/pgvector stores and searches those vectors. |
+| `protocol: chat_completions` | OpenAI-compatible chat requests; used for generation, repair or JSON-based verification. |
+| `protocol: cloudflare_clef` | Native Cloudflare Clef verification requests and verdicts, not a chat-completions adapter. Requires `runtime.require_openai_compatible: false`; model is `clef` or `clef-flash`. |
+| `capabilities.structured_output: json_schema` | Send the strict answer/verification JSON schema through the provider's structured-response format. |
+| `capabilities.structured_output: json_object` | Request a JSON object; validate the returned object against the application schema. |
+| `capabilities.structured_output: text_json` | Request JSON through the prompt without a structured-response format parameter; still enforce the same application schema. |
+| `capabilities.output_limit_parameter: max_completion_tokens` | Send the configured output ceiling using the `max_completion_tokens` request field. |
+| `capabilities.output_limit_parameter: max_tokens` | Send the configured output ceiling using the `max_tokens` request field. |
+
+These capabilities must match the actual endpoint. Selecting `json_schema` does
+not make an unsupported endpoint implement it. `capabilities.temperature: false`
+omits that request parameter; `true` sends zero temperature. `request_dimensions:
+false` omits the embeddings dimension parameter; `true` requests the configured
+dimension count. `token_counting: conservative_utf8_bytes` is the only counting
+method, and `retrieval.search_mode: exact` is the only search mode.
+
 Active live profiles require exactly one credential source and a nonempty printable ASCII key. Mock mode ignores model credential references; explicitly enabled LangSmith resolves its selected tracing key. `api_key_file` resolves relative to the YAML file; dataset, policy and output paths resolve from the working directory.
 
 ### Conversation memory and LangSmith
@@ -649,6 +694,17 @@ pending corpus dependencies cannot be determined safely.
 ## What the release gate enforces
 
 The release flow above checks citations, every answer block and `global.task_scope`, `global.internal_consistency`, `global.counterevidence`. Verdicts bind to answer/evidence hashes and round IDs.
+
+For automatic release after these checks, configure:
+
+```yaml
+verification:
+  mode: verified
+```
+
+This mode retains the configured score threshold, repair limit and all failure
+guards. Live answers are labeled as checked under an unqualified policy. It
+applies to new queries; historical failed or shadow runs are unchanged.
 
 Incomplete verification is a technical failure. Public endpoints hide drafts; documents and model output render as text without tools or instruction execution.
 
